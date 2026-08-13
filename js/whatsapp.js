@@ -58,17 +58,30 @@ function formatWhatsAppOrderMessage(order, settings) {
 }
 
 function generateWhatsAppLink(order, settings) {
-  let targetPhone = settings.whatsappPhone || '17875550199';
-  // Strip non-digit characters
+  let targetPhone = settings.whatsappPhone || '19393120599';
   targetPhone = targetPhone.replace(/\D/g, '');
-  
   const textMessage = formatWhatsAppOrderMessage(order, settings);
   const encodedText = encodeURIComponent(textMessage);
-  
   return `https://wa.me/${targetPhone}?text=${encodedText}`;
+}
+
+async function sendDirectWhatsAppNotification(order, settings) {
+  const waUrl = generateWhatsAppLink(order, settings);
+  try {
+    if (settings.callMeBotApiKey) {
+      const targetPhone = (settings.whatsappPhone || '19393120599').replace(/\D/g, '');
+      const msg = encodeURIComponent(formatWhatsAppOrderMessage(order, settings));
+      const apiEndpoint = `https://api.callmebot.com/whatsapp.php?phone=+${targetPhone}&text=${msg}&apikey=${settings.callMeBotApiKey}`;
+      fetch(apiEndpoint, { mode: 'no-cors' }).catch(() => {});
+    }
+  } catch (e) {
+    console.log('Direct notification error:', e);
+  }
+  return waUrl;
 }
 
 window.VerstailWhatsApp = {
   formatWhatsAppOrderMessage,
-  generateWhatsAppLink
+  generateWhatsAppLink,
+  sendDirectWhatsAppNotification
 };
