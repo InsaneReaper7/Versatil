@@ -135,7 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- HERO SECTION WITH PROMINENT CENTRAL CLIENT LOGO -->
       <section class="hero-section">
         <div class="hero-logo-wrapper">
-          <img src="assets/images/logo.jpg" alt="Versátil Logo Official" class="hero-central-logo" />
+          <div class="hero-logo-badge">
+            <img src="assets/images/logo.jpg" alt="Versátil Logo Official" class="hero-central-logo" />
+          </div>
         </div>
 
         <div class="hero-pill">
