@@ -309,7 +309,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isMegaTe = product.category === 'mega-te';
 
     activeCustomizerState = {
-      mode: isMegaTe ? 'personaliza' : 'original', // Mega Té has no original option, forces build-your-own
+      mode: isMegaTe ? 'personaliza' : 'original',
       size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : '32 oz',
       flavors: product.flavors && product.flavors.length > 0 ? [product.flavors[0]] : [],
       ingredients: [...(product.baseIngredients || [])],
@@ -317,15 +317,22 @@ document.addEventListener('DOMContentLoaded', () => {
       quantity: 1
     };
 
-    renderCustomizerModalHTML();
+    renderCustomizerModalHTML(true); // Full initial render
   };
 
-  function renderCustomizerModalHTML() {
+  function renderCustomizerModalHTML(isFullRender = false) {
     const prod = activeModalProduct;
     const state = activeCustomizerState;
     if (!prod) return;
 
     const isMegaTe = prod.category === 'mega-te';
+    let existingModal = document.getElementById('customizer-modal');
+
+    // If modal already exists and this is an in-place update, just sync targeted summary nodes & classes
+    if (existingModal && !isFullRender) {
+      updateCustomizerSummaryDOM();
+      return;
+    }
 
     const modalHTML = `
       <div class="modal-backdrop open" id="customizer-modal">
@@ -344,18 +351,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
           ${isMegaTe ? `
             <div style="background: rgba(64, 139, 234, 0.15); border: 1px solid var(--primary); padding: 0.6rem 1rem; border-radius: var(--radius-full); text-align: center; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem; font-size: 0.88rem;">
-              ✨ Bebida 100% Personalizada (Máximo 3 Frutas: ${state.flavors.length}/3)
+              ✨ Bebida 100% Personalizada (<span id="mega-te-counter-badge">Máximo 3 Frutas: ${state.flavors.length}/3</span>)
             </div>
           ` : `
             <!-- MODE SELECTOR: ORIGINAL VS PERSONALIZA FOR OTHER PRODUCTS -->
             <div>
               <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.4rem;">¿CÓMO LO QUIERES?</div>
               <div class="option-mode-grid">
-                <div class="mode-choice-card ${state.mode === 'original' ? 'selected' : ''}" onclick="setCustomizerMode('original')">
+                <div class="mode-choice-card ${state.mode === 'original' ? 'selected' : ''}" id="mode-btn-original" onclick="setCustomizerMode('original')">
                   <div class="mode-choice-title">ORIGINAL</div>
                   <div class="mode-choice-sub">"Disfrútalo como viene"</div>
                 </div>
-                <div class="mode-choice-card ${state.mode === 'personaliza' ? 'selected' : ''}" onclick="setCustomizerMode('personaliza')">
+                <div class="mode-choice-card ${state.mode === 'personaliza' ? 'selected' : ''}" id="mode-btn-personaliza" onclick="setCustomizerMode('personaliza')">
                   <div class="mode-choice-title">PERSONALIZA</div>
                   <div class="mode-choice-sub">"Hazlo a tu manera"</div>
                 </div>
@@ -363,79 +370,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           `}
 
-          ${state.mode === 'original' && !isMegaTe ? `
-            <div style="background: var(--bg-surface-dark); padding: 1rem; border-radius: var(--radius-md);">
-              <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--accent-green);">
-                ✓ Receta Original Incluye:
-              </div>
-              <ul style="padding-left: 1.25rem; font-size: 0.88rem; color: var(--text-secondary);">
-                ${prod.baseIngredients.map(i => `<li>${i}</li>`).join('')}
-              </ul>
-            </div>
-          ` : `
-            <!-- SIZES -->
-            ${prod.sizes && prod.sizes.length > 1 ? `
-              <div>
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">TAMAÑO</label>
-                <div class="ingredient-list">
-                  ${prod.sizes.map(sz => `
-                    <div class="flavor-chip ${state.size === sz ? 'selected' : ''}" onclick="setCustomizerSize('${sz}')">
-                      ${sz}
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            ` : ''}
-
-            <!-- FLAVORS -->
-            ${prod.flavors && prod.flavors.length > 0 ? `
-              <div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-                  <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">FRUTAS / SABORES DISPONIBLES</label>
-                  ${isMegaTe ? `<span style="font-size: 0.78rem; font-weight: 800; color: var(--primary);">${state.flavors.length}/3 Seleccionados</span>` : ''}
-                </div>
-                <div class="ingredient-list" style="max-height: 200px; overflow-y: auto; padding-right: 0.3rem;">
-                  ${prod.flavors.map(flv => `
-                    <div class="flavor-chip ${state.flavors.includes(flv) ? 'selected' : ''}" onclick="toggleCustomizerFlavor('${flv}')">
-                      ${state.flavors.includes(flv) ? '✓' : '+'} ${flv}
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            ` : ''}
-
-            <!-- INGREDIENTS TOGGLE -->
-            <div>
-              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">INGREDIENTES INCLUIDOS EN LA BASE</label>
-              <div class="ingredient-list">
-                ${prod.baseIngredients.map(ing => `
-                  <div class="ingredient-chip ${state.ingredients.includes(ing) ? 'active' : ''}" onclick="toggleCustomizerIngredient('${ing}')">
-                    ${state.ingredients.includes(ing) ? '✓' : '+'} ${ing}
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-
-            <!-- EXTRAS -->
-            ${prod.extras && prod.extras.length > 0 ? `
-              <div>
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">EXTRAS OPCIONALES</label>
-                <div class="ingredient-list">
-                  ${prod.extras.map(ext => `
-                    <div class="ingredient-chip ${state.extras.includes(ext) ? 'active' : ''}" onclick="toggleCustomizerExtra('${ext}')">
-                      ${state.extras.includes(ext) ? '✓' : '+'} ${ext}
-                    </div>
-                  `).join('')}
-                </div>
-              </div>
-            ` : ''}
-          `}
+          <div id="customizer-options-container">
+            ${renderCustomizerOptionsContentHTML()}
+          </div>
 
           <!-- LIVE SUMMARY BOX -->
           <div class="live-summary-box">
             <div class="summary-title">Resumen de tu Orden</div>
-            <div style="font-size: 0.95rem; font-weight: 700;">${prod.name} (${state.size})</div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);">
+            <div style="font-size: 0.95rem; font-weight: 700;" id="summary-title-text">${prod.name} (<span id="summary-size-text">${state.size}</span>)</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);" id="summary-flavors-text">
               ${state.flavors.length > 0 ? `Frutas/Sabores: ${state.flavors.join(', ')}` : 'Sin frutas seleccionadas'}
               ${state.extras.length > 0 ? ` | Extras: ${state.extras.join(', ')}` : ''}
             </div>
@@ -443,7 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
               <div class="qty-counter">
                 <button class="qty-btn" onclick="updateCustomizerQty(-1)">-</button>
-                <span style="font-weight: 800;">${state.quantity}</span>
+                <span style="font-weight: 800;" id="summary-qty-text">${state.quantity}</span>
                 <button class="qty-btn" onclick="updateCustomizerQty(1)">+</button>
               </div>
 
@@ -456,10 +399,114 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Inject modal into document body if not present
-    let existingModal = document.getElementById('customizer-modal');
     if (existingModal) existingModal.remove();
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+  }
+
+  function renderCustomizerOptionsContentHTML() {
+    const prod = activeModalProduct;
+    const state = activeCustomizerState;
+    const isMegaTe = prod.category === 'mega-te';
+
+    if (state.mode === 'original' && !isMegaTe) {
+      return `
+        <div style="background: var(--bg-surface-dark); padding: 1rem; border-radius: var(--radius-md);">
+          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--accent-green);">
+            ✓ Receta Original Incluye:
+          </div>
+          <ul style="padding-left: 1.25rem; font-size: 0.88rem; color: var(--text-secondary);">
+            ${prod.baseIngredients.map(i => `<li>${i}</li>`).join('')}
+          </ul>
+        </div>
+      `;
+    }
+
+    return `
+      <!-- SIZES -->
+      ${prod.sizes && prod.sizes.length > 1 ? `
+        <div style="margin-bottom: 0.9rem;">
+          <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">TAMAÑO</label>
+          <div class="ingredient-list">
+            ${prod.sizes.map(sz => `
+              <div class="flavor-chip ${state.size === sz ? 'selected' : ''}" data-size="${sz}" onclick="setCustomizerSize('${sz}', this)">
+                ${sz}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- FLAVORS -->
+      ${prod.flavors && prod.flavors.length > 0 ? `
+        <div style="margin-bottom: 0.9rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">FRUTAS / SABORES DISPONIBLES</label>
+            ${isMegaTe ? `<span style="font-size: 0.78rem; font-weight: 800; color: var(--primary);" id="mega-te-counter-header">${state.flavors.length}/3 Seleccionados</span>` : ''}
+          </div>
+          <div class="ingredient-list" style="max-height: 200px; overflow-y: auto; padding-right: 0.3rem;">
+            ${prod.flavors.map(flv => `
+              <div class="flavor-chip ${state.flavors.includes(flv) ? 'selected' : ''}" data-flavor="${flv}" onclick="toggleCustomizerFlavor('${flv}', this)">
+                <span class="chip-icon">${state.flavors.includes(flv) ? '✓' : '+'}</span> ${flv}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- INGREDIENTS TOGGLE -->
+      <div style="margin-bottom: 0.9rem;">
+        <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">INGREDIENTES INCLUIDOS EN LA BASE</label>
+        <div class="ingredient-list">
+          ${prod.baseIngredients.map(ing => `
+            <div class="ingredient-chip ${state.ingredients.includes(ing) ? 'active' : ''}" data-ingredient="${ing}" onclick="toggleCustomizerIngredient('${ing}', this)">
+              <span class="chip-icon">${state.ingredients.includes(ing) ? '✓' : '+'}</span> ${ing}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- EXTRAS -->
+      ${prod.extras && prod.extras.length > 0 ? `
+        <div style="margin-bottom: 0.9rem;">
+          <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">EXTRAS OPCIONALES</label>
+          <div class="ingredient-list">
+            ${prod.extras.map(ext => `
+              <div class="ingredient-chip ${state.extras.includes(ext) ? 'active' : ''}" data-extra="${ext}" onclick="toggleCustomizerExtra('${ext}', this)">
+                <span class="chip-icon">${state.extras.includes(ext) ? '✓' : '+'}</span> ${ext}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+    `;
+  }
+
+  function updateCustomizerSummaryDOM() {
+    const state = activeCustomizerState;
+    if (!state) return;
+
+    const isMegaTe = activeModalProduct && activeModalProduct.category === 'mega-te';
+
+    const szText = document.getElementById('summary-size-text');
+    if (szText) szText.textContent = state.size;
+
+    const flvText = document.getElementById('summary-flavors-text');
+    if (flvText) {
+      let str = state.flavors.length > 0 ? `Frutas/Sabores: ${state.flavors.join(', ')}` : 'Sin frutas seleccionadas';
+      if (state.extras.length > 0) str += ` | Extras: ${state.extras.join(', ')}`;
+      flvText.textContent = str;
+    }
+
+    const qtyText = document.getElementById('summary-qty-text');
+    if (qtyText) qtyText.textContent = state.quantity;
+
+    if (isMegaTe) {
+      const badgeText = document.getElementById('mega-te-counter-badge');
+      if (badgeText) badgeText.textContent = `Máximo 3 Frutas: ${state.flavors.length}/3`;
+
+      const headerText = document.getElementById('mega-te-counter-header');
+      if (headerText) headerText.textContent = `${state.flavors.length}/3 Seleccionados`;
+    }
   }
 
   window.closeCustomizerModal = () => {
@@ -469,42 +516,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.setCustomizerMode = (mode) => {
     activeCustomizerState.mode = mode;
-    renderCustomizerModalHTML();
+    const container = document.getElementById('customizer-options-container');
+    if (container) {
+      container.innerHTML = renderCustomizerOptionsContentHTML();
+    }
+    const origBtn = document.getElementById('mode-btn-original');
+    const persBtn = document.getElementById('mode-btn-personaliza');
+    if (origBtn) origBtn.classList.toggle('selected', mode === 'original');
+    if (persBtn) persBtn.classList.toggle('selected', mode === 'personaliza');
+    updateCustomizerSummaryDOM();
   };
 
-  window.setCustomizerSize = (sz) => {
+  window.setCustomizerSize = (sz, el) => {
     activeCustomizerState.size = sz;
-    renderCustomizerModalHTML();
+    if (el) {
+      const parent = el.parentElement;
+      if (parent) {
+        parent.querySelectorAll('.flavor-chip').forEach(c => c.classList.remove('selected'));
+      }
+      el.classList.add('selected');
+    }
+    updateCustomizerSummaryDOM();
   };
 
-  window.toggleCustomizerFlavor = (flv) => {
+  window.toggleCustomizerFlavor = (flv, el) => {
     const isMegaTe = activeModalProduct && activeModalProduct.category === 'mega-te';
     const idx = activeCustomizerState.flavors.indexOf(flv);
     
     if (idx !== -1) {
       activeCustomizerState.flavors.splice(idx, 1);
+      if (el) {
+        el.classList.remove('selected');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '+';
+      }
     } else {
       if (isMegaTe && activeCustomizerState.flavors.length >= 3) {
         alert('Solo puedes seleccionar un máximo de 3 frutas por Mega Té.');
         return;
       }
       activeCustomizerState.flavors.push(flv);
+      if (el) {
+        el.classList.add('selected');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '✓';
+      }
     }
-    renderCustomizerModalHTML();
+    updateCustomizerSummaryDOM();
   };
 
-  window.toggleCustomizerIngredient = (ing) => {
+  window.toggleCustomizerIngredient = (ing, el) => {
     const idx = activeCustomizerState.ingredients.indexOf(ing);
-    if (idx !== -1) activeCustomizerState.ingredients.splice(idx, 1);
-    else activeCustomizerState.ingredients.push(ing);
-    renderCustomizerModalHTML();
+    if (idx !== -1) {
+      activeCustomizerState.ingredients.splice(idx, 1);
+      if (el) {
+        el.classList.remove('active');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '+';
+      }
+    } else {
+      activeCustomizerState.ingredients.push(ing);
+      if (el) {
+        el.classList.add('active');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '✓';
+      }
+    }
+    updateCustomizerSummaryDOM();
   };
 
-  window.toggleCustomizerExtra = (ext) => {
+  window.toggleCustomizerExtra = (ext, el) => {
     const idx = activeCustomizerState.extras.indexOf(ext);
-    if (idx !== -1) activeCustomizerState.extras.splice(idx, 1);
-    else activeCustomizerState.extras.push(ext);
-    renderCustomizerModalHTML();
+    if (idx !== -1) {
+      activeCustomizerState.extras.splice(idx, 1);
+      if (el) {
+        el.classList.remove('active');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '+';
+      }
+    } else {
+      activeCustomizerState.extras.push(ext);
+      if (el) {
+        el.classList.add('active');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '✓';
+      }
+    }
+    updateCustomizerSummaryDOM();
   };
 
   window.updateCustomizerQty = (delta) => {
@@ -615,8 +713,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <p class="step-desc">Combina tus sabores frutales favoritos (puedes seleccionar varios)</p>
           <div class="ingredient-list" style="max-height: 280px; overflow-y: auto; padding-right: 0.5rem;">
             ${window.VERSTAIL_FLAVORS.map(flv => `
-              <div class="flavor-chip ${wizardData.flavors.includes(flv) ? 'selected' : ''}" onclick="toggleWizardFlavor('${flv}')">
-                ${wizardData.flavors.includes(flv) ? '✓' : '+'} ${flv}
+              <div class="flavor-chip ${wizardData.flavors.includes(flv) ? 'selected' : ''}" onclick="toggleWizardFlavor('${flv}', this)">
+                <span class="chip-icon">${wizardData.flavors.includes(flv) ? '✓' : '+'}</span> ${flv}
               </div>
             `).join('')}
           </div>
@@ -627,8 +725,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <p class="step-desc">Añade beneficios de digestión y salud intestinal</p>
           <div class="ingredient-list">
             ${['Fibra Activa', 'Probiótico Boost', 'Miel de Agave'].map(ext => `
-              <div class="ingredient-chip ${wizardData.extras.includes(ext) ? 'active' : ''}" onclick="toggleWizardExtra('${ext}')">
-                ${wizardData.extras.includes(ext) ? '✓' : '+'} ${ext}
+              <div class="ingredient-chip ${wizardData.extras.includes(ext) ? 'active' : ''}" onclick="toggleWizardExtra('${ext}', this)">
+                <span class="chip-icon">${wizardData.extras.includes(ext) ? '✓' : '+'}</span> ${ext}
               </div>
             `).join('')}
           </div>
@@ -663,11 +761,23 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCustomMixWizardView();
   };
 
-  window.toggleWizardBase = (b) => {
+  window.toggleWizardBase = (b, el) => {
     const idx = wizardData.base.indexOf(b);
-    if (idx !== -1) wizardData.base.splice(idx, 1);
-    else wizardData.base.push(b);
-    renderCustomMixWizardView();
+    if (idx !== -1) {
+      wizardData.base.splice(idx, 1);
+      if (el) {
+        el.classList.remove('selected');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '+';
+      }
+    } else {
+      wizardData.base.push(b);
+      if (el) {
+        el.classList.add('selected');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '✓';
+      }
+    }
   };
 
   window.setWizardSize = (sz) => {
@@ -675,25 +785,46 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCustomMixWizardView();
   };
 
-  window.toggleWizardFlavor = (flv) => {
+  window.toggleWizardFlavor = (flv, el) => {
     const idx = wizardData.flavors.indexOf(flv);
     if (idx !== -1) {
       wizardData.flavors.splice(idx, 1);
+      if (el) {
+        el.classList.remove('selected');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '+';
+      }
     } else {
       if (wizardData.flavors.length >= 3) {
         alert('Solo puedes seleccionar un máximo de 3 frutas por mezcla.');
         return;
       }
       wizardData.flavors.push(flv);
+      if (el) {
+        el.classList.add('selected');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '✓';
+      }
     }
-    renderCustomMixWizardView();
   };
 
-  window.toggleWizardExtra = (ext) => {
+  window.toggleWizardExtra = (ext, el) => {
     const idx = wizardData.extras.indexOf(ext);
-    if (idx !== -1) wizardData.extras.splice(idx, 1);
-    else wizardData.extras.push(ext);
-    renderCustomMixWizardView();
+    if (idx !== -1) {
+      wizardData.extras.splice(idx, 1);
+      if (el) {
+        el.classList.remove('active');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '+';
+      }
+    } else {
+      wizardData.extras.push(ext);
+      if (el) {
+        el.classList.add('active');
+        const icon = el.querySelector('.chip-icon');
+        if (icon) icon.textContent = '✓';
+      }
+    }
   };
 
   window.updateWizardQty = (delta) => {
