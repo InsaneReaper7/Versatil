@@ -277,15 +277,16 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderProductCardHTML(prod) {
     const showPrice = prod.showPublicPrice;
     const btnLabel = showPrice ? `🍹 Ordenar — $${Number(prod.publicPrice).toFixed(2)}` : `🍹 Ordenar`;
+    const hasImage = prod.image && prod.image.trim();
 
     return `
-      <div class="product-card">
+      <div class="product-card ${hasImage ? 'has-prod-image' : ''}" style="${hasImage ? `background-image: url('${prod.image.trim()}');` : ''}">
         <div class="product-image-container">
-          ${prod.image ? `
-            <img src="${prod.image}" alt="${prod.name}" class="product-image" />
+          ${hasImage ? `
+            <img src="${prod.image.trim()}" alt="${prod.name}" class="product-image" />
           ` : `
             <div class="product-badge-placeholder">
-              <span>${getCategoryIcon(prod.category)}</span>
+              <span style="font-size: 2.5rem;">${getCategoryIcon(prod.category)}</span>
               <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Versátil Craft</div>
             </div>
           `}

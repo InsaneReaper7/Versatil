@@ -569,16 +569,15 @@ button {
   .products-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-}
-
-.product-card {
+  .product-card {
   background: var(--bg-card-dark);
-  border: 1px solid var(--glass-border);
+  border: 1.5px solid var(--glass-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .product-card:hover {
@@ -587,15 +586,27 @@ button {
   box-shadow: 0 12px 30px rgba(64, 139, 234, 0.25);
 }
 
+.product-card.has-prod-image {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border-color: rgba(64, 139, 234, 0.5);
+  min-height: 380px;
+}
+
 .product-image-container {
   position: relative;
   width: 100%;
-  height: 200px;
+  height: 220px;
   background: var(--bg-surface-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+.product-card.has-prod-image .product-image-container {
+  background: transparent;
 }
 
 .product-image {
@@ -623,10 +634,13 @@ button {
   background: var(--primary);
   color: white;
   font-weight: 800;
-  font-size: 0.7rem;
-  padding: 4px 10px;
+  font-size: 0.72rem;
+  padding: 4px 12px;
   border-radius: var(--radius-full);
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 2;
 }
 
 .product-info {
@@ -634,6 +648,15 @@ button {
   display: flex;
   flex-direction: column;
   flex-grow: 1;
+  background: var(--bg-card-dark);
+  transition: background 0.2s ease;
+}
+
+.product-card.has-prod-image .product-info {
+  background: rgba(10, 15, 29, 0.78);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .product-category-tag {
@@ -645,11 +668,21 @@ button {
   margin-bottom: 0.25rem;
 }
 
+.product-card.has-prod-image .product-category-tag {
+  color: #60A5FA !important;
+  opacity: 1 !important;
+}
+
 .product-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
+}
+
+.product-card.has-prod-image .product-title {
+  color: #FFFFFF !important;
+  opacity: 1 !important;
 }
 
 .product-desc {
@@ -657,6 +690,13 @@ button {
   font-size: 0.88rem;
   margin-bottom: 1.25rem;
   flex-grow: 1;
+}
+
+.product-card.has-prod-image .product-desc {
+  color: rgba(255, 255, 255, 0.92) !important;
+  opacity: 1 !important;
+  font-weight: 500;
+};
 }
 
 .product-price-row {
