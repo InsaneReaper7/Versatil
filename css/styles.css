@@ -540,7 +540,9 @@ button {
   .products-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .product-card {
+}
+
+.product-card {
   background: var(--bg-card-dark);
   border: 1.5px solid var(--glass-border);
   border-radius: var(--radius-lg);
