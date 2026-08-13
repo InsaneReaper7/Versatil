@@ -322,6 +322,11 @@ class Store {
     }
   }
 
+  deleteOrder(orderId) {
+    this.orders = this.orders.filter(o => o.id !== orderId);
+    this.save(STORAGE_KEYS.ORDERS, this.orders);
+  }
+
   // --- SETTINGS ---
   getSettings() { return this.settings; }
   updateSettings(newSettings) {

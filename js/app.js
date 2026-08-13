@@ -125,6 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // CUSTOMER VIEWS
   // ==========================================================================
 
+  function getCategoryImage(cat) {
+    if (cat.image && cat.image.trim()) return cat.image.trim();
+    const prods = store.getProducts();
+    const match = prods.find(p => p.category === cat.id && p.image && p.image.trim());
+    return match ? match.image.trim() : '';
+  }
+
   // --- HOMEPAGE VIEW ---
   function renderHomeView() {
     const categories = store.getCategories().filter(c => c.active);
@@ -174,16 +181,19 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="categories-grid">
-          ${categories.map(cat => `
-            <div class="category-card ${cat.id === 'custom-mix' ? 'special-mix-card' : ''} ${cat.image ? 'has-bg-img' : ''}" 
-                 style="${cat.image ? `background-image: url('${cat.image}');` : ''}" 
-                 onclick="navigateToCategory('${cat.id}')">
-              <div class="category-card-overlay">
-                <span class="category-icon">${cat.icon}</span>
-                <span class="category-name">${cat.name}</span>
+          ${categories.map(cat => {
+            const bgImg = getCategoryImage(cat);
+            return `
+              <div class="category-card ${cat.id === 'custom-mix' ? 'special-mix-card' : ''} ${bgImg ? 'has-bg-img' : ''}" 
+                   style="${bgImg ? `background-image: url('${bgImg}');` : ''}" 
+                   onclick="navigateToCategory('${cat.id}')">
+                <div class="category-card-overlay">
+                  <span class="category-icon">${cat.icon}</span>
+                  <span class="category-name">${cat.name}</span>
+                </div>
               </div>
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       </section>
 
@@ -1117,6 +1127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th>Cliente</th>
                 <th>Teléfono</th>
                 <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -1126,6 +1137,11 @@ document.addEventListener('DOMContentLoaded', () => {
                   <td>${o.customerName}</td>
                   <td>${o.customerPhone}</td>
                   <td><span class="badge-status active">${o.status}</span></td>
+                  <td>
+                    <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                      🗑️ Eliminar
+                    </button>
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
@@ -1470,8 +1486,8 @@ document.addEventListener('DOMContentLoaded', () => {
               <th>Fecha</th>
               <th>Cliente</th>
               <th>Teléfono</th>
-              <th>Modo</th>
               <th>Estado</th>
+              <th>Acciones</th>
             </tr>
           </thead>
           <tbody>
@@ -1481,14 +1497,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>${new Date(o.createdAt).toLocaleString()}</td>
                 <td>${o.customerName}</td>
                 <td>${o.customerPhone}</td>
-                <td>${o.fulfillment === 'delivery' ? '🛵 Delivery' : '🛍️ Pick-up'}</td>
                 <td>
-                  <select onchange="updateOrderStatusFromAdmin('${o.id}', this.value)" class="form-input" style="padding: 2px 6px; font-size: 0.85rem;">
+                  <select onchange="updateOrderStatusFromAdmin('${o.id}', this.value)" class="form-input" style="padding: 2px 6px; font-size: 0.85rem; width: auto;">
                     <option value="Pendiente" ${o.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
                     <option value="En Preparación" ${o.status === 'En Preparación' ? 'selected' : ''}>En Preparación</option>
                     <option value="Listo" ${o.status === 'Listo' ? 'selected' : ''}>Listo</option>
                     <option value="Entregado" ${o.status === 'Entregado' ? 'selected' : ''}>Entregado</option>
                   </select>
+                </td>
+                <td>
+                  <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                    🗑️ Eliminar
+                  </button>
                 </td>
               </tr>
             `).join('')}
@@ -1500,6 +1520,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.updateOrderStatusFromAdmin = (id, status) => {
     store.updateOrderStatus(id, status);
+  };
+
+  window.deleteOrderFromAdmin = (id) => {
+    if (confirm(`¿Eliminar permanentemente la orden #${id}?`)) {
+      store.deleteOrder(id);
+      renderAdminPortal();
+    }
   };
 
   // --- ADMIN SETTINGS (WHATSAPP CONFIGURATION) ---
