@@ -205,6 +205,28 @@ class Store {
     this.cart = this.load(STORAGE_KEYS.CART, []);
     this.orders = this.load(STORAGE_KEYS.ORDERS, []);
     this.listeners = [];
+
+    this.syncDefaults();
+  }
+
+  syncDefaults() {
+    let updated = false;
+    INITIAL_CATEGORIES.forEach(initCat => {
+      if (!this.categories.some(c => c.id === initCat.id)) {
+        this.categories.push(initCat);
+        updated = true;
+      }
+    });
+    INITIAL_PRODUCTS.forEach(initProd => {
+      if (!this.products.some(p => p.id === initProd.id)) {
+        this.products.push(initProd);
+        updated = true;
+      }
+    });
+    if (updated) {
+      this.save(STORAGE_KEYS.CATEGORIES, this.categories);
+      this.save(STORAGE_KEYS.PRODUCTS, this.products);
+    }
   }
 
   load(key, fallback) {

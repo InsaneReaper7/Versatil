@@ -1282,20 +1282,52 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modal) modal.remove();
   };
 
+  function compressAndResizeImage(file, callback) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 800;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        callback(compressedDataUrl);
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
   window.handleProductFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const dataUrl = evt.target.result;
+      compressAndResizeImage(file, (dataUrl) => {
         document.getElementById('p-image').value = dataUrl;
         const preview = document.getElementById('p-image-preview');
         if (preview) {
           preview.src = dataUrl;
           preview.style.display = 'block';
         }
-      };
-      reader.readAsDataURL(file);
+      });
     }
   };
 
@@ -1448,17 +1480,14 @@ document.addEventListener('DOMContentLoaded', () => {
   window.handleCategoryFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const dataUrl = evt.target.result;
+      compressAndResizeImage(file, (dataUrl) => {
         document.getElementById('c-image').value = dataUrl;
         const preview = document.getElementById('c-image-preview');
         if (preview) {
           preview.src = dataUrl;
           preview.style.display = 'block';
         }
-      };
-      reader.readAsDataURL(file);
+      });
     }
   };
 
