@@ -1343,14 +1343,34 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(file);
   }
 
+  async function uploadImageToServer(dataUrl) {
+    try {
+      const res = await fetch('/api/upload-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageBase64: dataUrl })
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.url) {
+          return json.url;
+        }
+      }
+    } catch (e) {
+      console.log('Server image upload fallback to DataURL:', e);
+    }
+    return dataUrl;
+  }
+
   window.handleProductFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      compressAndResizeImage(file, (dataUrl) => {
-        document.getElementById('p-image').value = dataUrl;
+      compressAndResizeImage(file, async (dataUrl) => {
+        const finalUrl = await uploadImageToServer(dataUrl);
+        document.getElementById('p-image').value = finalUrl;
         const preview = document.getElementById('p-image-preview');
         if (preview) {
-          preview.src = dataUrl;
+          preview.src = finalUrl;
           preview.style.display = 'block';
         }
       });
@@ -1506,11 +1526,12 @@ document.addEventListener('DOMContentLoaded', () => {
   window.handleCategoryFileSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
-      compressAndResizeImage(file, (dataUrl) => {
-        document.getElementById('c-image').value = dataUrl;
+      compressAndResizeImage(file, async (dataUrl) => {
+        const finalUrl = await uploadImageToServer(dataUrl);
+        document.getElementById('c-image').value = finalUrl;
         const preview = document.getElementById('c-image-preview');
         if (preview) {
-          preview.src = dataUrl;
+          preview.src = finalUrl;
           preview.style.display = 'block';
         }
       });

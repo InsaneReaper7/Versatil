@@ -5,21 +5,94 @@ import os
 import sys
 import json
 import urllib.request
+import base64
+import time
 
 PORT = int(os.environ.get("PORT", 8080))
 DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(DIRECTORY, "data")
+UPLOADS_DIR = os.path.join(DIRECTORY, "uploads")
+
+os.makedirs(DATA_DIR, exist_ok=True)
+os.makedirs(UPLOADS_DIR, exist_ok=True)
+
+DB_FILE = os.path.join(DATA_DIR, "db.json")
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
     def do_GET(self):
+        # Serve global store data from db.json
+        if self.path == '/api/data':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            if os.path.exists(DB_FILE):
+                try:
+                    with open(DB_FILE, 'r', encoding='utf-8') as f:
+                        self.wfile.write(f.read().encode('utf-8'))
+                        return
+                except Exception as e:
+                    print(f"Error reading DB: {e}")
+            self.wfile.write(json.dumps({}).encode('utf-8'))
+            return
+
         path = self.translate_path(self.path)
         if not os.path.exists(path) and not '.' in os.path.basename(self.path):
             self.path = '/index.html'
         return super().do_GET()
 
     def do_POST(self):
+        # Upload Image File to Project Uploads Folder
+        if self.path == '/api/upload-image':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                payload = json.loads(post_data.decode('utf-8'))
+                img_data = payload.get('imageBase64', '')
+                if ',' in img_data:
+                    header, b64_str = img_data.split(',', 1)
+                else:
+                    b64_str = img_data
+
+                img_bytes = base64.b64decode(b64_str)
+                filename = f"img_{int(time.time()*1000)}.jpg"
+                filepath = os.path.join(UPLOADS_DIR, filename)
+
+                with open(filepath, 'wb') as f:
+                    f.write(img_bytes)
+
+                public_url = f"uploads/{filename}"
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "url": public_url}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+            return
+
+        # Save Store Data to Global db.json
+        if self.path == '/api/data':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                with open(DB_FILE, 'w', encoding='utf-8') as f:
+                    f.write(post_data.decode('utf-8'))
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+            return
+
         if self.path == '/api/send-whatsapp':
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length)

@@ -207,6 +207,50 @@ class Store {
     this.listeners = [];
 
     this.syncDefaults();
+    this.fetchServerData();
+  }
+
+  async fetchServerData() {
+    try {
+      const res = await fetch('/api/data');
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.products && data.products.length > 0) {
+          this.products = data.products;
+          this.categories = data.categories || this.categories;
+          this.ingredients = data.ingredients || this.ingredients;
+          this.settings = data.settings || this.settings;
+          this.orders = data.orders || this.orders;
+
+          localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(this.products));
+          localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
+          localStorage.setItem(STORAGE_KEYS.INGREDIENTS, JSON.stringify(this.ingredients));
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(this.orders));
+
+          this.notify();
+        }
+      }
+    } catch (e) {
+      console.log('Offline/Local mode fallback:', e);
+    }
+  }
+
+  syncWithServer() {
+    try {
+      const state = {
+        products: this.products,
+        categories: this.categories,
+        ingredients: this.ingredients,
+        settings: this.settings,
+        orders: this.orders
+      };
+      fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state)
+      }).catch(() => {});
+    } catch (e) {}
   }
 
   syncDefaults() {
@@ -242,6 +286,7 @@ class Store {
     try {
       localStorage.setItem(key, JSON.stringify(data));
       this.notify();
+      this.syncWithServer();
     } catch (e) {
       console.error('Storage error:', e);
     }
