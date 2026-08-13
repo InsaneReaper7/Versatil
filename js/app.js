@@ -261,9 +261,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- PRODUCT CARD HTML HELPER ---
   function renderProductCardHTML(prod) {
-    const priceHTML = prod.showPublicPrice
-      ? `<span class="product-price-tag">$${Number(prod.publicPrice).toFixed(2)}</span>`
-      : `<span class="product-price-hidden">Precio disponible al ordenar</span>`;
+    const showPrice = prod.showPublicPrice;
+    const btnLabel = showPrice ? `🍹 Ordenar — $${Number(prod.publicPrice).toFixed(2)}` : `🍹 Ordenar`;
 
     return `
       <div class="product-card">
@@ -273,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ` : `
             <div class="product-badge-placeholder">
               <span>${getCategoryIcon(prod.category)}</span>
-              <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Verstail Craft</div>
+              <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Versátil Craft</div>
             </div>
           `}
           ${prod.featured ? `<span class="product-featured-badge">Destacado</span>` : ''}
@@ -282,15 +281,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <span class="product-category-tag">${prod.category.toUpperCase()}</span>
           <h3 class="product-title">${prod.name}</h3>
           <p class="product-desc">${prod.description || 'Deliciosa opción preparada con ingredientes de la más alta calidad.'}</p>
-          <div class="product-price-row">
-            ${priceHTML}
-            <div class="product-actions">
-              <button onclick="openProductCustomizer('${prod.id}')" class="btn-sm-customize">
-                ✨ Personalizar
-              </button>
-            </div>
-          </div>
         </div>
+        <button onclick="openProductCustomizer('${prod.id}')" class="btn-card-ordenar">
+          ${btnLabel}
+        </button>
       </div>
     `;
   }

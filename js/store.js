@@ -52,8 +52,8 @@ const INITIAL_INGREDIENTS = [
 const INITIAL_PRODUCTS = [
   {
     id: 'prod-mega-te-01',
-    name: 'Mega Té Signature',
-    slug: 'mega-te-signature',
+    name: 'Mega Té',
+    slug: 'mega-te',
     category: 'mega-te',
     description: 'Nuestra bebida energizante de 32 oz con infusión de Té, Aloe y Lift Off. Crea tu combinación eligiendo hasta 3 frutas.',
     image: '',
