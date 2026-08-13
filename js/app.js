@@ -1004,11 +1004,11 @@ document.addEventListener('DOMContentLoaded', () => {
             <form onsubmit="handleAdminLoginSubmit(event)">
               <div class="form-group" style="text-align: left;">
                 <label>Usuario *</label>
-                <input type="text" id="admin-user" class="form-input" required placeholder="Tibu o InsaneReaper7" />
+                <input type="text" id="admin-user" class="form-input" required placeholder="Ingresa tu usuario" autocomplete="username" />
               </div>
               <div class="form-group" style="text-align: left;">
                 <label>Contraseña *</label>
-                <input type="password" id="admin-pass" class="form-input" required placeholder="••••••••" />
+                <input type="password" id="admin-pass" class="form-input" required placeholder="••••••••" autocomplete="current-password" />
               </div>
               <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.25rem; padding: 0.85rem; justify-content: center;">
                 🔒 Iniciar Sesión
@@ -1027,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- SIDEBAR -->
         <div class="admin-sidebar">
           <div style="font-weight: 900; font-size: 1.2rem; color: #C4B5FD; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span>⚙️</span> Admin (${store.getAdminUsername()})
+            <span>⚙️</span> Administración
           </div>
           <a href="#admin/dashboard" class="admin-nav-item ${subRoute === 'dashboard' ? 'active' : ''}">📊 Dashboard</a>
           <a href="#admin/products" class="admin-nav-item ${subRoute === 'products' ? 'active' : ''}">🍹 Productos</a>
