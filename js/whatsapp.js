@@ -108,45 +108,7 @@ async function sendBackgroundWhatsAppNotification(order, settings) {
   const messageText = formatBareMinimumOrderMessage(order, settings);
   const targetPhone = (settings.whatsappPhone || '19393120599').replace(/\D/g, '');
 
-  // 1. Check CallMeBot API Key (Free, 30-sec setup, no Meta developer account needed!)
-  if (settings.callMeBotApiKey && settings.callMeBotApiKey.trim()) {
-    try {
-      const encodedMsg = encodeURIComponent(messageText);
-      const url = `https://api.callmebot.com/whatsapp.php?phone=+${targetPhone}&text=${encodedMsg}&apikey=${settings.callMeBotApiKey.trim()}`;
-      fetch(url, { mode: 'no-cors' }).catch(() => {});
-      return { success: true, method: 'callmebot' };
-    } catch (e) {
-      console.log('CallMeBot dispatch error:', e);
-    }
-  }
-
-  // 2. Check Meta Cloud API (if configured)
-  const phoneId = settings.metaPhoneId;
-  const apiToken = settings.metaApiToken;
-
-  if (phoneId && apiToken) {
-    try {
-      const response = await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          messaging_product: 'whatsapp',
-          to: targetPhone,
-          type: 'text',
-          text: { body: messageText }
-        })
-      });
-      const data = await response.json();
-      return { success: true, method: 'meta_cloud_api', data };
-    } catch (e) {
-      console.error('Meta Cloud API Error:', e);
-    }
-  }
-
-  // 3. Server endpoint relay fallback
+  // 1. Send via Server Relay Endpoint (bypasses browser CORS, ad-blockers, and client network blocks)
   try {
     const res = await fetch('/api/send-whatsapp', {
       method: 'POST',
@@ -154,10 +116,25 @@ async function sendBackgroundWhatsAppNotification(order, settings) {
       body: JSON.stringify({ order, settings, messageText })
     });
     if (res.ok) {
-      return { success: true, method: 'server_relay' };
+      const data = await res.json();
+      if (data.status === 'sent') {
+        return { success: true, method: 'server_relay', data };
+      }
     }
   } catch (e) {
-    console.log('Server relay fallback:', e);
+    console.log('Server relay error:', e);
+  }
+
+  // 2. Direct CallMeBot Browser Fallback
+  if (settings.callMeBotApiKey && settings.callMeBotApiKey.trim()) {
+    try {
+      const encodedMsg = encodeURIComponent(messageText);
+      const url = `https://api.callmebot.com/whatsapp.php?phone=+${targetPhone}&text=${encodedMsg}&apikey=${settings.callMeBotApiKey.trim()}`;
+      fetch(url, { mode: 'no-cors' }).catch(() => {});
+      return { success: true, method: 'callmebot_direct' };
+    } catch (e) {
+      console.log('CallMeBot direct dispatch error:', e);
+    }
   }
 
   return { success: false, method: 'fallback' };
