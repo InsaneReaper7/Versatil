@@ -306,9 +306,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!product) return;
 
     activeModalProduct = product;
+    const isMegaTe = product.category === 'mega-te';
+
     activeCustomizerState = {
-      mode: 'original', // 'original' or 'personaliza'
-      size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : 'Normal',
+      mode: isMegaTe ? 'personaliza' : 'original', // Mega Té has no original option, forces build-your-own
+      size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : '32 oz',
       flavors: product.flavors && product.flavors.length > 0 ? [product.flavors[0]] : [],
       ingredients: [...(product.baseIngredients || [])],
       extras: [],
@@ -322,6 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const prod = activeModalProduct;
     const state = activeCustomizerState;
     if (!prod) return;
+
+    const isMegaTe = prod.category === 'mega-te';
 
     const modalHTML = `
       <div class="modal-backdrop open" id="customizer-modal">
@@ -338,22 +342,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <p style="color: var(--text-secondary); font-size: 0.9rem;">${prod.description}</p>
 
-          <!-- MODE SELECTOR: ORIGINAL VS PERSONALIZA -->
-          <div>
-            <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.4rem;">¿CÓMO LO QUIERES?</div>
-            <div class="option-mode-grid">
-              <div class="mode-choice-card ${state.mode === 'original' ? 'selected' : ''}" onclick="setCustomizerMode('original')">
-                <div class="mode-choice-title">ORIGINAL</div>
-                <div class="mode-choice-sub">"Disfrútalo como viene"</div>
-              </div>
-              <div class="mode-choice-card ${state.mode === 'personaliza' ? 'selected' : ''}" onclick="setCustomizerMode('personaliza')">
-                <div class="mode-choice-title">PERSONALIZA</div>
-                <div class="mode-choice-sub">"Hazlo a tu manera"</div>
+          ${isMegaTe ? `
+            <div style="background: rgba(64, 139, 234, 0.15); border: 1px solid var(--primary); padding: 0.6rem 1rem; border-radius: var(--radius-full); text-align: center; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem; font-size: 0.88rem;">
+              ✨ Bebida 100% Personalizada (Máximo 3 Frutas: ${state.flavors.length}/3)
+            </div>
+          ` : `
+            <!-- MODE SELECTOR: ORIGINAL VS PERSONALIZA FOR OTHER PRODUCTS -->
+            <div>
+              <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.4rem;">¿CÓMO LO QUIERES?</div>
+              <div class="option-mode-grid">
+                <div class="mode-choice-card ${state.mode === 'original' ? 'selected' : ''}" onclick="setCustomizerMode('original')">
+                  <div class="mode-choice-title">ORIGINAL</div>
+                  <div class="mode-choice-sub">"Disfrútalo como viene"</div>
+                </div>
+                <div class="mode-choice-card ${state.mode === 'personaliza' ? 'selected' : ''}" onclick="setCustomizerMode('personaliza')">
+                  <div class="mode-choice-title">PERSONALIZA</div>
+                  <div class="mode-choice-sub">"Hazlo a tu manera"</div>
+                </div>
               </div>
             </div>
-          </div>
+          `}
 
-          ${state.mode === 'original' ? `
+          ${state.mode === 'original' && !isMegaTe ? `
             <div style="background: var(--bg-surface-dark); padding: 1rem; border-radius: var(--radius-md);">
               <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--accent-green);">
                 ✓ Receta Original Incluye:
@@ -380,11 +390,14 @@ document.addEventListener('DOMContentLoaded', () => {
             <!-- FLAVORS -->
             ${prod.flavors && prod.flavors.length > 0 ? `
               <div>
-                <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">SABORES DISPONIBLES</label>
-                <div class="ingredient-list">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+                  <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">FRUTAS / SABORES DISPONIBLES</label>
+                  ${isMegaTe ? `<span style="font-size: 0.78rem; font-weight: 800; color: var(--primary);">${state.flavors.length}/3 Seleccionados</span>` : ''}
+                </div>
+                <div class="ingredient-list" style="max-height: 200px; overflow-y: auto; padding-right: 0.3rem;">
                   ${prod.flavors.map(flv => `
                     <div class="flavor-chip ${state.flavors.includes(flv) ? 'selected' : ''}" onclick="toggleCustomizerFlavor('${flv}')">
-                      ${flv}
+                      ${state.flavors.includes(flv) ? '✓' : '+'} ${flv}
                     </div>
                   `).join('')}
                 </div>
@@ -393,7 +406,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- INGREDIENTS TOGGLE -->
             <div>
-              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">INGREDIENTES INCLUIDOS</label>
+              <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">INGREDIENTES INCLUIDOS EN LA BASE</label>
               <div class="ingredient-list">
                 ${prod.baseIngredients.map(ing => `
                   <div class="ingredient-chip ${state.ingredients.includes(ing) ? 'active' : ''}" onclick="toggleCustomizerIngredient('${ing}')">
@@ -423,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="summary-title">Resumen de tu Orden</div>
             <div style="font-size: 0.95rem; font-weight: 700;">${prod.name} (${state.size})</div>
             <div style="font-size: 0.8rem; color: var(--text-secondary);">
-              ${state.flavors.length > 0 ? `Sabores: ${state.flavors.join(', ')}` : ''}
+              ${state.flavors.length > 0 ? `Frutas/Sabores: ${state.flavors.join(', ')}` : 'Sin frutas seleccionadas'}
               ${state.extras.length > 0 ? ` | Extras: ${state.extras.join(', ')}` : ''}
             </div>
             
@@ -465,9 +478,18 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.toggleCustomizerFlavor = (flv) => {
+    const isMegaTe = activeModalProduct && activeModalProduct.category === 'mega-te';
     const idx = activeCustomizerState.flavors.indexOf(flv);
-    if (idx !== -1) activeCustomizerState.flavors.splice(idx, 1);
-    else activeCustomizerState.flavors.push(flv);
+    
+    if (idx !== -1) {
+      activeCustomizerState.flavors.splice(idx, 1);
+    } else {
+      if (isMegaTe && activeCustomizerState.flavors.length >= 3) {
+        alert('Solo puedes seleccionar un máximo de 3 frutas por Mega Té.');
+        return;
+      }
+      activeCustomizerState.flavors.push(flv);
+    }
     renderCustomizerModalHTML();
   };
 
@@ -655,8 +677,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.toggleWizardFlavor = (flv) => {
     const idx = wizardData.flavors.indexOf(flv);
-    if (idx !== -1) wizardData.flavors.splice(idx, 1);
-    else wizardData.flavors.push(flv);
+    if (idx !== -1) {
+      wizardData.flavors.splice(idx, 1);
+    } else {
+      if (wizardData.flavors.length >= 3) {
+        alert('Solo puedes seleccionar un máximo de 3 frutas por mezcla.');
+        return;
+      }
+      wizardData.flavors.push(flv);
+    }
     renderCustomMixWizardView();
   };
 

@@ -23,10 +23,14 @@ const INITIAL_CATEGORIES = [
   { id: 'custom-mix', name: 'Crear Mi Mezcla', icon: '✨', active: true, order: 7 }
 ];
 
-const INITIAL_FLAVORS = [
+const MEGA_TE_FLAVORS = [
   'Fresas', 'Parcha', 'Melón', 'Limón', 'Pitaya', 'Guayaba', 'Papaya', 
   'Piña', 'Mango', 'Uva', 'Blue Blast', 'Green Apple', 'Blueberries', 
-  'Cherry', 'Fruit Punch', 'Cranberry', 'Strawberry Kiwi', 'Coco', 'All Berries',
+  'Cherry', 'Fruit Punch', 'Cranberry', 'Strawberry Kiwi', 'Coco', 'All Berries'
+];
+
+const INITIAL_FLAVORS = [
+  ...MEGA_TE_FLAVORS,
   'Raspberry', 'Peach', 'Jamaica', 'Aloe Cranberry', 'Mandarin',
   'Dulce de Leche', 'Praline', 'Cookies & Cream', 'Protein', 'Chocolate', 'Vainilla'
 ];
@@ -51,12 +55,12 @@ const INITIAL_PRODUCTS = [
     name: 'Mega Té Signature',
     slug: 'mega-te-signature',
     category: 'mega-te',
-    description: 'Nuestra bebida de 32 oz con infusión de Té, Aloe y Lift Off energizante con tu mezcla de sabores preferida.',
+    description: 'Nuestra bebida energizante de 32 oz con infusión de Té, Aloe y Lift Off. Crea tu combinación eligiendo hasta 3 frutas.',
     image: '',
     baseIngredients: ['Té Concentrado', 'Aloe Vera', 'Lift Off'],
     availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
     sizes: ['32 oz', '16 oz — Versa To Go'],
-    flavors: ['Fresas', 'Parcha', 'Melón', 'Limón', 'Pitaya', 'Guayaba', 'Piña', 'Mango', 'Blue Blast', 'Green Apple'],
+    flavors: MEGA_TE_FLAVORS,
     extras: ['Fibra Activa', 'Probiótico Boost'],
     publicPrice: 8.00,
     internalCost: 2.50,
