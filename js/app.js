@@ -275,11 +275,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasImage = !!imgUrl;
 
     return `
-      <div class="product-card ${hasImage ? 'has-prod-image' : ''}" style="${hasImage ? `background-image: url('${imgUrl}');` : ''}">
+      <div class="product-card ${hasImage ? 'has-prod-image' : ''}">
+        ${hasImage ? `<img src="${imgUrl}" alt="${prod.name}" class="product-card-bg-layer" />` : ''}
         <div class="product-image-container">
-          ${hasImage ? `
-            <img src="${imgUrl}" alt="${prod.name}" class="product-image" />
-          ` : `
+          ${hasImage ? '' : `
             <div class="product-badge-placeholder">
               <span style="font-size: 2.5rem;">${getCategoryIcon(prod.category)}</span>
               <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Versátil Craft</div>
@@ -292,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <h3 class="product-title">${prod.name}</h3>
           <p class="product-desc">${prod.description || 'Deliciosa opción preparada con ingredientes de la más alta calidad.'}</p>
         </div>
-        <button onclick="openProductCustomizer('${prod.id}')" class="btn-card-ordenar">
+        <button onclick="openProductCustomizer('${prod.id}')" class="btn-card-ordenar" style="position: relative; z-index: 2;">
           ${btnLabel}
         </button>
       </div>
