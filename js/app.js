@@ -1301,8 +1301,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.saveProductFromForm = (e, productId) => {
     e.preventDefault();
+    const existing = productId ? store.getProductBySlug(productId) : null;
+
     const product = {
-      id: productId || null,
+      ...(existing || {}),
+      id: existing ? existing.id : (productId || 'prod-' + Date.now()),
       name: document.getElementById('p-name').value,
       category: document.getElementById('p-category').value,
       description: document.getElementById('p-desc').value,
@@ -1312,10 +1315,10 @@ document.addEventListener('DOMContentLoaded', () => {
       showPublicPrice: document.getElementById('p-showPublicPrice').checked,
       active: document.getElementById('p-active').checked,
       featured: document.getElementById('p-featured').checked,
-      baseIngredients: ['Té Concentrado', 'Aloe Vera'],
-      sizes: ['32 oz', '16 oz'],
-      flavors: window.MEGA_TE_FLAVORS || ['Fresas', 'Parcha', 'Mango'],
-      extras: ['Fibra Activa', 'Probiótico Boost']
+      baseIngredients: existing ? existing.baseIngredients : ['Té Concentrado', 'Aloe Vera'],
+      sizes: existing ? existing.sizes : ['32 oz', '16 oz'],
+      flavors: existing ? existing.flavors : (window.MEGA_TE_FLAVORS || ['Fresas', 'Parcha', 'Mango']),
+      extras: existing ? existing.extras : ['Fibra Activa', 'Probiótico Boost']
     };
 
     store.saveProduct(product);
