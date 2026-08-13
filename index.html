@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Verstail | Tu bebida. Tu mezcla. Tu estilo.</title>
+  <meta name="description" content="Verstail es la plataforma web de ordenado de bebidas especiales y postres. Personaliza tu Mega Té, Batidas, Yogurt o crea tu propia mezcla a tu estilo.">
+  
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- STICKY SITE HEADER -->
+  <header class="site-header">
+    <a href="#home" class="brand-logo">
+      <span>Verstail</span>
+      <span class="logo-badge">Craft</span>
+    </a>
+
+    <!-- DESKTOP NAV -->
+    <nav class="desktop-nav">
+      <a href="#home" class="nav-link">Inicio</a>
+      <a href="#menu" class="nav-link">Menú</a>
+      <a href="#crear-mi-mezcla" class="nav-link">Crear Mi Mezcla</a>
+      <a href="#carrito" class="nav-link">Carrito</a>
+      <a href="#admin" class="nav-link" style="color: #A78BFA; font-weight: 700;">⚙️ Admin</a>
+    </nav>
+
+    <!-- HEADER ACTIONS & MOBILE MENU TRIGGER -->
+    <div class="header-actions">
+      <a href="#carrito" class="cart-btn-trigger">
+        <span>🛒</span>
+        <span class="cart-badge">0</span>
+      </a>
+
+      <button id="mobile-nav-toggle" class="mobile-menu-btn" aria-label="Abrir Menú">
+        ☰
+      </button>
+    </div>
+  </header>
+
+  <!-- MOBILE NAVIGATION DRAWER -->
+  <nav id="mobile-nav-drawer" class="mobile-nav-drawer">
+    <a href="#home" class="mobile-nav-link">🏠 Inicio</a>
+    <a href="#menu" class="mobile-nav-link">🍹 Menú Completo</a>
+    <a href="#crear-mi-mezcla" class="mobile-nav-link">✨ Crear Mi Mezcla</a>
+    <a href="#carrito" class="mobile-nav-link">🛒 Mi Carrito</a>
+    <a href="#admin" class="mobile-nav-link admin-link">⚙️ Portal de Administración</a>
+  </nav>
+
+  <!-- MAIN DYNAMIC CONTENT CONTAINER -->
+  <main id="app-root">
+    <!-- Rendered dynamically by js/app.js -->
+  </main>
+
+  <!-- STICKY MOBILE CART BAR -->
+  <div id="sticky-mobile-cart" class="sticky-mobile-cart" style="display: none;">
+    <!-- Rendered dynamically -->
+  </div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script src="js/store.js"></script>
+  <script src="js/whatsapp.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

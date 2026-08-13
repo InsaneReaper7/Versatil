@@ -1,0 +1,323 @@
+/* ==========================================================================
+   VERSTAIL - WEB: CENTRALIZED STORE & PERSISTENCE ENGINE
+   Handles Products, Ingredients, Categories, Orders, Settings & Pricing Rules
+   ========================================================================== */
+
+const STORAGE_KEYS = {
+  PRODUCTS: 'verstail_products_v1',
+  INGREDIENTS: 'verstail_ingredients_v1',
+  CATEGORIES: 'verstail_categories_v1',
+  SETTINGS: 'verstail_settings_v1',
+  CART: 'verstail_cart_v1',
+  ORDERS: 'verstail_orders_v1'
+};
+
+// Initial Seed Data
+const INITIAL_CATEGORIES = [
+  { id: 'te', name: 'Té', icon: '🍵', active: true, order: 1 },
+  { id: 'mega-te', name: 'Mega Té', icon: '🧋', active: true, order: 2 },
+  { id: 'batidas', name: 'Batidas', icon: '🥤', active: true, order: 3 },
+  { id: 'yogurt', name: 'Yogurt', icon: '🍓', active: true, order: 4 },
+  { id: 'galletas', name: 'Galletas', icon: '🍪', active: true, order: 5 },
+  { id: 'donas', name: 'Donas', icon: '🍩', active: true, order: 6 },
+  { id: 'custom-mix', name: 'Crear Mi Mezcla', icon: '✨', active: true, order: 7 }
+];
+
+const INITIAL_FLAVORS = [
+  'Fresas', 'Parcha', 'Melón', 'Limón', 'Pitaya', 'Guayaba', 'Papaya', 
+  'Piña', 'Mango', 'Uva', 'Blue Blast', 'Green Apple', 'Blueberries', 
+  'Cherry', 'Fruit Punch', 'Cranberry', 'Strawberry Kiwi', 'Coco', 'All Berries',
+  'Raspberry', 'Peach', 'Jamaica', 'Aloe Cranberry', 'Mandarin',
+  'Dulce de Leche', 'Praline', 'Cookies & Cream', 'Protein', 'Chocolate', 'Vainilla'
+];
+
+const INITIAL_INGREDIENTS = [
+  { id: 'ing-te', name: 'Té Concentrado', description: 'Infusión herbal revitalizante', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-aloe', name: 'Aloe Vera', description: 'Aloe digestivo y refrescante', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-liftoff', name: 'Lift Off', description: 'Chispa energizante de efervescencia', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-fresas', name: 'Fresas Frescas', description: 'Trozos de fresa natural', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-guineo', name: 'Guineo Sliced', description: 'Rodajas de guineo fresco', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-blueberries', name: 'Blueberries', description: 'Arándanos antioxidantes', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-granola', name: 'Granola Crunch', description: 'Granola crujiente horneada', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-fibra', name: 'Fibra Activa', description: 'Complemento de fibra digestiva', extraCost: 1.50, active: true, includedByDefault: false, removable: true, customerVisible: true },
+  { id: 'ing-probiotico', name: 'Probiótico Boost', description: 'Cultivos probióticos para salud intestinal', extraCost: 1.50, active: true, includedByDefault: false, removable: true, customerVisible: true },
+  { id: 'ing-agave', name: 'Miel de Agave', description: 'Dulzura natural de agave', extraCost: 0.75, active: true, includedByDefault: false, removable: true, customerVisible: true }
+];
+
+// Seed Products (default showPublicPrice: false per user requirement)
+const INITIAL_PRODUCTS = [
+  {
+    id: 'prod-mega-te-01',
+    name: 'Mega Té Signature',
+    slug: 'mega-te-signature',
+    category: 'mega-te',
+    description: 'Nuestra bebida de 32 oz con infusión de Té, Aloe y Lift Off energizante con tu mezcla de sabores preferida.',
+    image: '',
+    baseIngredients: ['Té Concentrado', 'Aloe Vera', 'Lift Off'],
+    availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
+    sizes: ['32 oz', '16 oz — Versa To Go'],
+    flavors: ['Fresas', 'Parcha', 'Melón', 'Limón', 'Pitaya', 'Guayaba', 'Piña', 'Mango', 'Blue Blast', 'Green Apple'],
+    extras: ['Fibra Activa', 'Probiótico Boost'],
+    publicPrice: 8.00,
+    internalCost: 2.50,
+    showPublicPrice: false, // DEFAULT NO PRICE DISPLAYED TO CUSTOMER
+    active: true,
+    featured: true
+  },
+  {
+    id: 'prod-te-01',
+    name: 'Té Herbal Herbalife',
+    slug: 'te-herbal',
+    category: 'te',
+    description: 'Deliciosa bebida concentrada de té para acelerar el metabolismo y mantenerte activo.',
+    image: '',
+    baseIngredients: ['Té Concentrado'],
+    availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
+    sizes: ['16 oz', '24 oz'],
+    flavors: ['Raspberry', 'Peach', 'Lemon', 'Jamaica', 'Aloe Cranberry', 'Mandarin', 'Mango'],
+    extras: ['Fibra Activa', 'Probiótico Boost'],
+    publicPrice: 5.00,
+    internalCost: 1.40,
+    showPublicPrice: false,
+    active: true,
+    featured: true
+  },
+  {
+    id: 'prod-batida-01',
+    name: 'Batida Proteica Gourmet',
+    slug: 'batida-proteica-gourmet',
+    category: 'batidas',
+    description: 'Cremosa batida nutricional cargada de proteína, perfecta para reemplazo de comida o snack pos-entreno.',
+    image: '',
+    baseIngredients: ['Proteína Nutricional'],
+    availableIngredients: ['Té Concentrado', 'Aloe Vera', 'Probiótico Boost'],
+    sizes: ['16 oz', '24 oz'],
+    flavors: ['Dulce de Leche', 'Praline', 'Cookies & Cream', 'Protein', 'Chocolate', 'Vainilla'],
+    extras: ['Té Concentrado', 'Aloe Vera', 'Probiótico Boost'],
+    publicPrice: 7.50,
+    internalCost: 2.20,
+    showPublicPrice: false,
+    active: true,
+    featured: true
+  },
+  {
+    id: 'prod-yogurt-01',
+    name: 'Yogurt Bowl 16oz',
+    slug: 'yogurt-bowl',
+    category: 'yogurt',
+    description: 'Yogurt cremoso acompañado de Fresas, Guineo, Blueberries y Granola crujiente.',
+    image: '',
+    baseIngredients: ['Yogurt Cremoso', 'Fresas Frescas', 'Guineo Sliced', 'Blueberries', 'Granola Crunch'],
+    availableIngredients: ['Miel de Agave'],
+    sizes: ['16 oz'],
+    flavors: ['Dulce de Leche', 'Cookies & Cream', 'Praline'],
+    extras: ['Miel de Agave'],
+    publicPrice: 6.50,
+    internalCost: 2.00,
+    showPublicPrice: false,
+    active: true,
+    featured: true
+  },
+  {
+    id: 'prod-galleta-01',
+    name: 'Galleta Artesanal Nutritiva',
+    slug: 'galleta-artesanal',
+    category: 'galletas',
+    description: 'Crujiente galleta recién horneada alta en proteína y baja en calorías.',
+    image: '',
+    baseIngredients: ['Mezcla Proteica Horneada'],
+    availableIngredients: [],
+    sizes: ['Unidad'],
+    flavors: ['Choco Chip', 'Avellana'],
+    extras: [],
+    publicPrice: 3.50,
+    internalCost: 1.10,
+    showPublicPrice: false,
+    active: true,
+    featured: false
+  },
+  {
+    id: 'prod-dona-01',
+    name: 'Dona Fit Especial',
+    slug: 'dona-fit-especial',
+    category: 'donas',
+    description: 'Esponjosa dona artesanal glaseada, libre de culpas.',
+    image: '',
+    baseIngredients: ['Maza Fit'],
+    availableIngredients: [],
+    sizes: ['Unidad', 'Caja de 4'],
+    flavors: ['Chocolate Glaze', 'Vainilla Berry'],
+    extras: [],
+    publicPrice: 4.00,
+    internalCost: 1.25,
+    showPublicPrice: false,
+    active: true,
+    featured: false
+  }
+];
+
+const INITIAL_SETTINGS = {
+  whatsappPhone: '17875550199', // Store WhatsApp Contact Number
+  storeName: 'Verstail',
+  tagline: 'Tu bebida. Tu mezcla. Tu estilo.',
+  currency: '$',
+  deliveryFee: 3.00,
+  pickupAddress: 'Verstail Specialty Beverage Hub',
+  businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM'
+};
+
+// Store Engine Class
+class Store {
+  constructor() {
+    this.products = this.load(STORAGE_KEYS.PRODUCTS, INITIAL_PRODUCTS);
+    this.ingredients = this.load(STORAGE_KEYS.INGREDIENTS, INITIAL_INGREDIENTS);
+    this.categories = this.load(STORAGE_KEYS.CATEGORIES, INITIAL_CATEGORIES);
+    this.settings = this.load(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
+    this.cart = this.load(STORAGE_KEYS.CART, []);
+    this.orders = this.load(STORAGE_KEYS.ORDERS, []);
+    this.listeners = [];
+  }
+
+  load(key, fallback) {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  save(key, data) {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+      this.notify();
+    } catch (e) {
+      console.error('Storage error:', e);
+    }
+  }
+
+  subscribe(listener) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
+
+  notify() {
+    this.listeners.forEach(fn => fn());
+  }
+
+  // --- PRODUCTS ---
+  getProducts() {
+    return this.products;
+  }
+
+  getActiveProducts() {
+    return this.products.filter(p => p.active);
+  }
+
+  getProductBySlug(slug) {
+    return this.products.find(p => p.slug === slug || p.id === slug);
+  }
+
+  saveProduct(product) {
+    if (!product.id) {
+      product.id = 'prod-' + Date.now();
+      product.slug = product.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      this.products.push(product);
+    } else {
+      const idx = this.products.findIndex(p => p.id === product.id);
+      if (idx !== -1) this.products[idx] = product;
+    }
+    this.save(STORAGE_KEYS.PRODUCTS, this.products);
+  }
+
+  deleteProduct(id) {
+    this.products = this.products.filter(p => p.id !== id);
+    this.save(STORAGE_KEYS.PRODUCTS, this.products);
+  }
+
+  // --- INGREDIENTS & CATEGORIES ---
+  getIngredients() { return this.ingredients; }
+  saveIngredient(ing) {
+    if (!ing.id) ing.id = 'ing-' + Date.now();
+    const idx = this.ingredients.findIndex(i => i.id === ing.id);
+    if (idx !== -1) this.ingredients[idx] = ing;
+    else this.ingredients.push(ing);
+    this.save(STORAGE_KEYS.INGREDIENTS, this.ingredients);
+  }
+
+  getCategories() { return this.categories; }
+  saveCategory(cat) {
+    if (!cat.id) cat.id = 'cat-' + Date.now();
+    const idx = this.categories.findIndex(c => c.id === cat.id);
+    if (idx !== -1) this.categories[idx] = cat;
+    else this.categories.push(cat);
+    this.save(STORAGE_KEYS.CATEGORIES, this.categories);
+  }
+
+  // --- CART ENGINE ---
+  getCart() { return this.cart; }
+  addToCart(item) {
+    // Generate unique instance ID for configured items
+    item.cartId = 'cart-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+    this.cart.push(item);
+    this.save(STORAGE_KEYS.CART, this.cart);
+  }
+
+  updateCartQty(cartId, qty) {
+    if (qty <= 0) {
+      this.removeFromCart(cartId);
+    } else {
+      const item = this.cart.find(i => i.cartId === cartId);
+      if (item) item.quantity = qty;
+      this.save(STORAGE_KEYS.CART, this.cart);
+    }
+  }
+
+  removeFromCart(cartId) {
+    this.cart = this.cart.filter(i => i.cartId !== cartId);
+    this.save(STORAGE_KEYS.CART, this.cart);
+  }
+
+  clearCart() {
+    this.cart = [];
+    this.save(STORAGE_KEYS.CART, this.cart);
+  }
+
+  getCartTotal() {
+    return this.cart.reduce((sum, item) => {
+      const price = item.showPublicPrice ? (item.unitPrice || 0) : 0;
+      return sum + (price * (item.quantity || 1));
+    }, 0);
+  }
+
+  // --- ORDERS ---
+  getOrders() { return this.orders; }
+  addOrder(order) {
+    order.id = 'V-' + Math.floor(1000 + Math.random() * 9000);
+    order.createdAt = new Date().toISOString();
+    order.status = 'Pendiente';
+    this.orders.unshift(order);
+    this.save(STORAGE_KEYS.ORDERS, this.orders);
+    return order;
+  }
+
+  updateOrderStatus(orderId, status) {
+    const order = this.orders.find(o => o.id === orderId);
+    if (order) {
+      order.status = status;
+      this.save(STORAGE_KEYS.ORDERS, this.orders);
+    }
+  }
+
+  // --- SETTINGS ---
+  getSettings() { return this.settings; }
+  updateSettings(newSettings) {
+    this.settings = { ...this.settings, ...newSettings };
+    this.save(STORAGE_KEYS.SETTINGS, this.settings);
+  }
+}
+
+window.VerstailStore = new Store();
+window.VERSTAIL_FLAVORS = INITIAL_FLAVORS;
