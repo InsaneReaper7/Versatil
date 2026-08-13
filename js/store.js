@@ -349,7 +349,8 @@ class Store {
   }
 
   isLoggedInAdmin() {
-    return !!sessionStorage.getItem('verstail_admin_auth');
+    const user = sessionStorage.getItem('verstail_admin_auth');
+    return user === 'Tibu' || user === 'InsaneReaper7';
   }
 
   getAdminUsername() {
@@ -358,6 +359,7 @@ class Store {
 
   logoutAdmin() {
     sessionStorage.removeItem('verstail_admin_auth');
+    localStorage.removeItem('verstail_admin_auth');
     this.notify();
   }
 }

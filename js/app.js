@@ -1047,7 +1047,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <a href="#admin/orders" class="admin-nav-item ${subRoute === 'orders' ? 'active' : ''}">📦 Órdenes</a>
           <a href="#admin/settings" class="admin-nav-item ${subRoute === 'settings' ? 'active' : ''}">📲 WhatsApp / Config</a>
           
-          <button onclick="store.logoutAdmin()" class="admin-nav-item" style="background: none; border: none; width: 100%; text-align: left; color: #EF4444; margin-top: 1.5rem; cursor: pointer;">
+          <button onclick="logoutAdmin()" class="admin-nav-item" style="background: none; border: none; width: 100%; text-align: left; color: #EF4444; margin-top: 1.5rem; cursor: pointer;">
             🚪 Cerrar Sesión
           </button>
           
@@ -1072,6 +1072,11 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       alert('Usuario o contraseña incorrectos.');
     }
+  };
+
+  window.logoutAdmin = () => {
+    store.logoutAdmin();
+    renderAdminPortal();
   };
 
   function renderAdminSubRoute(subRoute) {
