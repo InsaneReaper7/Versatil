@@ -1619,12 +1619,23 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
-          <label style="color: var(--primary); font-weight: 800;">Meta WhatsApp Cloud API (Notificaciones Automáticas en Segundo Plano)</label>
-          <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.8rem;">
-            Permite enviar mensajes automáticos de WhatsApp a tu teléfono sin que el cliente tenga que abrir WhatsApp.
+          <label style="color: var(--accent-green); font-weight: 800;">📲 Notificaciones Automáticas por WhatsApp (Sin Abrir WhatsApp)</label>
+          <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.8rem; line-height: 1.4;">
+            Envía 1 mensaje de WhatsApp desde tu número (939-312-0599) al <strong>+34 644 56 72 26</strong> con el texto:<br/>
+            <code style="background: rgba(64,139,234,0.2); padding: 2px 6px; border-radius: 4px; color: #FFFFFF;">I allow callmebot to send me messages</code><br/>
+            Recibirás tu API Key de 6 dígitos al instante. Ingrésala aquí para activar las notificaciones automáticas en segundo plano.
           </span>
 
           <div class="form-group">
+            <label>CallMeBot API Key (Gratis — Listo en 30 segundos)</label>
+            <input type="text" id="set-callMeBotApiKey" class="form-input" value="${settings.callMeBotApiKey || ''}" placeholder="Ej. 123456" />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--glass-border);">
+          <label style="color: var(--text-secondary); font-weight: 700; font-size: 0.85rem;">Meta WhatsApp Cloud API (Opcional — Para Cuentas Meta Developer)</label>
+          
+          <div class="form-group" style="margin-top: 0.5rem;">
             <label>Meta Phone Number ID</label>
             <input type="text" id="set-metaPhoneId" class="form-input" value="${settings.metaPhoneId || ''}" placeholder="Ej. 104857692482" />
           </div>
@@ -1647,6 +1658,7 @@ document.addEventListener('DOMContentLoaded', () => {
       storeName: document.getElementById('set-storeName').value,
       tagline: document.getElementById('set-tagline').value,
       pickupAddress: document.getElementById('set-pickupAddress').value,
+      callMeBotApiKey: document.getElementById('set-callMeBotApiKey').value,
       metaPhoneId: document.getElementById('set-metaPhoneId').value,
       metaApiToken: document.getElementById('set-metaApiToken').value
     });

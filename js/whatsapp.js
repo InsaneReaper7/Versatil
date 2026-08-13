@@ -104,9 +104,23 @@ function formatBareMinimumOrderMessage(order, settings) {
   return msg;
 }
 
-async function sendMetaWhatsAppCloudNotification(order, settings) {
+async function sendBackgroundWhatsAppNotification(order, settings) {
   const messageText = formatBareMinimumOrderMessage(order, settings);
   const targetPhone = (settings.whatsappPhone || '19393120599').replace(/\D/g, '');
+
+  // 1. Check CallMeBot API Key (Free, 30-sec setup, no Meta developer account needed!)
+  if (settings.callMeBotApiKey && settings.callMeBotApiKey.trim()) {
+    try {
+      const encodedMsg = encodeURIComponent(messageText);
+      const url = `https://api.callmebot.com/whatsapp.php?phone=+${targetPhone}&text=${encodedMsg}&apikey=${settings.callMeBotApiKey.trim()}`;
+      fetch(url, { mode: 'no-cors' }).catch(() => {});
+      return { success: true, method: 'callmebot' };
+    } catch (e) {
+      console.log('CallMeBot dispatch error:', e);
+    }
+  }
+
+  // 2. Check Meta Cloud API (if configured)
   const phoneId = settings.metaPhoneId;
   const apiToken = settings.metaApiToken;
 
@@ -132,7 +146,7 @@ async function sendMetaWhatsAppCloudNotification(order, settings) {
     }
   }
 
-  // Server endpoint relay fallback
+  // 3. Server endpoint relay fallback
   try {
     const res = await fetch('/api/send-whatsapp', {
       method: 'POST',
@@ -154,5 +168,6 @@ window.VerstailWhatsApp = {
   formatBareMinimumOrderMessage,
   generateWhatsAppLink,
   sendDirectWhatsAppNotification,
-  sendMetaWhatsAppCloudNotification
+  sendBackgroundWhatsAppNotification,
+  sendMetaWhatsAppCloudNotification: sendBackgroundWhatsAppNotification
 };
