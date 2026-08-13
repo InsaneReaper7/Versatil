@@ -80,8 +80,79 @@ async function sendDirectWhatsAppNotification(order, settings) {
   return waUrl;
 }
 
+function formatBareMinimumOrderMessage(order, settings) {
+  const storeName = settings.storeName || 'Versátil';
+  
+  let msg = `🍹 *NUEVO PEDIDO #${order.id} - ${storeName.toUpperCase()}*\n`;
+  msg += `👤 *Cliente:* ${order.customerName}\n`;
+  msg += `📞 *Teléfono:* ${order.customerPhone}\n`;
+  if (order.customerEmail && order.customerEmail.trim()) {
+    msg += `📧 *Email:* ${order.customerEmail.trim()}\n`;
+  }
+  msg += `\n🛒 *ITEMS:* \n`;
+
+  order.items.forEach((item, index) => {
+    msg += `${index + 1}. *${item.name}* (x${item.quantity}) - ${item.size || 'Estándar'}\n`;
+    if (item.flavors && item.flavors.length > 0) {
+      msg += `   • Frutas: ${item.flavors.join(', ')}\n`;
+    }
+    if (item.extras && item.extras.length > 0) {
+      msg += `   • Extras: ${item.extras.join(', ')}\n`;
+    }
+  });
+
+  return msg;
+}
+
+async function sendMetaWhatsAppCloudNotification(order, settings) {
+  const messageText = formatBareMinimumOrderMessage(order, settings);
+  const targetPhone = (settings.whatsappPhone || '19393120599').replace(/\D/g, '');
+  const phoneId = settings.metaPhoneId;
+  const apiToken = settings.metaApiToken;
+
+  if (phoneId && apiToken) {
+    try {
+      const response = await fetch(`https://graph.facebook.com/v18.0/${phoneId}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          messaging_product: 'whatsapp',
+          to: targetPhone,
+          type: 'text',
+          text: { body: messageText }
+        })
+      });
+      const data = await response.json();
+      return { success: true, method: 'meta_cloud_api', data };
+    } catch (e) {
+      console.error('Meta Cloud API Error:', e);
+    }
+  }
+
+  // Server endpoint relay fallback
+  try {
+    const res = await fetch('/api/send-whatsapp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ order, settings, messageText })
+    });
+    if (res.ok) {
+      return { success: true, method: 'server_relay' };
+    }
+  } catch (e) {
+    console.log('Server relay fallback:', e);
+  }
+
+  return { success: false, method: 'fallback' };
+}
+
 window.VerstailWhatsApp = {
   formatWhatsAppOrderMessage,
+  formatBareMinimumOrderMessage,
   generateWhatsAppLink,
-  sendDirectWhatsAppNotification
+  sendDirectWhatsAppNotification,
+  sendMetaWhatsAppCloudNotification
 };

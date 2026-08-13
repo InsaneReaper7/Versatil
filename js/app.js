@@ -969,7 +969,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  window.handleCheckoutSubmit = (e) => {
+  window.handleCheckoutSubmit = async (e) => {
     e.preventDefault();
     const name = document.getElementById('cust-name').value;
     const phone = document.getElementById('cust-phone').value;
@@ -985,13 +985,40 @@ document.addEventListener('DOMContentLoaded', () => {
       items: cart
     });
 
-    const waLink = whatsapp.generateWhatsAppLink(newOrder, settings);
     store.clearCart();
 
-    // Open WhatsApp URL in new window/app tab
-    window.open(waLink, '_blank');
-    alert(`¡Gracias ${name}! Tu orden #${newOrder.id} ha sido enviada por WhatsApp.`);
-    window.location.hash = 'home';
+    // Dispatch Meta WhatsApp Cloud API Notification in background
+    if (window.VerstailWhatsApp && window.VerstailWhatsApp.sendMetaWhatsAppCloudNotification) {
+      window.VerstailWhatsApp.sendMetaWhatsAppCloudNotification(newOrder, settings);
+    }
+
+    // Render Order Confirmation View on website (Customer never leaves the page)
+    appContainer.innerHTML = `
+      <section class="section-container" style="max-width: 550px; text-align: center; padding-top: 2rem;">
+        <div style="background: var(--bg-card-dark); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2.5rem 1.5rem;">
+          <div style="font-size: 3.5rem; margin-bottom: 1rem;">✅</div>
+          <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; color: var(--accent-green);">¡Pedido Confirmado!</h1>
+          <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">Orden #${newOrder.id}</div>
+          
+          <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 420px; margin: 0 auto 1.5rem;">
+            ¡Gracias <strong>${name}</strong>! Tu pedido ha sido registrado exitosamente y notificado automáticamente a nuestro equipo por WhatsApp. Te contactaremos al <strong>${phone}</strong>.
+          </p>
+
+          <div style="background: var(--bg-surface-dark); padding: 1rem; border-radius: var(--radius-md); text-align: left; margin-bottom: 1.5rem; border: 1px solid var(--glass-border);">
+            <div style="font-weight: 800; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--primary);">Resumen de tu Pedido:</div>
+            ${newOrder.items.map(item => `
+              <div style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.25rem;">
+                • <strong>${item.name}</strong> (x${item.quantity}) ${item.size ? `— ${item.size}` : ''}
+              </div>
+            `).join('')}
+          </div>
+
+          <a href="#home" class="btn-primary" style="padding: 0.85rem 2rem; font-size: 1rem;">
+            🏠 Volver al Inicio
+          </a>
+        </div>
+      </section>
+    `;
   };
 
   // ==========================================================================
@@ -1591,6 +1618,23 @@ document.addEventListener('DOMContentLoaded', () => {
           <input type="text" id="set-pickupAddress" class="form-input" value="${settings.pickupAddress || ''}" />
         </div>
 
+        <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+          <label style="color: var(--primary); font-weight: 800;">Meta WhatsApp Cloud API (Notificaciones Automáticas en Segundo Plano)</label>
+          <span style="font-size: 0.75rem; color: var(--text-secondary); display: block; margin-bottom: 0.8rem;">
+            Permite enviar mensajes automáticos de WhatsApp a tu teléfono sin que el cliente tenga que abrir WhatsApp.
+          </span>
+
+          <div class="form-group">
+            <label>Meta Phone Number ID</label>
+            <input type="text" id="set-metaPhoneId" class="form-input" value="${settings.metaPhoneId || ''}" placeholder="Ej. 104857692482" />
+          </div>
+
+          <div class="form-group">
+            <label>Meta Access Token</label>
+            <input type="password" id="set-metaApiToken" class="form-input" value="${settings.metaApiToken || ''}" placeholder="EAA..." />
+          </div>
+        </div>
+
         <button type="submit" class="btn-primary" style="margin-top: 1rem;">Guardar Configuración</button>
       </form>
     `;
@@ -1602,7 +1646,9 @@ document.addEventListener('DOMContentLoaded', () => {
       whatsappPhone: document.getElementById('set-whatsappPhone').value,
       storeName: document.getElementById('set-storeName').value,
       tagline: document.getElementById('set-tagline').value,
-      pickupAddress: document.getElementById('set-pickupAddress').value
+      pickupAddress: document.getElementById('set-pickupAddress').value,
+      metaPhoneId: document.getElementById('set-metaPhoneId').value,
+      metaApiToken: document.getElementById('set-metaApiToken').value
     });
 
     alert('¡Configuración de WhatsApp guardada exitosamente!');
