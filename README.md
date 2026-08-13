@@ -20,21 +20,13 @@ Verstail is a modern, mobile-first web ordering platform for specialty beverages
 
 ---
 
-## 🚀 Step 1: Push to GitHub (`Versatil`)
+## 🚀 GitHub Repository
 
-To create and push this repository to GitHub:
-
-### Option A: Using GitHub Web + Git CLI
-
-1. Go to [GitHub.com](https://github.com/new) and create a **New Repository**.
-2. Name the repository: **`Versatil`** (or `Verstail-Web`).
-3. Leave it empty (do NOT check "Add a README" or ".gitignore").
-4. Copy your repository URL (e.g. `https://github.com/YOUR_USERNAME/Versatil.git`).
-5. Open your terminal in this project folder (`c:\Users\insan\.gemini\antigravity\scratch\Verstail - Web`) and run:
+The code has been pushed to GitHub:
+👉 **[https://github.com/InsaneReaper7/Versatil.git](https://github.com/InsaneReaper7/Versatil.git)**
 
 ```bash
-git remote add origin https://github.com/YOUR_USERNAME/Versatil.git
-git branch -M main
+git remote add origin https://github.com/InsaneReaper7/Versatil.git
 git push -u origin main
 ```
 
