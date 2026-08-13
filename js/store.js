@@ -21,10 +21,11 @@ const ADMIN_ACCOUNTS = [
 const INITIAL_CATEGORIES = [
   { id: 'te', name: 'Té', icon: '🍵', image: '', active: true, order: 1 },
   { id: 'mega-te', name: 'Mega Té', icon: '🧋', image: '', active: true, order: 2 },
-  { id: 'batidas', name: 'Batidas', icon: '🥤', image: '', active: true, order: 3 },
-  { id: 'yogurt', name: 'Yogurt', icon: '🍓', image: '', active: true, order: 4 },
-  { id: 'galletas', name: 'Galletas', icon: '🍪', image: '', active: true, order: 5 },
-  { id: 'donas', name: 'Donas', icon: '🍩', active: true, order: 6 }
+  { id: 'versa-to-go', name: 'Versa To Go', icon: '🥤', image: '', active: true, order: 3 },
+  { id: 'batidas', name: 'Batidas', icon: '🥤', image: '', active: true, order: 4 },
+  { id: 'yogurt', name: 'Yogurt', icon: '🍓', image: '', active: true, order: 5 },
+  { id: 'galletas', name: 'Galletas', icon: '🍪', image: '', active: true, order: 6 },
+  { id: 'donas', name: 'Donas', icon: '🍩', active: true, order: 7 }
 ];
 
 const MEGA_TE_FLAVORS = [
@@ -63,12 +64,30 @@ const INITIAL_PRODUCTS = [
     image: '',
     baseIngredients: ['Té Concentrado', 'Aloe Vera', 'Lift Off'],
     availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
-    sizes: ['32 oz', '16 oz — Versa To Go'],
+    sizes: ['32 oz'],
     flavors: MEGA_TE_FLAVORS,
     extras: ['Fibra Activa', 'Probiótico Boost'],
     publicPrice: 8.00,
     internalCost: 2.50,
-    showPublicPrice: false, // DEFAULT NO PRICE DISPLAYED TO CUSTOMER
+    showPublicPrice: false,
+    active: true,
+    featured: true
+  },
+  {
+    id: 'prod-versa-to-go-01',
+    name: 'Versa To Go',
+    slug: 'versa-to-go',
+    category: 'versa-to-go',
+    description: 'Nuestra versión To Go de 16 oz con infusión de Té, Aloe y Lift Off. Crea tu combinación eligiendo hasta 3 frutas.',
+    image: '',
+    baseIngredients: ['Té Concentrado', 'Aloe Vera', 'Lift Off'],
+    availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
+    sizes: ['16 oz'],
+    flavors: MEGA_TE_FLAVORS,
+    extras: ['Fibra Activa', 'Probiótico Boost'],
+    publicPrice: 6.00,
+    internalCost: 2.00,
+    showPublicPrice: false,
     active: true,
     featured: true
   },

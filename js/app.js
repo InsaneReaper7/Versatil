@@ -310,11 +310,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!product) return;
 
     activeModalProduct = product;
-    const isMegaTe = product.category === 'mega-te';
+    const isMegaTe = product.category === 'mega-te' || product.category === 'versa-to-go';
 
     activeCustomizerState = {
       mode: isMegaTe ? 'personaliza' : 'original',
-      size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : '32 oz',
+      size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : (product.category === 'versa-to-go' ? '16 oz' : '32 oz'),
       flavors: product.flavors && product.flavors.length > 0 ? [product.flavors[0]] : [],
       ingredients: [...(product.baseIngredients || [])],
       extras: [],
@@ -329,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = activeCustomizerState;
     if (!prod) return;
 
-    const isMegaTe = prod.category === 'mega-te';
+    const isMegaTe = prod.category === 'mega-te' || prod.category === 'versa-to-go';
     let existingModal = document.getElementById('customizer-modal');
 
     // If modal already exists and this is an in-place update, just sync targeted summary nodes & classes
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderCustomizerOptionsContentHTML() {
     const prod = activeModalProduct;
     const state = activeCustomizerState;
-    const isMegaTe = prod.category === 'mega-te';
+    const isMegaTe = prod.category === 'mega-te' || prod.category === 'versa-to-go';
 
     if (state.mode === 'original' && !isMegaTe) {
       return `
