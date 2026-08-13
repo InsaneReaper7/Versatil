@@ -157,12 +157,14 @@ const INITIAL_PRODUCTS = [
 ];
 
 const INITIAL_SETTINGS = {
-  whatsappPhone: '17875550199', // Store WhatsApp Contact Number
-  storeName: 'Verstail',
-  tagline: 'Tu bebida. Tu mezcla. Tu estilo.',
+  whatsappPhone: '19393120599', // Client WhatsApp: 939-312-0599
+  storeName: 'Versátil',
+  tagline: 'Energía que transforma',
+  verse: 'Jeremías 29:11',
+  deliveryText: 'Delivery Incluido',
   currency: '$',
-  deliveryFee: 3.00,
-  pickupAddress: 'Verstail Specialty Beverage Hub',
+  deliveryFee: 0.00,
+  pickupAddress: 'Versátil Specialty Hub, PR',
   businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM'
 };
 

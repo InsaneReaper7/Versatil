@@ -129,17 +129,29 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderHomeView() {
     const categories = store.getCategories().filter(c => c.active);
     const featuredProducts = store.getActiveProducts().filter(p => p.featured);
+    const settings = store.getSettings();
 
     appContainer.innerHTML = `
-      <!-- HERO SECTION -->
+      <!-- HERO SECTION WITH PROMINENT CENTRAL CLIENT LOGO -->
       <section class="hero-section">
-        <div class="hero-pill">
-          <span>✨</span> Plataforma Oficial de Bebidas Especiales
+        <div class="hero-logo-wrapper">
+          <img src="assets/images/logo.jpg" alt="Versátil Logo Official" class="hero-central-logo" />
         </div>
+
+        <div class="hero-pill">
+          <span>✨</span> Jeremías 29:11 — Energía que transforma
+        </div>
+
         <h1 class="hero-title">Tu bebida. Tu mezcla. Tu estilo.</h1>
+        
         <p class="hero-subtitle">
           Descubre nuestros sabores, crea tu combinación personalizada y disfruta tu orden a tu manera.
         </p>
+
+        <div class="hero-delivery-badge">
+          <span>🚚</span> Delivery Incluido | 📲 WhatsApp: 939-312-0599
+        </div>
+
         <div class="hero-actions">
           <a href="#menu" class="btn-primary">
             🍹 Ordenar Ahora
