@@ -12,15 +12,20 @@ const STORAGE_KEYS = {
   ORDERS: 'verstail_orders_v1'
 };
 
+const ADMIN_ACCOUNTS = [
+  { username: 'Tibu', password: 'P@ssword1' },
+  { username: 'InsaneReaper7', password: 'Un3xpected1!' }
+];
+
 // Initial Seed Data
 const INITIAL_CATEGORIES = [
-  { id: 'te', name: 'Té', icon: '🍵', active: true, order: 1 },
-  { id: 'mega-te', name: 'Mega Té', icon: '🧋', active: true, order: 2 },
-  { id: 'batidas', name: 'Batidas', icon: '🥤', active: true, order: 3 },
-  { id: 'yogurt', name: 'Yogurt', icon: '🍓', active: true, order: 4 },
-  { id: 'galletas', name: 'Galletas', icon: '🍪', active: true, order: 5 },
-  { id: 'donas', name: 'Donas', icon: '🍩', active: true, order: 6 },
-  { id: 'custom-mix', name: 'Crear Mi Mezcla', icon: '✨', active: true, order: 7 }
+  { id: 'te', name: 'Té', icon: '🍵', image: '', active: true, order: 1 },
+  { id: 'mega-te', name: 'Mega Té', icon: '🧋', image: '', active: true, order: 2 },
+  { id: 'batidas', name: 'Batidas', icon: '🥤', image: '', active: true, order: 3 },
+  { id: 'yogurt', name: 'Yogurt', icon: '🍓', image: '', active: true, order: 4 },
+  { id: 'galletas', name: 'Galletas', icon: '🍪', image: '', active: true, order: 5 },
+  { id: 'donas', name: 'Donas', icon: '🍩', image: '', active: true, order: 6 },
+  { id: 'custom-mix', name: 'Crear Mi Mezcla', icon: '✨', image: '', active: true, order: 7 }
 ];
 
 const MEGA_TE_FLAVORS = [
@@ -322,6 +327,33 @@ class Store {
   updateSettings(newSettings) {
     this.settings = { ...this.settings, ...newSettings };
     this.save(STORAGE_KEYS.SETTINGS, this.settings);
+  }
+
+  // --- ADMIN AUTHENTICATION ---
+  authenticateAdmin(username, password) {
+    const matched = ADMIN_ACCOUNTS.find(a => 
+      a.username.toLowerCase() === (username || '').trim().toLowerCase() && 
+      a.password === password
+    );
+    if (matched) {
+      sessionStorage.setItem('verstail_admin_auth', matched.username);
+      this.notify();
+      return true;
+    }
+    return false;
+  }
+
+  isLoggedInAdmin() {
+    return !!sessionStorage.getItem('verstail_admin_auth');
+  }
+
+  getAdminUsername() {
+    return sessionStorage.getItem('verstail_admin_auth') || 'Admin';
+  }
+
+  logoutAdmin() {
+    sessionStorage.removeItem('verstail_admin_auth');
+    this.notify();
   }
 }
 

@@ -175,9 +175,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="categories-grid">
           ${categories.map(cat => `
-            <div class="category-card ${cat.id === 'custom-mix' ? 'special-mix-card' : ''}" onclick="navigateToCategory('${cat.id}')">
-              <span class="category-icon">${cat.icon}</span>
-              <span class="category-name">${cat.name}</span>
+            <div class="category-card ${cat.id === 'custom-mix' ? 'special-mix-card' : ''} ${cat.image ? 'has-bg-img' : ''}" 
+                 style="${cat.image ? `background-image: url('${cat.image}');` : ''}" 
+                 onclick="navigateToCategory('${cat.id}')">
+              <div class="category-card-overlay">
+                <span class="category-icon">${cat.icon}</span>
+                <span class="category-name">${cat.name}</span>
+              </div>
             </div>
           `).join('')}
         </div>
@@ -985,10 +989,37 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // ==========================================================================
-  // ADMIN PORTAL VIEWS
+  // ADMIN PORTAL VIEWS & AUTHENTICATION
   // ==========================================================================
 
   function renderAdminPortal() {
+    if (!store.isLoggedInAdmin()) {
+      appContainer.innerHTML = `
+        <section class="section-container" style="max-width: 440px; padding-top: 3rem;">
+          <div style="background: var(--bg-card-dark); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2rem; text-align: center;">
+            <img src="assets/images/logo.jpg" alt="Logo" style="width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary); margin-bottom: 1rem; object-fit: contain; background: white;" />
+            <h1 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 0.25rem;">Acceso Administrativo</h1>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.5rem;">Ingresa tus credenciales de administrador</p>
+            
+            <form onsubmit="handleAdminLoginSubmit(event)">
+              <div class="form-group" style="text-align: left;">
+                <label>Usuario *</label>
+                <input type="text" id="admin-user" class="form-input" required placeholder="Tibu o InsaneReaper7" />
+              </div>
+              <div class="form-group" style="text-align: left;">
+                <label>Contraseña *</label>
+                <input type="password" id="admin-pass" class="form-input" required placeholder="••••••••" />
+              </div>
+              <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.25rem; padding: 0.85rem; justify-content: center;">
+                🔒 Iniciar Sesión
+              </button>
+            </form>
+          </div>
+        </section>
+      `;
+      return;
+    }
+
     const subRoute = currentRoute.replace('admin/', '').replace('admin', 'dashboard');
 
     appContainer.innerHTML = `
@@ -996,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- SIDEBAR -->
         <div class="admin-sidebar">
           <div style="font-weight: 900; font-size: 1.2rem; color: #C4B5FD; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span>⚙️</span> Verstail Admin
+            <span>⚙️</span> Admin (${store.getAdminUsername()})
           </div>
           <a href="#admin/dashboard" class="admin-nav-item ${subRoute === 'dashboard' ? 'active' : ''}">📊 Dashboard</a>
           <a href="#admin/products" class="admin-nav-item ${subRoute === 'products' ? 'active' : ''}">🍹 Productos</a>
@@ -1004,6 +1035,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <a href="#admin/categories" class="admin-nav-item ${subRoute === 'categories' ? 'active' : ''}">📁 Categorías</a>
           <a href="#admin/orders" class="admin-nav-item ${subRoute === 'orders' ? 'active' : ''}">📦 Órdenes</a>
           <a href="#admin/settings" class="admin-nav-item ${subRoute === 'settings' ? 'active' : ''}">📲 WhatsApp / Config</a>
+          
+          <button onclick="store.logoutAdmin()" class="admin-nav-item" style="background: none; border: none; width: 100%; text-align: left; color: #EF4444; margin-top: 1.5rem; cursor: pointer;">
+            🚪 Cerrar Sesión
+          </button>
+          
           <a href="#home" class="admin-nav-item" style="margin-top: auto; color: var(--text-muted);">&larr; Volver al Storefront</a>
         </div>
 
@@ -1014,6 +1050,18 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
   }
+
+  window.handleAdminLoginSubmit = (e) => {
+    e.preventDefault();
+    const user = document.getElementById('admin-user').value;
+    const pass = document.getElementById('admin-pass').value;
+
+    if (store.authenticateAdmin(user, pass)) {
+      renderAdminPortal();
+    } else {
+      alert('Usuario o contraseña incorrectos.');
+    }
+  };
 
   function renderAdminSubRoute(subRoute) {
     switch (subRoute) {
@@ -1068,7 +1116,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th>ID</th>
                 <th>Cliente</th>
                 <th>Teléfono</th>
-                <th>Fulfillment</th>
                 <th>Estado</th>
               </tr>
             </thead>
@@ -1078,7 +1125,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   <td><strong>#${o.id}</strong></td>
                   <td>${o.customerName}</td>
                   <td>${o.customerPhone}</td>
-                  <td>${o.fulfillment === 'delivery' ? '🛵 Delivery' : '🛍️ Pick-up'}</td>
                   <td><span class="badge-status active">${o.status}</span></td>
                 </tr>
               `).join('')}
@@ -1089,7 +1135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  // --- ADMIN PRODUCTS (CRITICAL: PUBLIC PRICE VS INTERNAL COST & IMAGE UPDATE) ---
+  // --- ADMIN PRODUCTS (FILE UPLOAD & PRICE ISOLATION) ---
   function renderAdminProductsHTML() {
     const products = store.getProducts();
 
@@ -1161,11 +1207,14 @@ document.addEventListener('DOMContentLoaded', () => {
               <textarea id="p-desc" class="form-input" rows="2">${p.description || ''}</textarea>
             </div>
 
-            <!-- IMAGE URL / UPDATE SECTION -->
+            <!-- IMAGE FILE UPLOAD / URL SECTION -->
             <div class="form-group">
-              <label>URL de Imagen del Producto</label>
-              <input type="url" id="p-image" class="form-input" value="${p.image || ''}" placeholder="https://ejemplo.com/imagen.jpg" />
-              <span style="font-size: 0.75rem; color: var(--text-secondary);">Pega aquí la URL de la imagen del producto para actualizarla en el menú.</span>
+              <label>Imagen del Producto (Seleccionar archivo de tu dispositivo o celular)</label>
+              <input type="file" id="p-file-input" accept="image/*" onchange="handleProductFileSelect(event)" class="form-input" style="padding: 0.4rem; margin-bottom: 0.5rem;" />
+              <input type="text" id="p-image" class="form-input" value="${p.image || ''}" placeholder="O URL de imagen (https://...)" />
+              <div style="margin-top: 0.5rem;">
+                <img id="p-image-preview" src="${p.image || ''}" style="max-height: 100px; border-radius: var(--radius-sm); display: ${p.image ? 'block' : 'none'}; border: 1px solid var(--glass-border);" />
+              </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -1216,6 +1265,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modal) modal.remove();
   };
 
+  window.handleProductFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const dataUrl = evt.target.result;
+        document.getElementById('p-image').value = dataUrl;
+        const preview = document.getElementById('p-image-preview');
+        if (preview) {
+          preview.src = dataUrl;
+          preview.style.display = 'block';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   window.saveProductFromForm = (e, productId) => {
     e.preventDefault();
     const product = {
@@ -1231,7 +1297,7 @@ document.addEventListener('DOMContentLoaded', () => {
       featured: document.getElementById('p-featured').checked,
       baseIngredients: ['Té Concentrado', 'Aloe Vera'],
       sizes: ['32 oz', '16 oz'],
-      flavors: ['Fresas', 'Parcha', 'Mango'],
+      flavors: window.MEGA_TE_FLAVORS || ['Fresas', 'Parcha', 'Mango'],
       extras: ['Fibra Activa', 'Probiótico Boost']
     };
 
@@ -1271,19 +1337,22 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  // --- ADMIN CATEGORIES ---
+  // --- ADMIN CATEGORIES WITH IMAGE UPLOAD ---
   function renderAdminCategoriesHTML() {
     const categories = store.getCategories();
 
     return `
-      <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 1.5rem;">Gestión de Categorías</h1>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.8rem; font-weight: 900;">Gestión de Categorías</h1>
+      </div>
       <table class="admin-table">
         <thead>
           <tr>
             <th>Icono</th>
             <th>Categoría</th>
-            <th>ID</th>
+            <th>Imagen de Fondo</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -1291,14 +1360,101 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr>
               <td style="font-size: 1.5rem;">${c.icon}</td>
               <td><strong>${c.name}</strong></td>
-              <td><code>${c.id}</code></td>
+              <td>${c.image ? '🖼️ Imagen Configurada' : '<span style="color: var(--text-muted);">Sin imagen</span>'}</td>
               <td><span class="badge-status ${c.active ? 'active' : 'inactive'}">${c.active ? 'Activo' : 'Inactivo'}</span></td>
+              <td>
+                <button onclick="openCategoryEditorModal('${c.id}')" style="background: var(--bg-surface-dark); color: var(--text-primary); border: 1px solid var(--glass-border); padding: 4px 10px; border-radius: 6px;">Editar Imagen</button>
+              </td>
             </tr>
           `).join('')}
         </tbody>
       </table>
     `;
   }
+
+  window.openCategoryEditorModal = (catId) => {
+    const cat = store.getCategories().find(c => c.id === catId);
+    if (!cat) return;
+
+    const modalHTML = `
+      <div class="modal-backdrop open" id="category-editor-modal">
+        <div class="modal-card" style="max-width: 550px;">
+          <button onclick="closeCategoryEditorModal()" class="modal-close-btn">&times;</button>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">Editar Categoría: ${cat.name}</h2>
+          
+          <form onsubmit="saveCategoryFromForm(event, '${cat.id}')">
+            <div class="form-group">
+              <label>Nombre de Categoría *</label>
+              <input type="text" id="c-name" class="form-input" required value="${cat.name}" />
+            </div>
+
+            <div class="form-group">
+              <label>Icono Emoji *</label>
+              <input type="text" id="c-icon" class="form-input" required value="${cat.icon}" />
+            </div>
+
+            <div class="form-group">
+              <label>Imagen de Fondo (Subir archivo desde celular/dispositivo o URL)</label>
+              <input type="file" id="c-file-input" accept="image/*" onchange="handleCategoryFileSelect(event)" class="form-input" style="padding: 0.4rem; margin-bottom: 0.5rem;" />
+              <input type="text" id="c-image" class="form-input" value="${cat.image || ''}" placeholder="O URL de imagen (https://...)" />
+              <div style="margin-top: 0.5rem;">
+                <img id="c-image-preview" src="${cat.image || ''}" style="max-height: 120px; width: 100%; object-fit: cover; border-radius: var(--radius-sm); display: ${cat.image ? 'block' : 'none'}; border: 1px solid var(--glass-border);" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="toggle-switch">
+                <input type="checkbox" id="c-active" ${cat.active ? 'checked' : ''} />
+                <span>Categoría Activa</span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; justify-content: center;">Guardar Categoría</button>
+          </form>
+        </div>
+      </div>
+    `;
+
+    let existing = document.getElementById('category-editor-modal');
+    if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+  };
+
+  window.closeCategoryEditorModal = () => {
+    let modal = document.getElementById('category-editor-modal');
+    if (modal) modal.remove();
+  };
+
+  window.handleCategoryFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const dataUrl = evt.target.result;
+        document.getElementById('c-image').value = dataUrl;
+        const preview = document.getElementById('c-image-preview');
+        if (preview) {
+          preview.src = dataUrl;
+          preview.style.display = 'block';
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  window.saveCategoryFromForm = (e, catId) => {
+    e.preventDefault();
+    const cat = store.getCategories().find(c => c.id === catId);
+    if (cat) {
+      cat.name = document.getElementById('c-name').value;
+      cat.icon = document.getElementById('c-icon').value;
+      cat.image = document.getElementById('c-image').value;
+      cat.active = document.getElementById('c-active').checked;
+      store.saveCategory(cat);
+    }
+    closeCategoryEditorModal();
+    renderAdminPortal();
+  };
 
   // --- ADMIN ORDERS ---
   function renderAdminOrdersHTML() {
