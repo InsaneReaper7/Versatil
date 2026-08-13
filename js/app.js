@@ -186,19 +186,12 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="categories-grid">
-          ${categories.map(cat => {
-            const bgImg = getCategoryImage(cat);
-            return `
-              <div class="category-card ${bgImg ? 'has-bg-img' : ''}" 
-                   style="${bgImg ? `background-image: url('${bgImg}');` : ''}" 
-                   onclick="navigateToCategory('${cat.id}')">
-                <div class="category-card-overlay">
-                  ${bgImg ? '' : `<span class="category-icon">${cat.icon}</span>`}
-                  <span class="category-name">${cat.name}</span>
-                </div>
-              </div>
-            `;
-          }).join('')}
+          ${categories.map(cat => `
+            <div class="category-card" onclick="navigateToCategory('${cat.id}')">
+              <span class="category-icon">${cat.icon}</span>
+              <span class="category-name">${cat.name}</span>
+            </div>
+          `).join('')}
         </div>
       </section>
 
