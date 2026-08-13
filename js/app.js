@@ -125,6 +125,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // CUSTOMER VIEWS
   // ==========================================================================
 
+  function getProductImage(prod) {
+    if (prod.image && prod.image.trim()) return prod.image.trim();
+    const categories = store.getCategories();
+    const cat = categories.find(c => c.id === prod.category);
+    if (cat && cat.image && cat.image.trim()) return cat.image.trim();
+    return '';
+  }
+
   function getCategoryImage(cat) {
     if (cat.image && cat.image.trim()) return cat.image.trim();
     const prods = store.getProducts();
@@ -134,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- HOMEPAGE VIEW ---
   function renderHomeView() {
-    const categories = store.getCategories().filter(c => c.active);
+    const categories = store.getCategories().filter(c => c.active && c.id !== 'custom-mix');
     const featuredProducts = store.getActiveProducts().filter(p => p.featured);
     const settings = store.getSettings();
 
@@ -154,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <h1 class="hero-title">Tu bebida. Tu mezcla. Tu estilo.</h1>
         
         <p class="hero-subtitle">
-          Descubre nuestros sabores, crea tu combinación personalizada y disfruta tu orden a tu manera.
+          Descubre nuestros sabores, explora nuestro menú y disfruta tu orden a tu manera.
         </p>
 
         <div class="hero-delivery-badge">
@@ -162,11 +170,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="hero-actions">
-          <a href="#menu" class="btn-primary">
-            🍹 Ordenar Ahora
-          </a>
-          <a href="#crear-mi-mezcla" class="btn-secondary">
-            ✨ Crear Mi Mezcla
+          <a href="#menu" class="btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+            🍹 Ver Menú y Ordenar
           </a>
         </div>
       </section>
@@ -184,11 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
           ${categories.map(cat => {
             const bgImg = getCategoryImage(cat);
             return `
-              <div class="category-card ${cat.id === 'custom-mix' ? 'special-mix-card' : ''} ${bgImg ? 'has-bg-img' : ''}" 
+              <div class="category-card ${bgImg ? 'has-bg-img' : ''}" 
                    style="${bgImg ? `background-image: url('${bgImg}');` : ''}" 
                    onclick="navigateToCategory('${cat.id}')">
                 <div class="category-card-overlay">
-                  <span class="category-icon">${cat.icon}</span>
+                  ${bgImg ? '' : `<span class="category-icon">${cat.icon}</span>`}
                   <span class="category-name">${cat.name}</span>
                 </div>
               </div>
@@ -215,17 +220,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.navigateToCategory = (catId) => {
-    if (catId === 'custom-mix') {
-      window.location.hash = 'crear-mi-mezcla';
-    } else {
-      selectedCategoryFilter = catId;
-      window.location.hash = 'menu';
-    }
+    selectedCategoryFilter = catId;
+    window.location.hash = 'menu';
   };
 
   // --- MENU VIEW ---
   function renderMenuView() {
-    const categories = store.getCategories().filter(c => c.active);
+    const categories = store.getCategories().filter(c => c.active && c.id !== 'custom-mix');
     let products = store.getActiveProducts();
 
     if (selectedCategoryFilter !== 'all') {
@@ -235,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     appContainer.innerHTML = `
       <section class="section-container">
         <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
-          <h1 class="section-title" style="font-size: 2rem;">Menú Verstail</h1>
+          <h1 class="section-title" style="font-size: 2rem;">Menú Versátil</h1>
           <p style="color: var(--text-secondary);">Elige una bebida o postre y personalízalo a tu estilo.</p>
         </div>
 
@@ -260,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="empty-cart-state">
             <div class="empty-cart-icon">🔍</div>
             <h3>No hay productos en esta categoría</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Prueba seleccionando otra categoría o crea tu propia mezcla.</p>
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Prueba seleccionando otra categoría.</p>
             <button onclick="setMenuFilter('all')" class="btn-secondary">Ver todo el menú</button>
           </div>
         `}
@@ -277,13 +278,14 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderProductCardHTML(prod) {
     const showPrice = prod.showPublicPrice;
     const btnLabel = showPrice ? `🍹 Ordenar — $${Number(prod.publicPrice).toFixed(2)}` : `🍹 Ordenar`;
-    const hasImage = prod.image && prod.image.trim();
+    const imgUrl = getProductImage(prod);
+    const hasImage = !!imgUrl;
 
     return `
-      <div class="product-card ${hasImage ? 'has-prod-image' : ''}" style="${hasImage ? `background-image: url('${prod.image.trim()}');` : ''}">
+      <div class="product-card ${hasImage ? 'has-prod-image' : ''}" style="${hasImage ? `background-image: url('${imgUrl}');` : ''}">
         <div class="product-image-container">
           ${hasImage ? `
-            <img src="${prod.image.trim()}" alt="${prod.name}" class="product-image" />
+            <img src="${imgUrl}" alt="${prod.name}" class="product-image" />
           ` : `
             <div class="product-badge-placeholder">
               <span style="font-size: 2.5rem;">${getCategoryIcon(prod.category)}</span>

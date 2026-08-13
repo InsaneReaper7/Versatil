@@ -24,8 +24,7 @@ const INITIAL_CATEGORIES = [
   { id: 'batidas', name: 'Batidas', icon: '🥤', image: '', active: true, order: 3 },
   { id: 'yogurt', name: 'Yogurt', icon: '🍓', image: '', active: true, order: 4 },
   { id: 'galletas', name: 'Galletas', icon: '🍪', image: '', active: true, order: 5 },
-  { id: 'donas', name: 'Donas', icon: '🍩', image: '', active: true, order: 6 },
-  { id: 'custom-mix', name: 'Crear Mi Mezcla', icon: '✨', image: '', active: true, order: 7 }
+  { id: 'donas', name: 'Donas', icon: '🍩', active: true, order: 6 }
 ];
 
 const MEGA_TE_FLAVORS = [
@@ -258,7 +257,9 @@ class Store {
     this.save(STORAGE_KEYS.INGREDIENTS, this.ingredients);
   }
 
-  getCategories() { return this.categories; }
+  getCategories() {
+    return this.categories.filter(c => c.id !== 'custom-mix');
+  }
   saveCategory(cat) {
     if (!cat.id) cat.id = 'cat-' + Date.now();
     const idx = this.categories.findIndex(c => c.id === cat.id);
