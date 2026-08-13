@@ -920,10 +920,9 @@ document.addEventListener('DOMContentLoaded', () => {
   window.removeCartItem = (cartId) => { store.removeFromCart(cartId); };
   window.clearUserCart = () => { if (confirm('¿Vaciar tu carrito?')) store.clearCart(); };
 
-  // --- CHECKOUT VIEW WITH WHATSAPP INTEGRATION ---
+  // --- CHECKOUT VIEW WITH STREAMLINED WHATSAPP INTEGRATION ---
   function renderCheckoutView() {
     const cart = store.getCart();
-    const settings = store.getSettings();
 
     if (cart.length === 0) {
       window.location.hash = 'carrito';
@@ -931,9 +930,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     appContainer.innerHTML = `
-      <section class="section-container" style="max-width: 650px;">
+      <section class="section-container" style="max-width: 550px;">
         <h1 class="section-title" style="font-size: 2rem; margin-bottom: 0.5rem;">Finalizar Pedido</h1>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Completa tus datos para enviar tu orden por WhatsApp.</p>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Ingresa tus datos de contacto para enviar tu orden por WhatsApp.</p>
 
         <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)" style="background: var(--bg-card-dark); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 1.5rem;">
           <div class="form-group">
@@ -943,30 +942,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="form-group">
             <label>Teléfono de Contacto *</label>
-            <input type="tel" id="cust-phone" class="form-input" required placeholder="Ej. 787-555-0199" />
+            <input type="tel" id="cust-phone" class="form-input" required placeholder="Ej. 939-312-0599" />
           </div>
 
           <div class="form-group">
             <label>Correo Electrónico (Opcional)</label>
             <input type="email" id="cust-email" class="form-input" placeholder="maria@ejemplo.com" />
-          </div>
-
-          <div class="form-group">
-            <label>Método de Entrega *</label>
-            <select id="cust-fulfillment" class="form-input" onchange="toggleDeliveryAddressInput(this.value)">
-              <option value="pickup">🛍️ Recogido en Tienda (${settings.pickupAddress})</option>
-              <option value="delivery">🛵 Entrega a Domicilio</option>
-            </select>
-          </div>
-
-          <div class="form-group" id="delivery-address-group" style="display: none;">
-            <label>Dirección de Entrega *</label>
-            <input type="text" id="cust-address" class="form-input" placeholder="Calle, número, urbanización o pueblo" />
-          </div>
-
-          <div class="form-group">
-            <label>Instrucciones / Notas Adicionales</label>
-            <textarea id="cust-notes" class="form-input" rows="2" placeholder="Ej. Poco hielo, entregarlo en la entrada del local"></textarea>
           </div>
 
           <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-surface-dark); border-radius: var(--radius-md);">
@@ -984,19 +965,11 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  window.toggleDeliveryAddressInput = (val) => {
-    const group = document.getElementById('delivery-address-group');
-    if (group) group.style.display = val === 'delivery' ? 'flex' : 'none';
-  };
-
   window.handleCheckoutSubmit = (e) => {
     e.preventDefault();
     const name = document.getElementById('cust-name').value;
     const phone = document.getElementById('cust-phone').value;
-    const email = document.getElementById('cust-email').value;
-    const fulfillment = document.getElementById('cust-fulfillment').value;
-    const address = document.getElementById('cust-address') ? document.getElementById('cust-address').value : '';
-    const notes = document.getElementById('cust-notes').value;
+    const email = document.getElementById('cust-email') ? document.getElementById('cust-email').value : '';
 
     const cart = store.getCart();
     const settings = store.getSettings();
@@ -1005,9 +978,6 @@ document.addEventListener('DOMContentLoaded', () => {
       customerName: name,
       customerPhone: phone,
       customerEmail: email,
-      fulfillment: fulfillment,
-      deliveryAddress: address,
-      notes: notes,
       items: cart
     });
 

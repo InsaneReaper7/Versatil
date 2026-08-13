@@ -4,17 +4,16 @@
    ========================================================================== */
 
 function formatWhatsAppOrderMessage(order, settings) {
-  const storeName = settings.storeName || 'Verstail';
+  const storeName = settings.storeName || 'Versátil';
   
   let msg = `🍹 *NUEVO PEDIDO - ${storeName.toUpperCase()}* 🍹\n`;
   msg += `----------------------------------\n`;
   msg += `📋 *Orden:* #${order.id}\n`;
   msg += `👤 *Cliente:* ${order.customerName}\n`;
   msg += `📞 *Teléfono:* ${order.customerPhone}\n`;
-  if (order.customerEmail) msg += `📧 *Email:* ${order.customerEmail}\n`;
-  msg += `🚗 *Modo:* ${order.fulfillment === 'delivery' ? '🛵 Entrega a Domicilio' : '🛍️ Recogido en Tienda'}\n`;
-  if (order.deliveryAddress) msg += `📍 *Dirección:* ${order.deliveryAddress}\n`;
-  if (order.notes) msg += `💬 *Notas:* ${order.notes}\n`;
+  if (order.customerEmail && order.customerEmail.trim()) {
+    msg += `📧 *Email:* ${order.customerEmail}\n`;
+  }
   
   msg += `\n🛒 *DETALLE DEL PEDIDO:* \n`;
   msg += `----------------------------------\n`;
