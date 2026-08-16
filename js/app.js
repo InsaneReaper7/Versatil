@@ -252,8 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- HOMEPAGE VIEW (INTEGRATED MENU & CATALOG) ---
   function renderHomeView() {
     const categories = store.getCategories().filter(c => c.active !== false && c.id !== 'custom-mix');
+    const activeCatIds = new Set(categories.map(c => c.id));
     const settings = store.getSettings();
-    let products = store.getActiveProducts();
+    let products = store.getActiveProducts().filter(p => activeCatIds.has(p.category));
 
     if (selectedCategoryFilter !== 'all') {
       products = products.filter(p => p.category === selectedCategoryFilter);

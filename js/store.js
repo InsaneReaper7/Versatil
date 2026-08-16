@@ -221,7 +221,7 @@ class Store {
             this.products = data.products;
           }
 
-          // Smart merge categories to preserve uploaded image URLs & rotation mode
+          // Smart merge categories to preserve uploaded image URLs, rotation mode & active/hidden state
           if (data.categories && data.categories.length > 0) {
             data.categories.forEach(sc => {
               const localC = this.categories.find(lc => lc.id === sc.id);
@@ -229,6 +229,7 @@ class Store {
                 if ((!sc.image || !sc.image.trim()) && localC.image) sc.image = localC.image;
                 if ((!sc.image2 || !sc.image2.trim()) && localC.image2) sc.image2 = localC.image2;
                 if (localC.activeImage) sc.activeImage = localC.activeImage;
+                if (typeof localC.active === 'boolean') sc.active = localC.active;
               }
             });
             this.categories = data.categories;
