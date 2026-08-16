@@ -736,22 +736,25 @@ body.theme-icon-classic .category-card:hover .category-icon, body.theme-icon-cla
   width: 100%;
   background: linear-gradient(135deg, var(--secondary-baby-blue) 0%, var(--secondary-baby-blue-hover) 100%);
   color: white;
-  padding: 0.9rem 1rem;
-  font-weight: 800;
-  font-size: 1.05rem;
+  padding: 1.1rem 1.25rem;
+  font-weight: 900;
+  font-size: 1.15rem;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   cursor: pointer;
   margin-top: auto;
-  transition: background 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 15px rgba(56, 189, 248, 0.35);
+  transition: all 0.2s ease;
 }
 
 .btn-card-ordenar:hover {
   background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
-  box-shadow: var(--gold-glow);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.5);
+  transform: translateY(-2px);
 }
 
 .btn-card-ordenar:active {

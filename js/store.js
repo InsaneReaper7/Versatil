@@ -177,6 +177,7 @@ const INITIAL_SETTINGS = {
   businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM',
   showBigCategoryCards: true, // Enabled by default
   showCategoryFilterPills: false, // Disabled by default per user preference
+  showCategoryCardImages: false, // Toggle: false = Emoji Icons inside Big Category Cards, true = Category Pictures
   iconThemeMode: 'swapped', // 'swapped' (Blue outline highlight, Gold circle) vs 'classic' (Gold outline highlight, Blue circle)
   cloudinaryCloudName: '', // Optional Cloudinary Cloud Name for permanent cloud CDN image storage
   cloudinaryUploadPreset: '', // Optional Cloudinary Unsigned Upload Preset

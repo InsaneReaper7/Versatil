@@ -191,8 +191,13 @@ document.addEventListener('DOMContentLoaded', () => {
   function getProductImage(prod) {
     if (prod.image && prod.image.trim()) return prod.image.trim();
     const categories = store.getCategories();
-    const cat = categories.find(c => c.id === prod.category);
-    if (cat) return getCategoryActiveImage(cat);
+    const cat = categories.find(c => c.id === prod.category || c.slug === prod.category);
+    if (cat) {
+      const catImg = getCategoryActiveImage(cat);
+      if (catImg) return catImg;
+    }
+    const siblings = store.getProducts().filter(p => p.category === prod.category && p.image && p.image.trim());
+    if (siblings.length > 0) return siblings[0].image.trim();
     return '';
   }
 
@@ -266,9 +271,10 @@ document.addEventListener('DOMContentLoaded', () => {
             ${categories.map(cat => {
               const catImg = getCategoryActiveImage(cat);
               const isRotatable = cat.activeImage === 'rotate' && cat.image && cat.image2;
+              const showImages = settings.showCategoryCardImages === true && !!catImg;
               return `
                 <div class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" onclick="selectCategoryAndScroll('${cat.id}')">
-                  ${catImg ? `
+                  ${showImages ? `
                     <div class="cat-card-img-wrapper">
                       <img src="${catImg}" class="cat-card-img ${isRotatable ? 'cat-rotatable-image' : ''}" ${isRotatable ? `data-img1="${cat.image}" data-img2="${cat.image2}" data-mode="rotate"` : ''} alt="${cat.name}" />
                     </div>
@@ -339,8 +345,19 @@ document.addEventListener('DOMContentLoaded', () => {
   window.selectCategoryAndScroll = (catId) => {
     selectedCategoryFilter = catId;
     renderHomeView();
-    const sec = document.getElementById('menu-section');
-    if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+    setTimeout(() => {
+      const firstProdCard = document.querySelector('#menu-section .product-card');
+      const target = firstProdCard || document.getElementById('menu-section');
+      if (target) {
+        const headerOffset = 105; // Offset for fixed navbar & Filtro activo banner
+        const elementPosition = target.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - headerOffset;
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    }, 60);
   };
 
   window.smoothScrollToMenu = (e) => {
@@ -1653,7 +1670,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <!-- ICON THEME COLOR MODE TOGGLE BANNER -->
-      <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
+      <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
         <div>
           <div style="font-weight: 900; font-size: 1rem; color: var(--text-primary);">🎨 Estilo de Colores de Iconos (Hover / Selección)</div>
           <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
@@ -1662,6 +1679,19 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <button onclick="toggleIconThemeModeFromAdmin()" style="background: var(--gold-light); color: var(--accent-gold-dark); border: 1.5px solid var(--gold-border); padding: 8px 16px; border-radius: var(--radius-full); font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
           🎨 ${settings.iconThemeMode === 'classic' ? '🟡 Modo Clásico (Borde Dorado / Centro Azul)' : '🔵 Modo Invertido (Borde Azul / Centro Dorado)'}
+        </button>
+      </div>
+
+      <!-- CATEGORY CARD CONTENT STYLE TOGGLE BANNER (PICTURES VS EMOJI ICONS) -->
+      <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
+        <div>
+          <div style="font-weight: 900; font-size: 1rem; color: var(--text-primary);">🖼️ Contenido de Tarjetas Grandes ("Explora por Categoría")</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Elige entre mostrar las <strong>Imágenes de Categoría subidas</strong> o los <strong>Iconos Emojis limpios</strong> en las tarjetas grandes.
+          </div>
+        </div>
+        <button onclick="toggleCategoryCardImagesFromAdmin()" style="background: ${settings.showCategoryCardImages ? 'var(--secondary-baby-blue)' : 'var(--bg-surface)'}; color: ${settings.showCategoryCardImages ? '#FFFFFF' : 'var(--text-primary)'}; border: 1.5px solid var(--baby-blue-border); padding: 8px 16px; border-radius: var(--radius-full); font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
+          ${settings.showCategoryCardImages ? '🖼️ Mostrar Imágenes en Tarjetas' : '🎨 Mostrar solo Iconos (Emojis)'}
         </button>
       </div>
 
@@ -1736,6 +1766,13 @@ document.addEventListener('DOMContentLoaded', () => {
   window.toggleIconThemeModeFromAdmin = () => {
     store.toggleIconThemeMode();
     syncIconThemeMode();
+    renderAdminPortal();
+  };
+
+  window.toggleCategoryCardImagesFromAdmin = () => {
+    const settings = store.getSettings();
+    const current = !!settings.showCategoryCardImages;
+    store.updateSettings({ showCategoryCardImages: !current });
     renderAdminPortal();
   };
 
