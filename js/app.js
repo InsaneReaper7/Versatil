@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderApp();
   });
 
-  // --- MOBILE DRAWER ---
+  // --- MOBILE DRAWER & NAVIGATION LINKS ---
   if (mobileNavToggle) {
     mobileNavToggle.addEventListener('click', () => {
       mobileNavDrawer.classList.toggle('open');
@@ -55,6 +55,26 @@ document.addEventListener('DOMContentLoaded', () => {
   function closeMobileDrawer() {
     if (mobileNavDrawer) mobileNavDrawer.classList.remove('open');
   }
+
+  // Auto-close drawer on any link click & handle Inicio smooth scroll + refresh
+  document.addEventListener('click', (e) => {
+    const link = e.target.closest('a');
+    if (!link) return;
+
+    const href = link.getAttribute('href');
+    if (link.classList.contains('mobile-nav-link') || mobileNavDrawer.contains(link)) {
+      closeMobileDrawer();
+    }
+
+    if (href === '#home' || href === '#') {
+      closeMobileDrawer();
+      selectedCategoryFilter = 'all';
+      if (currentRoute === 'home') {
+        renderHomeView();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+  });
 
   // --- HEADER & STICKY CART BADGE ---
   function updateHeaderCartBadge() {
