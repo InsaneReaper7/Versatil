@@ -167,13 +167,14 @@ const INITIAL_PRODUCTS = [
 
 const INITIAL_SETTINGS = {
   whatsappPhone: '19393120599', // Client WhatsApp: 939-312-0599
-  storeName: 'Versátil',
+  storeName: 'Versátil Nutrition',
+  customDomain: 'https://versatilnutrition.com',
   tagline: 'Energía que transforma',
   verse: 'Jeremías 29:11',
   deliveryText: 'Delivery Incluido',
   currency: '$',
   deliveryFee: 0.00,
-  pickupAddress: 'Versátil Specialty Hub, PR',
+  pickupAddress: 'Versátil Nutrition Hub, PR',
   businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM',
   showBigCategoryCards: true, // Enabled by default
   showCategoryFilterPills: false, // Disabled by default per user preference
