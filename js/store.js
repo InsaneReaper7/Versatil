@@ -515,6 +515,7 @@ class Store {
     order.id = 'V-' + Math.floor(1000 + Math.random() * 9000);
     order.createdAt = new Date().toISOString();
     order.status = 'Pendiente';
+    order.paymentStatus = order.paymentStatus || 'No Pagado';
     if (!Array.isArray(this.orders)) this.orders = [];
     this.orders.unshift(order);
     this.save(STORAGE_KEYS.ORDERS, this.orders);
@@ -527,6 +528,14 @@ class Store {
     const order = this.orders.find(o => o.id === orderId);
     if (order) {
       order.status = status;
+      this.save(STORAGE_KEYS.ORDERS, this.orders);
+    }
+  }
+
+  updateOrderPaymentStatus(orderId, paymentStatus) {
+    const order = this.orders.find(o => o.id === orderId);
+    if (order) {
+      order.paymentStatus = paymentStatus;
       this.save(STORAGE_KEYS.ORDERS, this.orders);
     }
   }

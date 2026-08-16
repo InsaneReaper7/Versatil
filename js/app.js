@@ -2097,18 +2097,26 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // --- ADMIN ORDERS ---
-  function renderAdminOrdersHTML() {
-    const orders = store.getOrders();
+  let adminOrderPaymentFilter = 'all'; // 'all', 'unpaid', 'paid'
+
+  window.setAdminPaymentFilter = (mode) => {
+    adminOrderPaymentFilter = mode;
+    renderAdminPortal();
+  };
+
+  window.updateOrderPaymentStatusFromAdmin = (id, paymentStatus) => {
+    store.updateOrderPaymentStatus(id, paymentStatus);
+    renderAdminPortal();
+  };
+
+  function renderOrderTableHTML(ordersList, tableTitle) {
+    if (!ordersList || ordersList.length === 0) return '';
 
     return `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
-        <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0;">📦 Órdenes Recibidas (${orders.length})</h1>
-        <button onclick="refreshAdminOrders()" class="btn-primary" style="padding: 0.55rem 1.25rem; font-size: 0.9rem;">
-          🔄 Refrescar Órdenes
-        </button>
-      </div>
-
-      ${orders.length > 0 ? `
+      <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 2rem; box-shadow: var(--card-shadow);">
+        <div style="font-weight: 900; font-size: 1.15rem; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
+          <span>${tableTitle} (${ordersList.length})</span>
+        </div>
         <div class="table-responsive">
           <table class="admin-table">
             <thead>
@@ -2118,12 +2126,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 <th>Cliente / Contacto</th>
                 <th>Antojos & Mezclas Solicitadas</th>
                 <th>Estado del Pedido</th>
+                <th>Estado de Pago</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              ${orders.map(o => `
-                <tr>
+              ${ordersList.map(o => `
+                <tr style="${o.paymentStatus === 'Pagado' ? 'background: rgba(16, 185, 129, 0.03);' : ''}">
                   <td><strong>#${o.id}</strong></td>
                   <td style="font-size: 0.82rem;">${new Date(o.createdAt).toLocaleString()}</td>
                   <td>
@@ -2156,6 +2165,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     </select>
                   </td>
                   <td>
+                    <select onchange="updateOrderPaymentStatusFromAdmin('${o.id}', this.value)" class="form-input" style="padding: 4px 8px; font-size: 0.85rem; width: auto; font-weight: 800; background: ${o.paymentStatus === 'Pagado' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; color: ${o.paymentStatus === 'Pagado' ? '#059669' : '#DC2626'}; border: 1.5px solid ${o.paymentStatus === 'Pagado' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; cursor: pointer;">
+                      <option value="No Pagado" ${(o.paymentStatus || 'No Pagado') === 'No Pagado' ? 'selected' : ''}>❌ No Pagado</option>
+                      <option value="Pagado" ${o.paymentStatus === 'Pagado' ? 'selected' : ''}>💳 Pagado</option>
+                    </select>
+                  </td>
+                  <td>
                     <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
                       🗑️ Eliminar
                     </button>
@@ -2165,12 +2180,62 @@ document.addEventListener('DOMContentLoaded', () => {
             </tbody>
           </table>
         </div>
-      ` : `
+      </div>
+    `;
+  }
+
+  function renderAdminOrdersHTML() {
+    const allOrders = store.getOrders().map(o => {
+      if (!o.paymentStatus) o.paymentStatus = 'No Pagado';
+      return o;
+    });
+
+    const unpaidOrders = allOrders.filter(o => o.paymentStatus === 'No Pagado');
+    const paidOrders = allOrders.filter(o => o.paymentStatus === 'Pagado');
+
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0;">📦 Órdenes Recibidas (${allOrders.length})</h1>
+        <button onclick="refreshAdminOrders()" class="btn-primary" style="padding: 0.55rem 1.25rem; font-size: 0.9rem;">
+          🔄 Refrescar Órdenes
+        </button>
+      </div>
+
+      <!-- PAYMENT FILTER CONTROLS -->
+      <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; margin-bottom: 1.75rem; background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border);">
+        <span style="font-weight: 800; font-size: 0.9rem; color: var(--text-secondary);">Filtrar por Estado de Pago:</span>
+        
+        <button onclick="setAdminPaymentFilter('all')" class="btn-secondary" style="padding: 6px 16px; font-size: 0.85rem; background: ${adminOrderPaymentFilter === 'all' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminOrderPaymentFilter === 'all' ? '#FFFFFF' : 'var(--text-primary)'}; border-color: var(--baby-blue-border); font-weight: 800; cursor: pointer;">
+          🌐 Mezcla Completa (${allOrders.length})
+        </button>
+
+        <button onclick="setAdminPaymentFilter('unpaid')" class="btn-secondary" style="padding: 6px 16px; font-size: 0.85rem; background: ${adminOrderPaymentFilter === 'unpaid' ? '#EF4444' : '#FFFFFF'}; color: ${adminOrderPaymentFilter === 'unpaid' ? '#FFFFFF' : '#DC2626'}; border-color: rgba(239, 68, 68, 0.4); font-weight: 800; cursor: pointer;">
+          ❌ Solo No Pagadas (${unpaidOrders.length})
+        </button>
+
+        <button onclick="setAdminPaymentFilter('paid')" class="btn-secondary" style="padding: 6px 16px; font-size: 0.85rem; background: ${adminOrderPaymentFilter === 'paid' ? '#10B981' : '#FFFFFF'}; color: ${adminOrderPaymentFilter === 'paid' ? '#FFFFFF' : '#059669'}; border-color: rgba(16, 185, 129, 0.4); font-weight: 800; cursor: pointer;">
+          💳 Solo Pagadas (${paidOrders.length})
+        </button>
+      </div>
+
+      ${allOrders.length === 0 ? `
         <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 2.5rem 1.5rem; text-align: center;">
           <div style="font-size: 3rem; margin-bottom: 0.75rem;">📦</div>
           <h3 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem;">No hay órdenes registradas</h3>
           <p style="color: var(--text-secondary);">Las órdenes realizadas en el sitio web aparecerán aquí automáticamente.</p>
         </div>
+      ` : `
+        ${adminOrderPaymentFilter === 'all' ? `
+          ${renderOrderTableHTML(unpaidOrders, '❌ Órdenes Pendientes de Pago (No Pagadas)')}
+          ${renderOrderTableHTML(paidOrders, '💳 Órdenes Pagadas')}
+          ${unpaidOrders.length === 0 && paidOrders.length === 0 ? '<p style="color: var(--text-secondary);">No se encontraron órdenes.</p>' : ''}
+        ` : adminOrderPaymentFilter === 'unpaid' ? `
+          ${renderOrderTableHTML(unpaidOrders, '❌ Órdenes Pendientes de Pago (No Pagadas)')}
+          ${unpaidOrders.length === 0 ? '<p style="color: var(--text-secondary);">No hay órdenes sin pagar.</p>' : ''}
+        ` : `
+          ${renderOrderTableHTML(paidOrders, '💳 Órdenes Pagadas')}
+          ${paidOrders.length === 0 ? '<p style="color: var(--text-secondary);">No hay órdenes pagadas aún.</p>' : ''}
+        `}
       `}
     `;
   }
