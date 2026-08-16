@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- HOMEPAGE VIEW ---
   // --- HOMEPAGE VIEW (INTEGRATED MENU & CATALOG) ---
   function renderHomeView() {
-    const categories = store.getCategories().filter(c => c.active && c.id !== 'custom-mix');
+    const categories = store.getCategories().filter(c => c.active !== false && c.id !== 'custom-mix');
     const settings = store.getSettings();
     let products = store.getActiveProducts();
 
@@ -215,29 +215,31 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </section>
 
-      <!-- BIG CATEGORY BUTTON CARDS -->
-      <section class="section-container" style="padding-bottom: 1rem;">
-        <div class="section-header" style="margin-bottom: 1rem;">
-          <div>
-            <h2 class="section-title">Explora por Categoría</h2>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;">Toca una categoría para ver sus opciones</p>
-          </div>
-          ${selectedCategoryFilter !== 'all' ? `
-            <button onclick="setMenuFilter('all')" style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.85rem; background: var(--baby-blue-light); border: 1.5px solid var(--baby-blue-border); padding: 5px 14px; border-radius: var(--radius-full); cursor: pointer;">
-              🔄 Ver Todos (${selectedCategoryFilter.toUpperCase()})
-            </button>
-          ` : ''}
-        </div>
-
-        <div class="categories-grid">
-          ${categories.map(cat => `
-            <div class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" onclick="selectCategoryAndScroll('${cat.id}')">
-              <span class="category-icon">${cat.icon}</span>
-              <span class="category-name">${cat.name}</span>
+      <!-- BIG CATEGORY BUTTON CARDS (OPTIONAL VIA ADMIN TOGGLE) -->
+      ${settings.showBigCategoryCards !== false && categories.length > 0 ? `
+        <section class="section-container" style="padding-bottom: 1rem;">
+          <div class="section-header" style="margin-bottom: 1rem;">
+            <div>
+              <h2 class="section-title">Explora por Categoría</h2>
+              <p style="color: var(--text-secondary); font-size: 0.9rem;">Toca una categoría para ver sus opciones</p>
             </div>
-          `).join('')}
-        </div>
-      </section>
+            ${selectedCategoryFilter !== 'all' ? `
+              <button onclick="setMenuFilter('all')" style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.85rem; background: var(--baby-blue-light); border: 1.5px solid var(--baby-blue-border); padding: 5px 14px; border-radius: var(--radius-full); cursor: pointer;">
+                🔄 Ver Todos los Antojos
+              </button>
+            ` : ''}
+          </div>
+
+          <div class="categories-grid">
+            ${categories.map(cat => `
+              <div class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" onclick="selectCategoryAndScroll('${cat.id}')">
+                <span class="category-icon">${cat.icon}</span>
+                <span class="category-name">${cat.name}</span>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+      ` : ''}
 
       <!-- INTEGRATED MENU CATALOG & PRODUCTS GRID -->
       <section class="section-container" id="menu-section" style="scroll-margin-top: 90px; padding-top: 0.5rem;">
@@ -1573,12 +1575,25 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
+      <!-- BIG CATEGORY CARDS TOGGLE BANNER -->
+      <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
+        <div>
+          <div style="font-weight: 900; font-size: 1rem; color: var(--text-primary);">🖼️ Mostrar Tarjetas Grandes de Categoría ("Explora por Categoría")</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Muestra u oculta la sección superior con tarjetas de iconos grandes en la página principal.
+          </div>
+        </div>
+        <button onclick="toggleBigCategoryCardsFromAdmin()" style="background: ${settings.showBigCategoryCards !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${settings.showBigCategoryCards !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${settings.showBigCategoryCards !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 8px 16px; border-radius: var(--radius-full); font-weight: 800; cursor: pointer;">
+          ${settings.showBigCategoryCards !== false ? '✅ Activadas (Visibles)' : '🙈 Ocultas'}
+        </button>
+      </div>
+
       <!-- CATEGORY PILLS BAR TOGGLE BANNER -->
       <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
         <div>
-          <div style="font-weight: 900; font-size: 1rem; color: var(--text-primary);">🏷️ Mostrar Barra de Píldoras de Filtro (Categorías)</div>
+          <div style="font-weight: 900; font-size: 1rem; color: var(--text-primary);">🏷️ Mostrar Barra de Píldoras Pequeñas de Filtro (Sobre Productos)</div>
           <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
-            Controla la pequeña barra de pestañas/píldoras sobre los productos. (Desactivado por defecto para mantener el diseño limpio de tarjetas grandes).
+            Muestra u oculta la pequeña barra de pestañas/píldoras directamente sobre los productos.
           </div>
         </div>
         <button onclick="toggleCategoryPillsFromAdmin()" style="background: ${settings.showCategoryFilterPills ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${settings.showCategoryFilterPills ? '#059669' : '#DC2626'}; border: 1.5px solid ${settings.showCategoryFilterPills ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 8px 16px; border-radius: var(--radius-full); font-weight: 800; cursor: pointer;">
@@ -1606,7 +1621,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <th>Icono</th>
               <th>Categoría</th>
               <th>Imagen de Fondo</th>
-              <th>Estado Visibilidad</th>
+              <th>Estado Visibilidad en Sitio</th>
               <th>Acciones</th>
             </tr>
           </thead>
@@ -1617,8 +1632,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td><strong>${c.name}</strong></td>
                 <td>${c.image ? '🖼️ Imagen Configurada' : '<span style="color: var(--text-muted);">Sin imagen</span>'}</td>
                 <td>
-                  <button onclick="toggleCategoryActiveFromAdmin('${c.id}')" style="background: ${c.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${c.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${c.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 5px 12px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer;">
-                    ${c.active !== false ? '👁️ Activa' : '🙈 Oculta'}
+                  <button onclick="toggleCategoryActiveFromAdmin('${c.id}')" style="background: ${c.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${c.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${c.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 6px 14px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer;">
+                    ${c.active !== false ? '👁️ Activa (Visible)' : '🙈 Oculta (Desactivada)'}
                   </button>
                 </td>
                 <td>
@@ -1631,6 +1646,11 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
   }
+
+  window.toggleBigCategoryCardsFromAdmin = () => {
+    store.toggleBigCategoryCardsSetting();
+    renderAdminPortal();
+  };
 
   window.toggleCategoryPillsFromAdmin = () => {
     store.toggleCategoryFilterPillsSetting();

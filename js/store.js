@@ -193,6 +193,7 @@ const INITIAL_SETTINGS = {
   deliveryFee: 0.00,
   pickupAddress: 'Versátil Specialty Hub, PR',
   businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM',
+  showBigCategoryCards: true, // Enabled by default
   showCategoryFilterPills: false, // Disabled by default per user preference
   iconThemeMode: 'swapped' // 'swapped' (Blue outline highlight, Gold circle) vs 'classic' (Gold outline highlight, Blue circle)
 };
@@ -311,7 +312,8 @@ class Store {
   }
 
   getActiveProducts() {
-    return this.products.filter(p => p.active);
+    const activeCategories = new Set(this.categories.filter(c => c.active !== false).map(c => c.id));
+    return this.products.filter(p => p.active !== false && activeCategories.has(p.category));
   }
 
   getProductBySlug(slug) {
@@ -378,6 +380,11 @@ class Store {
       c.active = !c.active;
       this.save(STORAGE_KEYS.CATEGORIES, this.categories);
     }
+  }
+
+  toggleBigCategoryCardsSetting() {
+    this.settings.showBigCategoryCards = this.settings.showBigCategoryCards === false ? true : false;
+    this.save(STORAGE_KEYS.SETTINGS, this.settings);
   }
 
   toggleCategoryFilterPillsSetting() {
