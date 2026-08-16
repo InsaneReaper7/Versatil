@@ -250,17 +250,25 @@ class Store {
     }
 
     INITIAL_CATEGORIES.forEach(initCat => {
-      if (!this.categories.some(c => c.id === initCat.id)) {
+      const existing = this.categories.find(c => c.id === initCat.id);
+      if (!existing) {
         this.categories.push(initCat);
         updated = true;
+      } else {
+        // Ensure new schema fields (image2, activeImage) are populated without overwriting uploaded images
+        if (!existing.image2) existing.image2 = initCat.image2 || '';
+        if (!existing.activeImage) existing.activeImage = initCat.activeImage || 'image1';
       }
     });
+
     INITIAL_PRODUCTS.forEach(initProd => {
-      if (!this.products.some(p => p.id === initProd.id)) {
+      const existing = this.products.find(p => p.id === initProd.id);
+      if (!existing) {
         this.products.push(initProd);
         updated = true;
       }
     });
+
     if (updated) {
       this.save(STORAGE_KEYS.CATEGORIES, this.categories);
       this.save(STORAGE_KEYS.PRODUCTS, this.products);
@@ -269,7 +277,17 @@ class Store {
 
   load(key, fallback) {
     try {
-      const data = localStorage.getItem(key);
+      let data = localStorage.getItem(key);
+      if (!data) {
+        // Backward-compatibility migration for version updates
+        if (key === STORAGE_KEYS.PRODUCTS) {
+          data = localStorage.getItem('verstail_products_v2') || localStorage.getItem('verstail_products_v1');
+        } else if (key === STORAGE_KEYS.CATEGORIES) {
+          data = localStorage.getItem('verstail_categories_v1');
+        } else if (key === STORAGE_KEYS.SETTINGS) {
+          data = localStorage.getItem('verstail_settings_v1');
+        }
+      }
       return data ? JSON.parse(data) : fallback;
     } catch (e) {
       return fallback;
