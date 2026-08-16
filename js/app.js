@@ -157,7 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- 5-SECOND CATEGORY IMAGE ROTATION TICKER ---
+  // --- 4-SECOND CATEGORY & PRODUCT IMAGE ROTATION TICKER WITH MOBILE PRE-CACHING ---
   let categoryRotationState = 0; // 0 = Image 1, 1 = Image 2
+  const preloadedMobileImages = new Set();
+
   setInterval(() => {
     categoryRotationState = categoryRotationState === 0 ? 1 : 0;
     const rotatableElements = document.querySelectorAll('.cat-rotatable-image');
@@ -166,15 +169,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const img2 = img.getAttribute('data-img2');
       const mode = img.getAttribute('data-mode');
       if (mode === 'rotate' && img1 && img2) {
-        img.style.transition = 'opacity 0.25s ease';
-        img.style.opacity = '0.3';
+        const nextSrc = categoryRotationState === 0 ? img1 : img2;
+        
+        // Pre-cache on mobile device memory to prevent delay or blank flicker
+        if (!preloadedMobileImages.has(nextSrc)) {
+          const cacheTag = new Image();
+          cacheTag.src = nextSrc;
+          preloadedMobileImages.add(nextSrc);
+        }
+
+        img.style.transition = 'opacity 0.3s ease';
+        img.style.opacity = '0.2';
         setTimeout(() => {
-          img.src = categoryRotationState === 0 ? img1 : img2;
+          img.src = nextSrc;
           img.style.opacity = '1';
-        }, 250);
+        }, 280);
       }
     });
-  }, 5000);
+  }, 4000);
 
   function getCategoryActiveImage(cat, rotState = categoryRotationState) {
     if (!cat) return '';
@@ -298,7 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ${categories.map(cat => {
               const catImg = getCategoryActiveImage(cat);
               const isRotatable = cat.activeImage === 'rotate' && cat.image && cat.image2;
-              const showImages = settings.showCategoryCardImages === true && !!catImg;
+              const showImages = (settings.showCategoryCardImages !== false || isRotatable || (cat.image && cat.image.trim() !== '')) && !!catImg;
               return `
                 <div class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" onclick="selectCategoryAndScroll('${cat.id}')">
                   ${showImages ? `
