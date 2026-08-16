@@ -3,6 +3,34 @@
    Formats order details in Spanish and launches direct wa.me link
    ========================================================================== */
 
+function formatItemBaseText(item) {
+  const defaultBaseMap = {
+    'mega-te': ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
+    'versa-to-go': ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
+    'batidas': ['Proteína Nutricional'],
+    'yogurt': ['Yogurt Cremoso', 'Fresas Frescas', 'Guineo Sliced', 'Blueberries', 'Granola Crunch'],
+    'galletas': ['Mezcla Proteica Horneada'],
+    'donas': ['Maza Fit']
+  };
+
+  const defaultBase = item.defaultBase || defaultBaseMap[item.category] || ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'];
+  const activeIngredients = item.ingredients || item.base;
+
+  if (Array.isArray(activeIngredients) && activeIngredients.length > 0) {
+    const removed = defaultBase.filter(b => !activeIngredients.includes(b));
+    if (removed.length === 0) {
+      return 'Como Sale';
+    }
+    return removed.map(r => `Sin ${r}`).join(', ');
+  }
+
+  if (item.removedBase && Array.isArray(item.removedBase) && item.removedBase.length > 0) {
+    return item.removedBase.map(r => `Sin ${r}`).join(', ');
+  }
+
+  return 'Como Sale';
+}
+
 function formatWhatsAppOrderMessage(order, settings) {
   const storeName = settings.storeName || 'Versátil';
   
@@ -24,15 +52,9 @@ function formatWhatsAppOrderMessage(order, settings) {
   order.items.forEach((item, index) => {
     msg += `\n*${index + 1}. ${item.name}* (x${item.quantity})\n`;
     if (item.size) msg += `   • *Tamaño:* ${item.size}\n`;
-    if (item.mode) msg += `   • *Opción:* ${item.mode.toUpperCase()}\n`;
-    if (item.base && item.base.length > 0) {
-      msg += `   • *Base:* ${Array.isArray(item.base) ? item.base.join(' + ') : item.base}\n`;
-    }
+    msg += `   • *Base:* ${formatItemBaseText(item)}\n`;
     if (item.flavors && item.flavors.length > 0) {
-      msg += `   • *Sabores:* ${item.flavors.join(', ')}\n`;
-    }
-    if (item.ingredients && item.ingredients.length > 0) {
-      msg += `   • *Ingredientes:* ${item.ingredients.join(', ')}\n`;
+      msg += `   • *Frutas/Sabores:* ${item.flavors.join(', ')}\n`;
     }
     if (item.extras && item.extras.length > 0) {
       msg += `   • *Extras:* ${item.extras.join(', ')}\n`;
@@ -52,7 +74,7 @@ function formatWhatsAppOrderMessage(order, settings) {
     msg += `💰 *PRECIO:* Se confirmará en WhatsApp\n`;
   }
   msg += `----------------------------------\n`;
-  msg += `¡Gracias por elegir Verstail! "Tu bebida. Tu mezcla. Tu estilo."`;
+  msg += `¡Gracias por elegir Versátil! "Tu bebida. Tu mezcla. Tu estilo."`;
 
   return msg;
 }
@@ -93,6 +115,7 @@ function formatBareMinimumOrderMessage(order, settings) {
 
   order.items.forEach((item, index) => {
     msg += `${index + 1}. *${item.name}* (x${item.quantity}) - ${item.size || 'Estándar'}\n`;
+    msg += `   • Base: ${formatItemBaseText(item)}\n`;
     if (item.flavors && item.flavors.length > 0) {
       msg += `   • Frutas: ${item.flavors.join(', ')}\n`;
     }

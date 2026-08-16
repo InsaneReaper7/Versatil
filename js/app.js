@@ -1106,9 +1106,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div style="font-size: 2rem;">${getCategoryIcon(item.category)}</div>
                 <div class="cart-item-info">
                   <div class="cart-item-title">${item.name} (${item.size || 'Estándar'})</div>
-                  <div class="cart-item-meta">
-                    ${item.flavors && item.flavors.length > 0 ? `Sabores: ${item.flavors.join(', ')}` : ''}
-                    ${item.extras && item.extras.length > 0 ? ` | Extras: ${item.extras.join(', ')}` : ''}
+                  <div class="cart-item-meta" style="margin-top: 0.35rem; line-height: 1.45;">
+                    <div><strong>Base:</strong> ${formatItemBaseText(item)}</div>
+                    ${item.flavors && item.flavors.length > 0 ? `<div><strong>Frutas/Sabores:</strong> ${item.flavors.join(', ')}</div>` : ''}
+                    ${item.extras && item.extras.length > 0 ? `<div><strong>Extras:</strong> ${item.extras.join(', ')}</div>` : ''}
                   </div>
                   <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 1rem;">
                     <div class="qty-counter">
