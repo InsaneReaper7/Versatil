@@ -1347,7 +1347,7 @@ document.addEventListener('DOMContentLoaded', () => {
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div class="form-row-2col">
               <div class="form-group">
                 <label>Precio Público ($) *</label>
                 <input type="number" step="0.01" id="p-publicPrice" class="form-input" required value="${p.publicPrice || 0}" />

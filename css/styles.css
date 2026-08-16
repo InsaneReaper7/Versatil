@@ -1294,3 +1294,66 @@ button {
   background: rgba(239, 68, 68, 0.15);
   color: #DC2626;
 }
+
+/* ==========================================================================
+   MOBILE-FIRST VERTICAL STACKING FOR FORMS & MODALS (ZERO HORIZONTAL SCROLL)
+   ========================================================================== */
+
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 641px) {
+  .form-row-2col {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+    padding: 1.25rem 1rem !important;
+    max-height: 92vh !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-content {
+    padding: 1rem 0.75rem !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.75rem !important;
+  }
+
+  .option-mode-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .form-input, select.form-input, textarea.form-input, input[type="text"].form-input, input[type="number"].form-input {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .toggle-switch {
+    align-items: flex-start !important;
+    line-height: 1.4 !important;
+  }
+
+  .toggle-switch input[type="checkbox"] {
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+}
