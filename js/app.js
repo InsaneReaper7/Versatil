@@ -1589,7 +1589,8 @@ document.addEventListener('DOMContentLoaded', () => {
       <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--card-shadow);">
         <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;">Órdenes Recientes</h3>
         ${orders.length > 0 ? `
-          <div class="table-responsive">
+          <!-- DESKTOP TABLE VIEW -->
+          <div class="desktop-order-view table-responsive">
             <table class="admin-table">
               <thead>
                 <tr>
@@ -1629,6 +1630,9 @@ document.addEventListener('DOMContentLoaded', () => {
               </tbody>
             </table>
           </div>
+
+          <!-- MOBILE CARDS VIEW -->
+          ${renderOrderMobileCardsHTML(orders.slice(0, 5))}
         ` : `<p style="color: var(--text-secondary);">No hay órdenes registradas aún.</p>`}
       </div>
     `;
@@ -2208,6 +2212,73 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAdminPortal();
   };
 
+  function renderOrderMobileCardsHTML(ordersList) {
+    if (!ordersList || ordersList.length === 0) return '';
+
+    return `
+      <div class="mobile-order-view">
+        ${ordersList.map(o => {
+          const isPaid = o.paymentStatus === 'Pagado';
+          return `
+            <div class="admin-order-card ${isPaid ? 'order-card-paid' : 'order-card-unpaid'}">
+              <div class="order-card-header">
+                <span class="order-card-id">#${o.id}</span>
+                <span class="order-card-date">${new Date(o.createdAt).toLocaleString([], {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'})}</span>
+              </div>
+
+              <div class="order-card-customer">
+                <div class="order-card-name">👤 ${o.customerName}</div>
+                <div class="order-card-sub">
+                  📞 ${o.customerPhone} • 📍 ${o.customerTown || 'PR'}
+                  ${o.customerEmail ? `<br>📧 ${o.customerEmail}` : ''}
+                </div>
+              </div>
+
+              ${o.items && o.items.length > 0 ? `
+                <div class="order-card-items">
+                  ${o.items.map(item => `
+                    <div class="order-card-item-line">
+                      <strong style="color: var(--text-primary);">${item.name} (${item.size || 'Estándar'}) x${item.quantity}</strong>
+                      <div style="font-size: 0.76rem; color: var(--text-secondary);">
+                        • Base: ${formatItemBaseText(item)}
+                        ${item.flavors && item.flavors.length > 0 ? `<br>• Frutas: ${item.flavors.join(', ')}` : ''}
+                        ${item.extras && item.extras.length > 0 ? `<br>• Extras: ${item.extras.join(', ')}` : ''}
+                      </div>
+                    </div>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              <div class="order-card-controls">
+                <div>
+                  <span class="order-control-label">Estado Pedido</span>
+                  <select onchange="updateOrderStatusFromAdmin('${o.id}', this.value)" class="form-input order-card-select">
+                    <option value="Pendiente" ${o.status === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                    <option value="En Preparación" ${o.status === 'En Preparación' ? 'selected' : ''}>🍹 Preparación</option>
+                    <option value="Listo" ${o.status === 'Listo' ? 'selected' : ''}>✅ Listo</option>
+                    <option value="Entregado" ${o.status === 'Entregado' ? 'selected' : ''}>🎉 Entregado</option>
+                  </select>
+                </div>
+
+                <div>
+                  <span class="order-control-label">Estado Pago</span>
+                  <select onchange="updateOrderPaymentStatusFromAdmin('${o.id}', this.value)" class="form-input order-card-select ${isPaid ? 'select-paid' : 'select-unpaid'}">
+                    <option value="No Pagado" ${!isPaid ? 'selected' : ''}>❌ No Pagado</option>
+                    <option value="Pagado" ${isPaid ? 'selected' : ''}>💳 Pagado</option>
+                  </select>
+                </div>
+              </div>
+
+              <button onclick="deleteOrderFromAdmin('${o.id}')" class="btn-delete-order">
+                🗑️ Eliminar Orden
+              </button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+  }
+
   function renderOrderTableHTML(ordersList, tableTitle) {
     if (!ordersList || ordersList.length === 0) return '';
 
@@ -2216,7 +2287,9 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="font-weight: 900; font-size: 1.15rem; color: var(--text-primary); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between;">
           <span>${tableTitle} (${ordersList.length})</span>
         </div>
-        <div class="table-responsive">
+
+        <!-- DESKTOP TABLE VIEW -->
+        <div class="desktop-order-view table-responsive">
           <table class="admin-table">
             <thead>
               <tr>
@@ -2282,6 +2355,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </tbody>
           </table>
         </div>
+
+        <!-- MOBILE CARDS VIEW -->
+        ${renderOrderMobileCardsHTML(ordersList)}
       </div>
     `;
   }

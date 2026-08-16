@@ -1335,7 +1335,150 @@ body.theme-icon-classic .category-card:hover .category-icon, body.theme-icon-cla
   font-weight: 700;
 }
 
-/* RESPONSIVE TABLE CONTAINERS FOR MOBILE ACCESS */
+/* RESPONSIVE TABLE CONTAINERS & MOBILE ORDER CARDS SYSTEM */
+.desktop-order-view {
+  display: block;
+}
+
+.mobile-order-view {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .desktop-order-view {
+    display: none !important;
+  }
+  
+  .mobile-order-view {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+}
+
+.admin-order-card {
+  background: #FFFFFF;
+  border: 1.5px solid var(--baby-blue-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.admin-order-card.order-card-unpaid {
+  border-left: 5px solid #EF4444;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.03) 0%, #FFFFFF 100%);
+}
+
+.admin-order-card.order-card-paid {
+  border-left: 5px solid #10B981;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.03) 0%, #FFFFFF 100%);
+}
+
+.order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--baby-blue-border);
+  padding-bottom: 0.5rem;
+}
+
+.order-card-id {
+  font-weight: 900;
+  font-size: 1.05rem;
+  color: var(--text-primary);
+}
+
+.order-card-date {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.order-card-customer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.order-card-name {
+  font-weight: 800;
+  font-size: 0.98rem;
+  color: var(--text-primary);
+}
+
+.order-card-sub {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.order-card-items {
+  background: var(--bg-surface);
+  border: 1px dashed var(--baby-blue-border);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.75rem;
+}
+
+.order-card-item-line {
+  font-size: 0.84rem;
+  margin-bottom: 0.4rem;
+}
+
+.order-card-item-line:last-child {
+  margin-bottom: 0;
+}
+
+.order-card-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding-top: 0.4rem;
+}
+
+.order-control-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-secondary);
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.order-card-select {
+  width: 100%;
+  padding: 6px 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+}
+
+.order-card-select.select-unpaid {
+  background: rgba(239, 68, 68, 0.12);
+  color: #DC2626;
+  border: 1.5px solid #EF4444;
+}
+
+.order-card-select.select-paid {
+  background: rgba(16, 185, 129, 0.12);
+  color: #059669;
+  border: 1.5px solid #10B981;
+}
+
+.btn-delete-order {
+  width: 100%;
+  background: rgba(239, 68, 68, 0.1);
+  color: #EF4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  margin-top: 0.25rem;
+}
+
 .table-responsive {
   width: 100%;
   overflow-x: auto;
