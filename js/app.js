@@ -692,16 +692,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ${prod.extras && prod.extras.length > 0 ? `
           <div style="margin-bottom: 1rem;">
-            <label style="font-weight: 800; font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">EXTRAS OPCIONALES (CARGO ADICIONAL)</label>
+            <label style="font-weight: 800; font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">EXTRAS OPCIONALES</label>
             
-            ${prod.extras.includes('Miel de Agave') || prod.category === 'yogurt' ? `
-              <div style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.4); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); color: #B45309; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
-                <span style="font-size: 1.2rem;">🍯</span>
-                <div>
-                  <strong>Aviso de Miel de Agave:</strong> Añadir Miel de Agave a tu Yogurt es un extra opcional y aplica un cargo adicional${prod.showPublicPrice ? ` (+$${((store.getIngredients().find(i => i.name === 'Miel de Agave') || {}).extraCost || 0.75).toFixed(2)})` : ''}.
-                </div>
+            <div id="agave-warning-notice" style="display: ${state.extras.includes('Miel de Agave') ? 'flex' : 'none'}; background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.4); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); color: #B45309; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.85rem; align-items: center; gap: 0.5rem; transition: all 0.3s ease;">
+              <span style="font-size: 1.2rem;">🍯</span>
+              <div>
+                <strong>Aviso de Miel de Agave:</strong> Has seleccionado Miel de Agave. Esta opción es un extra opcional y aplica un cargo adicional${prod.showPublicPrice ? ` (+$${((store.getIngredients().find(i => i.name === 'Miel de Agave') || {}).extraCost || 0.75).toFixed(2)})` : ''}.
               </div>
-            ` : ''}
+            </div>
 
             <div class="ingredient-list">
               ${prod.extras.map(ext => {
@@ -778,6 +776,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const warningBox = document.getElementById('flavor-warning-rect-modal');
     if (warningBox) {
       warningBox.style.display = state.flavors.length >= 3 ? 'flex' : 'none';
+    }
+
+    const agaveNotice = document.getElementById('agave-warning-notice');
+    if (agaveNotice) {
+      agaveNotice.style.display = state.extras.includes('Miel de Agave') ? 'flex' : 'none';
     }
 
     const badgeText = document.getElementById('mega-te-counter-badge');
@@ -1011,10 +1014,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <h2 class="step-title">Paso 4: Extras & Potenciadores</h2>
           <p class="step-desc">Añade beneficios de digestión, salud intestinal o dulzura natural</p>
           
-          <div style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.4); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); color: #B45309; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+          <div id="wizard-agave-warning-notice" style="display: ${wizardData.extras.includes('Miel de Agave') ? 'flex' : 'none'}; background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.4); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); color: #B45309; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; align-items: center; gap: 0.5rem; transition: all 0.3s ease;">
             <span style="font-size: 1.2rem;">🍯</span>
             <div>
-              <strong>Aviso de Extras:</strong> Miel de Agave, Fibra Activa y Probiótico Boost son extras opcionales con cargo adicional.
+              <strong>Aviso de Miel de Agave:</strong> Has seleccionado Miel de Agave. Esta opción es un extra opcional y aplica un cargo adicional.
             </div>
           </div>
 
@@ -1126,6 +1129,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const icon = el.querySelector('.chip-icon');
         if (icon) icon.textContent = '✓';
       }
+    }
+
+    const wizardNotice = document.getElementById('wizard-agave-warning-notice');
+    if (wizardNotice) {
+      wizardNotice.style.display = wizardData.extras.includes('Miel de Agave') ? 'flex' : 'none';
     }
   };
 
