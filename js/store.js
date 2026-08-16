@@ -307,6 +307,17 @@ class Store {
       }
     });
 
+    // Sanitize broken image strings so products properly inherit category images
+    this.products.forEach(p => {
+      if (p.image && typeof p.image === 'string') {
+        const trimmed = p.image.trim();
+        if (trimmed === 'undefined' || trimmed === 'null' || trimmed === '[object Object]' || (!trimmed.startsWith('http') && !trimmed.startsWith('data:') && !trimmed.startsWith('uploads/') && !trimmed.startsWith('assets/'))) {
+          p.image = '';
+          updated = true;
+        }
+      }
+    });
+
     if (updated) {
       this.save(STORAGE_KEYS.CATEGORIES, this.categories);
       this.save(STORAGE_KEYS.PRODUCTS, this.products);

@@ -188,24 +188,48 @@ document.addEventListener('DOMContentLoaded', () => {
     return img1 || img2 || '';
   }
 
+  function isValidImageUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (!trimmed || trimmed === 'undefined' || trimmed === 'null' || trimmed === '[object Object]') return false;
+    return trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('uploads/') || trimmed.startsWith('assets/');
+  }
+
+  window.handleImageError = (imgEl, catId) => {
+    imgEl.onerror = null;
+    const cat = store.getCategories().find(c => c.id === catId || c.slug === catId);
+    const catImg = cat ? getCategoryActiveImage(cat) : '';
+    if (catImg && isValidImageUrl(catImg) && imgEl.src !== catImg) {
+      imgEl.src = catImg;
+    } else {
+      imgEl.src = 'assets/images/logo.jpg';
+      imgEl.style.objectFit = 'contain';
+      imgEl.style.padding = '1.25rem';
+      imgEl.style.background = 'var(--bg-secondary)';
+    }
+  };
+
   function getProductImage(prod) {
-    if (prod.image && prod.image.trim()) return prod.image.trim();
+    if (!prod) return '';
+    if (isValidImageUrl(prod.image)) return prod.image.trim();
+    
     const categories = store.getCategories();
     const cat = categories.find(c => c.id === prod.category || c.slug === prod.category);
     if (cat) {
       const catImg = getCategoryActiveImage(cat);
-      if (catImg) return catImg;
+      if (isValidImageUrl(catImg)) return catImg;
     }
-    const siblings = store.getProducts().filter(p => p.category === prod.category && p.image && p.image.trim());
+    
+    const siblings = store.getProducts().filter(p => (p.category === prod.category || p.category === (cat ? cat.id : '')) && isValidImageUrl(p.image));
     if (siblings.length > 0) return siblings[0].image.trim();
     return '';
   }
 
   function getCategoryImage(cat) {
     const activeImg = getCategoryActiveImage(cat);
-    if (activeImg) return activeImg;
+    if (isValidImageUrl(activeImg)) return activeImg;
     const prods = store.getProducts();
-    const match = prods.find(p => p.category === cat.id && p.image && p.image.trim());
+    const match = prods.find(p => p.category === cat.id && isValidImageUrl(p.image));
     return match ? match.image.trim() : '';
   }
 
@@ -394,7 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="product-image-container">
           ${isSoldOut ? `<span class="product-sold-out-badge">🚫 AGOTADO</span>` : ''}
           ${hasImage ? `
-            <img src="${imgUrl}" alt="${prod.name}" class="product-image ${isRotatable ? 'cat-rotatable-image' : ''}" ${isRotatable ? `data-img1="${cat.image}" data-img2="${cat.image2}" data-mode="rotate"` : ''} />
+            <img src="${imgUrl}" alt="${prod.name}" class="product-image ${isRotatable ? 'cat-rotatable-image' : ''}" ${isRotatable ? `data-img1="${cat.image}" data-img2="${cat.image2}" data-mode="rotate"` : ''} onerror="handleImageError(this, '${prod.category}')" />
           ` : `
             <div class="product-badge-placeholder">
               <span style="font-size: 2.5rem;">${getCategoryIcon(prod.category)}</span>
