@@ -262,14 +262,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedCategoryObj = categories.find(c => c.id === selectedCategoryFilter);
 
     appContainer.innerHTML = `
-      <!-- HERO BANNER SECTION -->
+      <!-- HERO SECTION WITH PROMINENT CENTRAL CLIENT LOGO -->
       <section class="hero-section">
-        <!-- BRANDING LOGO IN HERO -->
-        <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
-          <div class="brand-logo-circle" style="width: 90px; height: 90px; font-size: 2.2rem; box-shadow: 0 10px 30px rgba(56, 189, 248, 0.25);">
-            <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
-              <span class="brand-logo-text" style="font-size: 0.95rem; font-weight: 900; letter-spacing: -0.5px;">VERS<span class="badass-animated-a" style="font-size: 1.15rem;">Á</span>TIL</span>
-            </span>
+        <div class="hero-logo-wrapper">
+          <div class="hero-logo-badge">
+            <img src="assets/images/logo.jpg" alt="Versátil Logo Official" class="hero-central-logo" />
           </div>
         </div>
 
