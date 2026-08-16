@@ -282,13 +282,13 @@ document.addEventListener('DOMContentLoaded', () => {
       <!-- BIG CATEGORY BUTTON CARDS (OPTIONAL VIA ADMIN TOGGLE) -->
       ${settings.showBigCategoryCards !== false && categories.length > 0 ? `
         <section class="section-container" style="padding-bottom: 1rem;">
-          <div class="section-header" style="margin-bottom: 1rem;">
+          <div class="section-header" style="margin-bottom: 1.25rem; flex-direction: column; align-items: center; text-align: center; gap: 0.4rem;">
             <div>
-              <h2 class="section-title">Explora por Categoría</h2>
-              <p style="color: var(--text-secondary); font-size: 0.9rem;">Toca una categoría para ver sus opciones</p>
+              <h2 class="section-title" style="text-align: center;">Explora por Categoría</h2>
+              <p style="color: var(--text-secondary); font-size: 0.9rem; text-align: center;">Toca una categoría para ver sus opciones</p>
             </div>
             ${selectedCategoryFilter !== 'all' ? `
-              <button onclick="setMenuFilter('all')" style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.85rem; background: var(--baby-blue-light); border: 1.5px solid var(--baby-blue-border); padding: 5px 14px; border-radius: var(--radius-full); cursor: pointer;">
+              <button onclick="setMenuFilter('all')" style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.85rem; background: var(--baby-blue-light); border: 1.5px solid var(--baby-blue-border); padding: 5px 14px; border-radius: var(--radius-full); cursor: pointer; margin-top: 0.25rem;">
                 🔄 Ver Todos los Antojos
               </button>
             ` : ''}
@@ -319,16 +319,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       <!-- INTEGRATED MENU CATALOG & PRODUCTS GRID -->
       <section class="section-container" id="menu-section" style="scroll-margin-top: 90px; padding-top: 0.5rem;">
-        <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 0.4rem; margin-bottom: 1rem;">
-          <h2 class="section-title" style="font-size: 1.8rem;">Menú de Antojos</h2>
-          <p style="color: var(--text-secondary); font-size: 0.92rem;">
+        <div class="section-header" style="flex-direction: column; align-items: center; text-align: center; gap: 0.4rem; margin-bottom: 1.25rem;">
+          <h2 class="section-title" style="font-size: 1.8rem; text-align: center;">Menú de Antojos</h2>
+          <p style="color: var(--text-secondary); font-size: 0.92rem; text-align: center;">
             ${selectedCategoryObj ? `Mostrando opciones para <strong>${selectedCategoryObj.name}</strong>` : 'Elige una opción y personalízala a tu estilo.'}
           </p>
         </div>
 
         <!-- SMALL CATEGORY FILTER PILLS BAR (OPTIONAL VIA ADMIN TOGGLE) -->
         ${settings.showCategoryFilterPills ? `
-          <div style="display: flex; gap: 0.6rem; overflow-x: auto; padding: 0.5rem 0 1rem; margin-bottom: 1.25rem; -webkit-overflow-scrolling: touch;">
+          <div style="display: flex; gap: 0.6rem; overflow-x: auto; padding: 0.5rem 0 1rem; margin-bottom: 1.25rem; -webkit-overflow-scrolling: touch; justify-content: center;">
             <button onclick="setMenuFilter('all')" class="category-card ${selectedCategoryFilter === 'all' ? 'active' : ''}" style="padding: 0.55rem 1.1rem; flex-direction: row; min-width: max-content; font-size: 0.9rem;">
               🌟 Todos
             </button>
@@ -342,7 +342,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- FILTER RESET BANNER IF FILTER ACTIVE -->
         ${selectedCategoryFilter !== 'all' && !settings.showCategoryFilterPills ? `
-          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--baby-blue-light); border: 1.5px solid var(--baby-blue-border); padding: 0.6rem 1.25rem; border-radius: var(--radius-full); margin-bottom: 1.5rem;">
+          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--baby-blue-light); border: 1.5px solid var(--baby-blue-border); padding: 0.6rem 1.25rem; border-radius: var(--radius-full); margin: 0 auto 1.5rem; max-width: 540px;">
             <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">
               Filtro activo: <strong>${selectedCategoryObj ? selectedCategoryObj.name : selectedCategoryFilter}</strong>
             </span>
