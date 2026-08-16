@@ -820,6 +820,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = activeCustomizerState;
     if (!prod || !state) return;
 
+    const defaultBase = prod.baseIngredients || ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'];
+    const activeIngredients = [...state.ingredients];
+    const removedBase = defaultBase.filter(b => !activeIngredients.includes(b));
+
     store.addToCart({
       productId: prod.id,
       name: prod.name,
@@ -827,10 +831,12 @@ document.addEventListener('DOMContentLoaded', () => {
       mode: state.mode,
       size: state.size,
       flavors: [...state.flavors],
-      ingredients: [...state.ingredients],
+      ingredients: activeIngredients,
+      removedBase: removedBase,
+      defaultBase: defaultBase,
       extras: [...state.extras],
       quantity: state.quantity,
-      unitPrice: prod.publicPrice || 0,
+      unitPrice: calculateCustomizerPrice() / state.quantity,
       showPublicPrice: prod.showPublicPrice
     });
 
@@ -1071,6 +1077,35 @@ document.addEventListener('DOMContentLoaded', () => {
     alert('¡Tu mezcla personalizada ha sido añadida al carrito!');
     window.location.hash = 'carrito';
   };
+
+  function formatItemBaseText(item) {
+    if (item.removedBase && Array.isArray(item.removedBase)) {
+      if (item.removedBase.length === 0) return 'Como Sale';
+      return item.removedBase.map(r => `Sin ${r}`).join(', ');
+    }
+
+    const defaultBaseMap = {
+      'mega-te': ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
+      'versa-to-go': ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
+      'batidas': ['Proteína Nutricional'],
+      'yogurt': ['Yogurt Cremoso', 'Fresas Frescas', 'Guineo Sliced', 'Blueberries', 'Granola Crunch'],
+      'galletas': ['Mezcla Proteica Horneada'],
+      'donas': ['Maza Fit']
+    };
+
+    const defaultBase = item.defaultBase || defaultBaseMap[item.category] || ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'];
+    const activeIngredients = item.ingredients || item.base;
+
+    if (Array.isArray(activeIngredients)) {
+      const removed = defaultBase.filter(b => !activeIngredients.includes(b));
+      if (removed.length === 0) {
+        return 'Como Sale';
+      }
+      return removed.map(r => `Sin ${r}`).join(', ');
+    }
+
+    return 'Como Sale';
+  }
 
   // --- CART VIEW ---
   function renderCartView() {

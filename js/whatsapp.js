@@ -4,6 +4,11 @@
    ========================================================================== */
 
 function formatItemBaseText(item) {
+  if (item.removedBase && Array.isArray(item.removedBase)) {
+    if (item.removedBase.length === 0) return 'Como Sale';
+    return item.removedBase.map(r => `Sin ${r}`).join(', ');
+  }
+
   const defaultBaseMap = {
     'mega-te': ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
     'versa-to-go': ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
@@ -16,16 +21,12 @@ function formatItemBaseText(item) {
   const defaultBase = item.defaultBase || defaultBaseMap[item.category] || ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'];
   const activeIngredients = item.ingredients || item.base;
 
-  if (Array.isArray(activeIngredients) && activeIngredients.length > 0) {
+  if (Array.isArray(activeIngredients)) {
     const removed = defaultBase.filter(b => !activeIngredients.includes(b));
     if (removed.length === 0) {
       return 'Como Sale';
     }
     return removed.map(r => `Sin ${r}`).join(', ');
-  }
-
-  if (item.removedBase && Array.isArray(item.removedBase) && item.removedBase.length > 0) {
-    return item.removedBase.map(r => `Sin ${r}`).join(', ');
   }
 
   return 'Como Sale';
