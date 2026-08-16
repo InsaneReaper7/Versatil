@@ -195,7 +195,9 @@ const INITIAL_SETTINGS = {
   businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM',
   showBigCategoryCards: true, // Enabled by default
   showCategoryFilterPills: false, // Disabled by default per user preference
-  iconThemeMode: 'swapped' // 'swapped' (Blue outline highlight, Gold circle) vs 'classic' (Gold outline highlight, Blue circle)
+  iconThemeMode: 'swapped', // 'swapped' (Blue outline highlight, Gold circle) vs 'classic' (Gold outline highlight, Blue circle)
+  cloudinaryCloudName: '', // Optional Cloudinary Cloud Name for permanent cloud CDN image storage
+  cloudinaryUploadPreset: '' // Optional Cloudinary Unsigned Upload Preset
 };
 
 // Store Engine Class

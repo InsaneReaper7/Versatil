@@ -1468,11 +1468,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function uploadImageToServer(dataUrl) {
+    const settings = store.getSettings();
     try {
       const res = await fetch('/api/upload-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageBase64: dataUrl })
+        body: JSON.stringify({ 
+          imageBase64: dataUrl,
+          cloudName: settings.cloudinaryCloudName || '',
+          uploadPreset: settings.cloudinaryUploadPreset || ''
+        })
       });
       if (res.ok) {
         const json = await res.json();
@@ -1852,6 +1857,23 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
+        <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1.5px solid var(--baby-blue-border);">
+          <label style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 1rem;">☁️ Almacenamiento Permanente de Imágenes (Cloudinary CDN)</label>
+          <span style="font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.8rem; line-height: 1.4;">
+            Para que las imágenes subidas desde cualquier dispositivo <strong>permanezcan para siempre en la nube (sin borrarse al reiniciar Railway)</strong>, ingresa tu Cloud Name y Upload Preset de Cloudinary (100% Gratis - 25 GB).
+          </span>
+
+          <div class="form-group">
+            <label>Cloudinary Cloud Name</label>
+            <input type="text" id="set-cloudinaryCloudName" class="form-input" value="${settings.cloudinaryCloudName || ''}" placeholder="Ej. verstail-hub" />
+          </div>
+
+          <div class="form-group">
+            <label>Cloudinary Unsigned Upload Preset</label>
+            <input type="text" id="set-cloudinaryUploadPreset" class="form-input" value="${settings.cloudinaryUploadPreset || ''}" placeholder="Ej. verstail_preset" />
+          </div>
+        </div>
+
         <div class="form-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--glass-border);">
           <label style="color: var(--text-secondary); font-weight: 700; font-size: 0.85rem;">Meta WhatsApp Cloud API (Opcional — Para Cuentas Meta Developer)</label>
           
@@ -1879,11 +1901,13 @@ document.addEventListener('DOMContentLoaded', () => {
       tagline: document.getElementById('set-tagline').value,
       pickupAddress: document.getElementById('set-pickupAddress').value,
       callMeBotApiKey: document.getElementById('set-callMeBotApiKey').value,
+      cloudinaryCloudName: document.getElementById('set-cloudinaryCloudName').value,
+      cloudinaryUploadPreset: document.getElementById('set-cloudinaryUploadPreset').value,
       metaPhoneId: document.getElementById('set-metaPhoneId').value,
       metaApiToken: document.getElementById('set-metaApiToken').value
     });
 
-    alert('¡Configuración de WhatsApp guardada exitosamente!');
+    alert('¡Configuración guardada exitosamente!');
     renderAdminPortal();
   };
 

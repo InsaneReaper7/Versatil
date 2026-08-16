@@ -44,13 +44,40 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
-        # Upload Image File to Project Uploads Folder
+        # Upload Image File to Project Uploads Folder / Cloudinary CDN
         if self.path == '/api/upload-image':
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length)
             try:
                 payload = json.loads(post_data.decode('utf-8'))
                 img_data = payload.get('imageBase64', '')
+                cloud_name = payload.get('cloudName') or os.environ.get('CLOUDINARY_CLOUD_NAME', '')
+                upload_preset = payload.get('uploadPreset') or os.environ.get('CLOUDINARY_UPLOAD_PRESET', '')
+
+                # 1. Attempt Cloudinary Permanent Upload if configured
+                if cloud_name and upload_preset:
+                    try:
+                        import urllib.parse
+                        c_url = f"https://api.cloudinary.com/v1_1/{cloud_name.strip()}/image/upload"
+                        post_fields = {
+                            'file': img_data,
+                            'upload_preset': upload_preset.strip()
+                        }
+                        encoded_data = urllib.parse.urlencode(post_fields).encode('utf-8')
+                        req = urllib.request.Request(c_url, data=encoded_data, method='POST')
+                        with urllib.request.urlopen(req, timeout=15) as resp:
+                            res_json = json.loads(resp.read().decode('utf-8'))
+                            secure_url = res_json.get('secure_url')
+                            if secure_url:
+                                self.send_response(200)
+                                self.send_header('Content-Type', 'application/json')
+                                self.end_headers()
+                                self.wfile.write(json.dumps({"success": True, "url": secure_url, "provider": "cloudinary"}).encode('utf-8'))
+                                return
+                    except Exception as c_err:
+                        print(f"[Cloudinary Upload Error]: {c_err}")
+
+                # 2. Local File System Fallback
                 if ',' in img_data:
                     header, b64_str = img_data.split(',', 1)
                 else:
@@ -67,7 +94,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-                self.wfile.write(json.dumps({"success": True, "url": public_url}).encode('utf-8'))
+                self.wfile.write(json.dumps({"success": True, "url": public_url, "provider": "local"}).encode('utf-8'))
             except Exception as e:
                 self.send_response(500)
                 self.send_header('Content-Type', 'application/json')
