@@ -4,10 +4,10 @@
    ========================================================================== */
 
 const STORAGE_KEYS = {
-  PRODUCTS: 'verstail_products_v1',
-  INGREDIENTS: 'verstail_ingredients_v1',
-  CATEGORIES: 'verstail_categories_v1',
-  SETTINGS: 'verstail_settings_v1',
+  PRODUCTS: 'verstail_products_v2',
+  INGREDIENTS: 'verstail_ingredients_v2',
+  CATEGORIES: 'verstail_categories_v2',
+  SETTINGS: 'verstail_settings_v2',
   CART: 'verstail_cart_v1',
   ORDERS: 'verstail_orders_v1'
 };
@@ -19,13 +19,12 @@ const ADMIN_ACCOUNTS = [
 
 // Initial Seed Data
 const INITIAL_CATEGORIES = [
-  { id: 'te', name: 'Té', icon: '🍵', image: '', active: true, order: 1 },
-  { id: 'mega-te', name: 'Mega Té', icon: '🧋', image: '', active: true, order: 2 },
-  { id: 'versa-to-go', name: 'Versa To Go', icon: '🥤', image: '', active: true, order: 3 },
-  { id: 'batidas', name: 'Batidas', icon: '🥤', image: '', active: true, order: 4 },
-  { id: 'yogurt', name: 'Yogurt', icon: '🍓', image: '', active: true, order: 5 },
-  { id: 'galletas', name: 'Galletas', icon: '🍪', image: '', active: true, order: 6 },
-  { id: 'donas', name: 'Donas', icon: '🍩', active: true, order: 7 }
+  { id: 'mega-te', name: 'Mega Té', icon: '🧋', image: '', active: true, order: 1 },
+  { id: 'versa-to-go', name: 'Versa To Go', icon: '🥤', image: '', active: true, order: 2 },
+  { id: 'batidas', name: 'Batidas', icon: '🥤', image: '', active: true, order: 3 },
+  { id: 'yogurt', name: 'Yogurt', icon: '🍓', image: '', active: true, order: 4 },
+  { id: 'galletas', name: 'Galletas', icon: '🍪', image: '', active: true, order: 5 },
+  { id: 'donas', name: 'Donas', icon: '🍩', active: true, order: 6 }
 ];
 
 const MEGA_TE_FLAVORS = [
@@ -41,9 +40,10 @@ const INITIAL_FLAVORS = [
 ];
 
 const INITIAL_INGREDIENTS = [
-  { id: 'ing-te', name: 'Té Concentrado', description: 'Infusión herbal revitalizante', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-te', name: 'Mega Té Concentrado', description: 'Infusión de Mega Té revitalizante', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
   { id: 'ing-aloe', name: 'Aloe Vera', description: 'Aloe digestivo y refrescante', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
   { id: 'ing-liftoff', name: 'Lift Off', description: 'Chispa energizante de efervescencia', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
+  { id: 'ing-colageno', name: 'Colágeno', description: 'Colágeno hidrolizado para salud y belleza', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
   { id: 'ing-fresas', name: 'Fresas Frescas', description: 'Trozos de fresa natural', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
   { id: 'ing-guineo', name: 'Guineo Sliced', description: 'Rodajas de guineo fresco', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
   { id: 'ing-blueberries', name: 'Blueberries', description: 'Arándanos antioxidantes', extraCost: 0, active: true, includedByDefault: true, removable: true, customerVisible: true },
@@ -60,9 +60,9 @@ const INITIAL_PRODUCTS = [
     name: 'Mega Té',
     slug: 'mega-te',
     category: 'mega-te',
-    description: 'Nuestra bebida energizante de 32 oz con infusión de Té, Aloe y Lift Off. Crea tu combinación eligiendo hasta 3 frutas.',
+    description: 'Nuestra bebida energizante de 32 oz con infusión de Mega Té Concentrado, Aloe Vera, Lift Off y Colágeno. Crea tu combinación eligiendo tus frutas.',
     image: '',
-    baseIngredients: ['Té Concentrado', 'Aloe Vera', 'Lift Off'],
+    baseIngredients: ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
     availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
     sizes: ['32 oz'],
     flavors: MEGA_TE_FLAVORS,
@@ -78,9 +78,9 @@ const INITIAL_PRODUCTS = [
     name: 'Versa To Go',
     slug: 'versa-to-go',
     category: 'versa-to-go',
-    description: 'Nuestra versión To Go de 16 oz con infusión de Té, Aloe y Lift Off. Crea tu combinación eligiendo hasta 3 frutas.',
+    description: 'Nuestra versión To Go de 16 oz con infusión de Mega Té Concentrado, Aloe Vera, Lift Off y Colágeno. Crea tu combinación eligiendo tus frutas.',
     image: '',
-    baseIngredients: ['Té Concentrado', 'Aloe Vera', 'Lift Off'],
+    baseIngredients: ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
     availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
     sizes: ['16 oz'],
     flavors: MEGA_TE_FLAVORS,
@@ -93,14 +93,14 @@ const INITIAL_PRODUCTS = [
   },
   {
     id: 'prod-te-01',
-    name: 'Té Herbal Herbalife',
-    slug: 'te-herbal',
-    category: 'te',
-    description: 'Deliciosa bebida concentrada de té para acelerar el metabolismo y mantenerte activo.',
+    name: 'Mega Té Herbal',
+    slug: 'mega-te-herbal',
+    category: 'mega-te',
+    description: 'Deliciosa bebida concentrada de Mega Té con Aloe Vera, Lift Off y Colágeno para mantenerte activo al máximo.',
     image: '',
-    baseIngredients: ['Té Concentrado'],
+    baseIngredients: ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
     availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
-    sizes: ['16 oz', '24 oz'],
+    sizes: ['16 oz', '24 oz', '32 oz'],
     flavors: ['Raspberry', 'Peach', 'Lemon', 'Jamaica', 'Aloe Cranberry', 'Mandarin', 'Mango'],
     extras: ['Fibra Activa', 'Probiótico Boost'],
     publicPrice: 5.00,
@@ -117,10 +117,10 @@ const INITIAL_PRODUCTS = [
     description: 'Cremosa batida nutricional cargada de proteína, perfecta para reemplazo de comida o snack pos-entreno.',
     image: '',
     baseIngredients: ['Proteína Nutricional'],
-    availableIngredients: ['Té Concentrado', 'Aloe Vera', 'Probiótico Boost'],
+    availableIngredients: ['Mega Té Concentrado', 'Aloe Vera', 'Probiótico Boost'],
     sizes: ['16 oz', '24 oz'],
     flavors: ['Dulce de Leche', 'Praline', 'Cookies & Cream', 'Protein', 'Chocolate', 'Vainilla'],
-    extras: ['Té Concentrado', 'Aloe Vera', 'Probiótico Boost'],
+    extras: ['Mega Té Concentrado', 'Aloe Vera', 'Probiótico Boost'],
     publicPrice: 7.50,
     internalCost: 2.20,
     showPublicPrice: false,

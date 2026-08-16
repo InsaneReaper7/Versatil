@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeCustomizerState = null;
   let activeWizardStep = 1;
   let wizardData = {
-    base: ['Té Concentrado', 'Aloe Vera', 'Lift Off'],
+    base: ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
     size: '32 oz',
     flavors: [],
     extras: [],
@@ -720,10 +720,10 @@ document.addEventListener('DOMContentLoaded', () => {
     switch (activeWizardStep) {
       case 1:
         return `
-          <h2 class="step-title">Paso 1: Elige tu base</h2>
-          <p class="step-desc">Selecciona los elementos base para tu bebida personal</p>
+          <h2 class="step-title">Paso 1: Elige tu base (4 Incluidos por Defecto)</h2>
+          <p class="step-desc">Tú eliges cuáles elementos base deseas incluir en tu bebida</p>
           <div class="ingredient-list">
-            ${['Té Concentrado', 'Aloe Vera', 'Lift Off'].map(b => `
+            ${['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'].map(b => `
               <div class="flavor-chip ${wizardData.base.includes(b) ? 'selected' : ''}" onclick="toggleWizardBase('${b}')">
                 ${wizardData.base.includes(b) ? '✓' : '+'} ${b}
               </div>
@@ -1488,7 +1488,7 @@ document.addEventListener('DOMContentLoaded', () => {
       active: document.getElementById('p-active').checked,
       soldOut: document.getElementById('p-soldOut').checked,
       featured: document.getElementById('p-featured').checked,
-      baseIngredients: existing ? existing.baseIngredients : ['Té Concentrado', 'Aloe Vera'],
+      baseIngredients: existing ? existing.baseIngredients : ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
       sizes: existing ? existing.sizes : ['32 oz', '16 oz'],
       flavors: existing ? existing.flavors : (window.MEGA_TE_FLAVORS || ['Fresas', 'Parcha', 'Mango']),
       extras: existing ? existing.extras : ['Fibra Activa', 'Probiótico Boost']

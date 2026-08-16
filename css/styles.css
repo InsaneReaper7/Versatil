@@ -491,25 +491,23 @@ button {
 
 .category-card {
   background: #FFFFFF;
-  border: 1.5px solid var(--baby-blue-border);
-  border-radius: var(--radius-md);
-  padding: 1.1rem 0.75rem;
-  text-align: center;
-  cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  border: 2px solid var(--baby-blue-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.6rem;
   color: var(--text-primary);
   box-shadow: 0 4px 14px rgba(56, 189, 248, 0.06);
+  transition: all 0.2s ease;
 }
 
 .category-card:hover, .category-card.active {
   transform: translateY(-4px);
-  border-color: var(--accent-gold);
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(245, 158, 11, 0.15) 100%);
-  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+  border-color: var(--secondary-baby-blue); /* Highlight in BLUE outline */
+  background: #FFFFFF;
+  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.35);
 }
 
 .category-icon {
@@ -518,19 +516,20 @@ button {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: var(--baby-blue-light);
-  border: 1px solid var(--baby-blue-border);
+  background: var(--gold-light); /* Inside circle starting GOLD tint */
+  border: 1.5px solid var(--gold-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s ease, transform 0.2s ease;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .category-card:hover .category-icon, .category-card.active .category-icon {
-  background: var(--secondary-baby-blue);
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%); /* Inside circle fills GOLD when clicked or hovered */
   border-color: #FFFFFF;
-  color: white;
+  color: #FFFFFF;
   transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
 }
 
 .category-name {
@@ -832,8 +831,9 @@ button {
 }
 
 .mode-choice-card.selected {
-  border-color: var(--accent-gold);
+  border-color: var(--secondary-baby-blue);
   background: var(--gold-light);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.25);
 }
 
 .mode-choice-title {
@@ -871,29 +871,29 @@ button {
 }
 
 .ingredient-chip.active {
-  background: var(--baby-blue-light);
+  background: var(--gold-light);
   border-color: var(--secondary-baby-blue);
-  color: var(--baby-blue-dark);
+  color: var(--text-primary);
   font-weight: 800;
 }
 
 .flavor-chip {
-  background: var(--bg-secondary);
-  border: 1px solid var(--baby-blue-border);
-  padding: 0.5rem 0.9rem;
+  background: #FFFFFF;
+  border: 1.5px solid var(--baby-blue-border);
+  padding: 0.5rem 0.95rem;
   border-radius: var(--radius-full);
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--text-primary);
 }
 
 .flavor-chip.selected {
-  background: linear-gradient(135deg, var(--secondary-baby-blue) 0%, var(--secondary-baby-blue-hover) 100%);
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
   color: white;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(56, 189, 248, 0.35);
+  border: 2px solid var(--secondary-baby-blue);
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
 }
 
 /* Live Summary Box */
