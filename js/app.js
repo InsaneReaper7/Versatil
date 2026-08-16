@@ -263,12 +263,23 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="categories-grid">
-            ${categories.map(cat => `
-              <div class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" onclick="selectCategoryAndScroll('${cat.id}')">
-                <span class="category-icon">${cat.icon}</span>
-                <span class="category-name">${cat.name}</span>
-              </div>
-            `).join('')}
+            ${categories.map(cat => {
+              const catImg = getCategoryActiveImage(cat);
+              const isRotatable = cat.activeImage === 'rotate' && cat.image && cat.image2;
+              return `
+                <div class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" onclick="selectCategoryAndScroll('${cat.id}')">
+                  ${catImg ? `
+                    <div class="cat-card-img-wrapper">
+                      <img src="${catImg}" class="cat-card-img ${isRotatable ? 'cat-rotatable-image' : ''}" ${isRotatable ? `data-img1="${cat.image}" data-img2="${cat.image2}" data-mode="rotate"` : ''} alt="${cat.name}" />
+                    </div>
+                    <span class="category-name">${cat.icon} ${cat.name}</span>
+                  ` : `
+                    <span class="category-icon">${cat.icon}</span>
+                    <span class="category-name">${cat.name}</span>
+                  `}
+                </div>
+              `;
+            }).join('')}
           </div>
         </section>
       ` : ''}
@@ -358,12 +369,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgUrl = getProductImage(prod);
     const hasImage = !!imgUrl;
 
+    const cat = store.getCategories().find(c => c.id === prod.category);
+    const isRotatable = (!prod.image || !prod.image.trim()) && cat && cat.activeImage === 'rotate' && cat.image && cat.image2;
+
     return `
       <div class="product-card ${hasImage ? 'has-prod-image' : ''} ${isSoldOut ? 'is-sold-out' : ''}">
         <div class="product-image-container">
           ${isSoldOut ? `<span class="product-sold-out-badge">🚫 AGOTADO</span>` : ''}
           ${hasImage ? `
-            <img src="${imgUrl}" alt="${prod.name}" class="product-image" />
+            <img src="${imgUrl}" alt="${prod.name}" class="product-image ${isRotatable ? 'cat-rotatable-image' : ''}" ${isRotatable ? `data-img1="${cat.image}" data-img2="${cat.image2}" data-mode="rotate"` : ''} />
           ` : `
             <div class="product-badge-placeholder">
               <span style="font-size: 2.5rem;">${getCategoryIcon(prod.category)}</span>

@@ -501,6 +501,30 @@ button {
   color: var(--text-primary);
   box-shadow: 0 4px 14px rgba(56, 189, 248, 0.06);
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cat-card-img-wrapper {
+  width: 100%;
+  height: 105px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 0.2rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--baby-blue-border);
+  position: relative;
+}
+
+.cat-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.category-card:hover .cat-card-img {
+  transform: scale(1.06);
 }
 
 .category-icon {
