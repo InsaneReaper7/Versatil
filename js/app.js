@@ -142,6 +142,9 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'checkout':
         renderCheckoutView();
         break;
+      case 'confirmacion':
+        renderOrderConfirmationView();
+        break;
       default:
         if (currentRoute.startsWith('producto/')) {
           const slug = currentRoute.replace('producto/', '');
@@ -1232,6 +1235,100 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  let activeCompletedOrder = null;
+
+  function renderOrderConfirmationView() {
+    let order = activeCompletedOrder;
+    if (!order) {
+      try {
+        const cached = sessionStorage.getItem('versatil_last_order');
+        if (cached) order = JSON.parse(cached);
+      } catch (e) {}
+    }
+
+    if (!order || !order.items || order.items.length === 0) {
+      appContainer.innerHTML = `
+        <section class="section-container" style="max-width: 550px; text-align: center; padding-top: 3rem;">
+          <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 2.5rem 1.5rem; box-shadow: var(--card-shadow);">
+            <div style="font-size: 3.5rem; margin-bottom: 1rem;">🍹</div>
+            <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; color: var(--text-primary);">¡Bienvenido a Versátil!</h1>
+            <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">No encontramos un pedido reciente.</p>
+            <a href="#home" class="btn-primary">Explora el Menú</a>
+          </div>
+        </section>
+      `;
+      return;
+    }
+
+    const settings = store.getSettings();
+    const waUrl = window.VerstailWhatsApp ? window.VerstailWhatsApp.generateWhatsAppLink(order, settings) : '#';
+
+    appContainer.innerHTML = `
+      <section class="section-container" style="max-width: 620px; text-align: center; padding-top: 1.5rem;">
+        <div style="background: #FFFFFF; border: 2px solid var(--secondary-baby-blue); border-radius: var(--radius-lg); padding: 2.25rem 1.5rem; box-shadow: 0 15px 40px rgba(56, 189, 248, 0.18);">
+          
+          <div style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.12); border: 2.5px solid #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.6rem; margin: 0 auto 1.25rem; box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);">
+            🎉
+          </div>
+
+          <h1 style="font-size: 2rem; font-weight: 900; color: #059669; margin-bottom: 0.3rem;">
+            ¡Pedido Recibido con Éxito!
+          </h1>
+          <div style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 1.25rem;">
+            Orden #${order.id}
+          </div>
+
+          <div style="background: rgba(56, 189, 248, 0.08); border: 1.5px solid var(--baby-blue-border); padding: 1.1rem 1.25rem; border-radius: var(--radius-md); text-align: left; margin-bottom: 1.5rem; line-height: 1.5;">
+            <div style="font-weight: 800; color: var(--secondary-baby-blue-hover); font-size: 0.98rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span>📲</span> Notificación Enviada por WhatsApp
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0;">
+              ¡Muchas gracias <strong>${order.customerName}</strong>! Tu pedido ha sido enviado a nuestro equipo por WhatsApp. Si la ventana no abrió automáticamente, toca el botón de abajo:
+            </p>
+            <a href="${waUrl}" target="_blank" class="btn-primary" style="margin-top: 0.85rem; width: 100%; justify-content: center; font-size: 0.95rem; padding: 0.8rem;">
+              📲 Abrir Chat en WhatsApp
+            </a>
+          </div>
+
+          <div style="background: var(--bg-surface); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1.25rem; text-align: left; margin-bottom: 1.75rem;">
+            <div style="font-weight: 900; font-size: 0.95rem; color: var(--text-primary); margin-bottom: 0.75rem; border-bottom: 1px solid var(--baby-blue-border); padding-bottom: 0.5rem;">
+              📋 Detalle de tus Antojos:
+            </div>
+            
+            ${order.items.map(item => `
+              <div style="margin-bottom: 0.85rem; padding-bottom: 0.85rem; border-bottom: 1px dashed var(--baby-blue-border);">
+                <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-primary);">
+                  ${getCategoryIcon(item.category)} ${item.name} (${item.size || 'Estándar'}) x${item.quantity}
+                </div>
+                <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.3rem; line-height: 1.45;">
+                  <div><strong>Base:</strong> ${formatItemBaseText(item)}</div>
+                  ${item.flavors && item.flavors.length > 0 ? `<div><strong>Frutas/Sabores:</strong> ${item.flavors.join(', ')}</div>` : ''}
+                  ${item.extras && item.extras.length > 0 ? `<div><strong>Extras:</strong> ${item.extras.join(', ')}</div>` : ''}
+                </div>
+              </div>
+            `).join('')}
+
+            <div style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 0.75rem; padding-top: 0.5rem;">
+              <div><strong>Cliente:</strong> ${order.customerName}</div>
+              <div><strong>Teléfono:</strong> ${order.customerPhone}</div>
+              ${order.customerEmail ? `<div><strong>Email:</strong> ${order.customerEmail}</div>` : ''}
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 0.85rem; justify-content: center; flex-wrap: wrap;">
+            <a href="#home" class="btn-primary" style="flex: 1; min-width: 170px; justify-content: center;">
+              🏠 Volver al Inicio
+            </a>
+            <a href="#crear-mi-mezcla" class="btn-secondary" style="flex: 1; min-width: 170px; justify-content: center;">
+              🍹 Crear Otro Pedido
+            </a>
+          </div>
+
+        </div>
+      </section>
+    `;
+  }
+
   window.handleCheckoutSubmit = async (e) => {
     e.preventDefault();
     const name = document.getElementById('cust-name').value;
@@ -1241,6 +1338,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const cart = store.getCart();
     const settings = store.getSettings();
 
+    if (cart.length === 0) {
+      window.location.hash = 'home';
+      return;
+    }
+
     const newOrder = store.addOrder({
       customerName: name,
       customerPhone: phone,
@@ -1248,40 +1350,23 @@ document.addEventListener('DOMContentLoaded', () => {
       items: cart
     });
 
+    activeCompletedOrder = newOrder;
+    try {
+      sessionStorage.setItem('versatil_last_order', JSON.stringify(newOrder));
+    } catch (err) {}
+
     store.clearCart();
 
-    // Dispatch Meta WhatsApp Cloud API Notification in background
     if (window.VerstailWhatsApp && window.VerstailWhatsApp.sendMetaWhatsAppCloudNotification) {
       window.VerstailWhatsApp.sendMetaWhatsAppCloudNotification(newOrder, settings);
     }
 
-    // Render Order Confirmation View on website (Customer never leaves the page)
-    appContainer.innerHTML = `
-      <section class="section-container" style="max-width: 550px; text-align: center; padding-top: 2rem;">
-        <div style="background: var(--bg-card-dark); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2.5rem 1.5rem;">
-          <div style="font-size: 3.5rem; margin-bottom: 1rem;">✅</div>
-          <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 0.5rem; color: var(--accent-green);">¡Pedido Confirmado!</h1>
-          <div style="font-size: 1.1rem; font-weight: 800; color: var(--primary); margin-bottom: 1rem;">Orden #${newOrder.id}</div>
-          
-          <p style="color: var(--text-secondary); font-size: 0.95rem; max-width: 420px; margin: 0 auto 1.5rem;">
-            ¡Gracias <strong>${name}</strong>! Tu pedido ha sido registrado exitosamente y notificado automáticamente a nuestro equipo por WhatsApp. Te contactaremos al <strong>${phone}</strong>.
-          </p>
+    const waUrl = window.VerstailWhatsApp ? window.VerstailWhatsApp.generateWhatsAppLink(newOrder, settings) : '#';
+    if (waUrl && waUrl !== '#') {
+      window.open(waUrl, '_blank');
+    }
 
-          <div style="background: var(--bg-surface-dark); padding: 1rem; border-radius: var(--radius-md); text-align: left; margin-bottom: 1.5rem; border: 1px solid var(--glass-border);">
-            <div style="font-weight: 800; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--primary);">Resumen de tu Pedido:</div>
-            ${newOrder.items.map(item => `
-              <div style="font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.25rem;">
-                • <strong>${item.name}</strong> (x${item.quantity}) ${item.size ? `— ${item.size}` : ''}
-              </div>
-            `).join('')}
-          </div>
-
-          <a href="#home" class="btn-primary" style="padding: 0.85rem 2rem; font-size: 1rem;">
-            🏠 Volver al Inicio
-          </a>
-        </div>
-      </section>
-    `;
+    window.location.hash = 'confirmacion';
   };
 
   // ==========================================================================
