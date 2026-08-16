@@ -681,7 +681,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <div style="text-align: right;">
               <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">TOTAL DE TU ORDEN</div>
-              <div style="font-size: 1.35rem; font-weight: 900; color: var(--accent-green);" id="summary-price-text">$${finalPrice.toFixed(2)}</div>
+              <div style="font-size: ${prod.showPublicPrice ? '1.35rem' : '0.88rem'}; font-weight: 800; color: ${prod.showPublicPrice ? 'var(--accent-green)' : 'var(--accent-gold-dark)'};" id="summary-price-text">
+                ${prod.showPublicPrice ? `$${finalPrice.toFixed(2)}` : 'Precio disponible al ordenar'}
+              </div>
             </div>
           </div>
         </div>
