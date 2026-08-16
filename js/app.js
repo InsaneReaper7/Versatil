@@ -1540,7 +1540,33 @@ document.addEventListener('DOMContentLoaded', () => {
     return `
       <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 1.5rem;">Dashboard de Administración</h1>
       
-      <div class="admin-stats-grid">
+      <!-- 1. RESUMEN DE INGRESOS GENERADOS (FIRST THING THE CLIENT SEES AT THE TOP) -->
+      <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+          <span>💰</span> Resumen de Ingresos Generados
+        </h3>
+        <div class="admin-stats-grid">
+          <div class="stat-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%); border: 1.5px solid rgba(16, 185, 129, 0.3);">
+            <div class="stat-num" style="color: #059669; font-size: 1.8rem;">$${metrics.daily.toFixed(2)}</div>
+            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas de Hoy</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(56, 189, 248, 0.02) 100%); border: 1.5px solid var(--baby-blue-border);">
+            <div class="stat-num" style="color: var(--secondary-baby-blue-hover); font-size: 1.8rem;">$${metrics.weekly.toFixed(2)}</div>
+            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas esta Semana</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 100%); border: 1.5px solid var(--gold-border);">
+            <div class="stat-num" style="color: #D97706; font-size: 1.8rem;">$${metrics.monthly.toFixed(2)}</div>
+            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas este Mes</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(124, 58, 237, 0.02) 100%); border: 1.5px solid rgba(124, 58, 237, 0.3);">
+            <div class="stat-num" style="color: #7C3AED; font-size: 1.8rem;">$${metrics.yearly.toFixed(2)}</div>
+            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas este Año</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CATÁLOGO & MÉTRICAS DE OPERACIÓN -->
+      <div class="admin-stats-grid" style="margin-bottom: 2rem;">
         <div class="stat-card">
           <div class="stat-num">${products.length}</div>
           <div class="stat-label">Total Productos</div>
@@ -1559,7 +1585,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--card-shadow); margin-bottom: 2rem;">
+      <!-- 3. ÓRDENES RECIENTES -->
+      <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--card-shadow);">
         <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;">Órdenes Recientes</h3>
         ${orders.length > 0 ? `
           <div class="table-responsive">
@@ -1593,31 +1620,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </table>
           </div>
         ` : `<p style="color: var(--text-secondary);">No hay órdenes registradas aún.</p>`}
-      </div>
-
-      <!-- 4 REVENUE / INCOME METRICS SQUARES (DAILY, WEEKLY, MONTHLY, YEARLY) -->
-      <div style="margin-top: 2rem;">
-        <h3 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
-          <span>💰</span> Resumen de Ingresos Generados
-        </h3>
-        <div class="admin-stats-grid">
-          <div class="stat-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%); border: 1.5px solid rgba(16, 185, 129, 0.3);">
-            <div class="stat-num" style="color: #059669; font-size: 1.8rem;">$${metrics.daily.toFixed(2)}</div>
-            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas de Hoy</div>
-          </div>
-          <div class="stat-card" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(56, 189, 248, 0.02) 100%); border: 1.5px solid var(--baby-blue-border);">
-            <div class="stat-num" style="color: var(--secondary-baby-blue-hover); font-size: 1.8rem;">$${metrics.weekly.toFixed(2)}</div>
-            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas esta Semana</div>
-          </div>
-          <div class="stat-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 100%); border: 1.5px solid var(--gold-border);">
-            <div class="stat-num" style="color: #D97706; font-size: 1.8rem;">$${metrics.monthly.toFixed(2)}</div>
-            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas este Mes</div>
-          </div>
-          <div class="stat-card" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(124, 58, 237, 0.02) 100%); border: 1.5px solid rgba(124, 58, 237, 0.3);">
-            <div class="stat-num" style="color: #7C3AED; font-size: 1.8rem;">$${metrics.yearly.toFixed(2)}</div>
-            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas este Año</div>
-          </div>
-        </div>
       </div>
     `;
   }
