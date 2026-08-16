@@ -99,7 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderHomeView();
         break;
       case 'menu':
-        renderMenuView();
+        renderHomeView();
+        setTimeout(() => {
+          const sec = document.getElementById('menu-section');
+          if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+        }, 80);
         break;
       case 'crear-mi-mezcla':
         renderCustomMixWizardView();
@@ -915,7 +919,7 @@ document.addEventListener('DOMContentLoaded', () => {
               Todavía no has elegido tu próximo antojo. Explora nuestro menú o crea tu propia combinación.
             </p>
             <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-              <a href="#menu" class="btn-primary">Ver Menú</a>
+              <a href="#home" class="btn-primary">Explora el Menú</a>
               <a href="#crear-mi-mezcla" class="btn-secondary">Crear Mi Mezcla</a>
             </div>
           </div>
