@@ -141,10 +141,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- HOMEPAGE VIEW ---
+  // --- HOMEPAGE VIEW (INTEGRATED MENU & CATALOG) ---
   function renderHomeView() {
     const categories = store.getCategories().filter(c => c.active && c.id !== 'custom-mix');
-    const featuredProducts = store.getActiveProducts().filter(p => p.featured);
     const settings = store.getSettings();
+    let products = store.getActiveProducts();
+
+    if (selectedCategoryFilter !== 'all') {
+      products = products.filter(p => p.category === selectedCategoryFilter);
+    }
+
+    const selectedCategoryObj = categories.find(c => c.id === selectedCategoryFilter);
 
     appContainer.innerHTML = `
       <!-- HERO SECTION WITH PROMINENT CENTRAL CLIENT LOGO -->
@@ -170,24 +177,29 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="hero-actions">
-          <a href="#menu" class="btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
+          <a href="#menu-section" onclick="smoothScrollToMenu(event)" class="btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">
             🍹 Ver Menú y Ordenar
           </a>
         </div>
       </section>
 
-      <!-- QUICK MENU CATEGORIES -->
-      <section class="section-container">
-        <div class="section-header">
+      <!-- BIG CATEGORY BUTTON CARDS -->
+      <section class="section-container" style="padding-bottom: 1rem;">
+        <div class="section-header" style="margin-bottom: 1rem;">
           <div>
             <h2 class="section-title">Explora por Categoría</h2>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;">Selecciona tu antojo favorito del día</p>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Toca una categoría para ver sus opciones</p>
           </div>
+          ${selectedCategoryFilter !== 'all' ? `
+            <button onclick="setMenuFilter('all')" style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.85rem; background: var(--baby-blue-light); border: 1.5px solid var(--baby-blue-border); padding: 5px 14px; border-radius: var(--radius-full); cursor: pointer;">
+              🔄 Ver Todos (${selectedCategoryFilter.toUpperCase()})
+            </button>
+          ` : ''}
         </div>
 
         <div class="categories-grid">
           ${categories.map(cat => `
-            <div class="category-card" onclick="navigateToCategory('${cat.id}')">
+            <div class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" onclick="selectCategoryAndScroll('${cat.id}')">
               <span class="category-icon">${cat.icon}</span>
               <span class="category-name">${cat.name}</span>
             </div>
@@ -195,55 +207,40 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </section>
 
-      <!-- FEATURED PRODUCTS -->
-      <section class="section-container" style="padding-top: 1rem;">
-        <div class="section-header">
-          <div>
-            <h2 class="section-title">Productos Destacados</h2>
-            <p style="color: var(--text-secondary); font-size: 0.9rem;">Las mezclas más populares del menú</p>
-          </div>
-          <a href="#menu" style="color: var(--primary); font-weight: 700; font-size: 0.9rem;">Ver menú completo &rarr;</a>
+      <!-- INTEGRATED MENU CATALOG & PRODUCTS GRID -->
+      <section class="section-container" id="menu-section" style="scroll-margin-top: 90px; padding-top: 0.5rem;">
+        <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 0.4rem; margin-bottom: 1rem;">
+          <h2 class="section-title" style="font-size: 1.8rem;">Menú de Antojos</h2>
+          <p style="color: var(--text-secondary); font-size: 0.92rem;">
+            ${selectedCategoryObj ? `Mostrando opciones para <strong>${selectedCategoryObj.name}</strong>` : 'Elige una opción y personalízala a tu estilo.'}
+          </p>
         </div>
 
-        <div class="products-grid">
-          ${featuredProducts.map(prod => renderProductCardHTML(prod)).join('')}
-        </div>
-      </section>
-    `;
-  }
-
-  window.navigateToCategory = (catId) => {
-    selectedCategoryFilter = catId;
-    window.location.hash = 'menu';
-  };
-
-  // --- MENU VIEW ---
-  function renderMenuView() {
-    const categories = store.getCategories().filter(c => c.active && c.id !== 'custom-mix');
-    let products = store.getActiveProducts();
-
-    if (selectedCategoryFilter !== 'all') {
-      products = products.filter(p => p.category === selectedCategoryFilter);
-    }
-
-    appContainer.innerHTML = `
-      <section class="section-container">
-        <div class="section-header" style="flex-direction: column; align-items: flex-start; gap: 0.5rem;">
-          <h1 class="section-title" style="font-size: 2rem;">Menú Versátil</h1>
-          <p style="color: var(--text-secondary);">Elige una bebida o postre y personalízalo a tu estilo.</p>
-        </div>
-
-        <!-- CATEGORY FILTERS -->
-        <div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 1rem; margin-bottom: 1.5rem;">
-          <button onclick="setMenuFilter('all')" class="category-card ${selectedCategoryFilter === 'all' ? 'active' : ''}" style="padding: 0.5rem 1rem; flex-direction: row; min-width: max-content;">
-            🌟 Todos
-          </button>
-          ${categories.map(cat => `
-            <button onclick="setMenuFilter('${cat.id}')" class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" style="padding: 0.5rem 1rem; flex-direction: row; min-width: max-content;">
-              <span>${cat.icon}</span> <span>${cat.name}</span>
+        <!-- SMALL CATEGORY FILTER PILLS BAR (OPTIONAL VIA ADMIN TOGGLE) -->
+        ${settings.showCategoryFilterPills ? `
+          <div style="display: flex; gap: 0.6rem; overflow-x: auto; padding: 0.5rem 0 1rem; margin-bottom: 1.25rem; -webkit-overflow-scrolling: touch;">
+            <button onclick="setMenuFilter('all')" class="category-card ${selectedCategoryFilter === 'all' ? 'active' : ''}" style="padding: 0.55rem 1.1rem; flex-direction: row; min-width: max-content; font-size: 0.9rem;">
+              🌟 Todos
             </button>
-          `).join('')}
-        </div>
+            ${categories.map(cat => `
+              <button onclick="setMenuFilter('${cat.id}')" class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" style="padding: 0.55rem 1.1rem; flex-direction: row; min-width: max-content; font-size: 0.9rem;">
+                <span>${cat.icon}</span> <span>${cat.name}</span>
+              </button>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <!-- FILTER RESET BANNER IF FILTER ACTIVE -->
+        ${selectedCategoryFilter !== 'all' && !settings.showCategoryFilterPills ? `
+          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--baby-blue-light); border: 1.5px solid var(--baby-blue-border); padding: 0.6rem 1.25rem; border-radius: var(--radius-full); margin-bottom: 1.5rem;">
+            <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-primary);">
+              Filtro activo: <strong>${selectedCategoryObj ? selectedCategoryObj.name : selectedCategoryFilter}</strong>
+            </span>
+            <button onclick="setMenuFilter('all')" style="background: none; border: none; color: var(--secondary-baby-blue-hover); font-weight: 800; cursor: pointer; font-size: 0.9rem;">
+              ✖ Mostrar Todos los Productos
+            </button>
+          </div>
+        ` : ''}
 
         <!-- PRODUCTS GRID -->
         ${products.length > 0 ? `
@@ -262,21 +259,43 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
-  window.setMenuFilter = (catId) => {
+  window.selectCategoryAndScroll = (catId) => {
     selectedCategoryFilter = catId;
-    renderMenuView();
+    renderHomeView();
+    const sec = document.getElementById('menu-section');
+    if (sec) sec.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // --- PRODUCT CARD HTML HELPER ---
+  window.smoothScrollToMenu = (e) => {
+    e.preventDefault();
+    const sec = document.getElementById('menu-section');
+    if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  window.setMenuFilter = (catId) => {
+    selectedCategoryFilter = catId;
+    renderHomeView();
+  };
+
+  // Redundant #menu route redirects directly to Home View
+  function renderMenuView() {
+    renderHomeView();
+  }
+
+  // --- PRODUCT CARD HTML HELPER (WITH SOLD OUT SUPPORT) ---
   function renderProductCardHTML(prod) {
     const showPrice = prod.showPublicPrice;
-    const btnLabel = showPrice ? `🍹 Ordenar — $${Number(prod.publicPrice).toFixed(2)}` : `🍹 Ordenar`;
+    const isSoldOut = !!prod.soldOut;
+    const btnLabel = isSoldOut 
+      ? `🚫 Agotado` 
+      : (showPrice ? `🍹 Ordenar — $${Number(prod.publicPrice).toFixed(2)}` : `🍹 Ordenar`);
     const imgUrl = getProductImage(prod);
     const hasImage = !!imgUrl;
 
     return `
-      <div class="product-card ${hasImage ? 'has-prod-image' : ''}">
+      <div class="product-card ${hasImage ? 'has-prod-image' : ''} ${isSoldOut ? 'is-sold-out' : ''}">
         <div class="product-image-container">
+          ${isSoldOut ? `<span class="product-sold-out-badge">🚫 AGOTADO</span>` : ''}
           ${hasImage ? `
             <img src="${imgUrl}" alt="${prod.name}" class="product-image" />
           ` : `
@@ -285,16 +304,22 @@ document.addEventListener('DOMContentLoaded', () => {
               <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">Versátil Craft</div>
             </div>
           `}
-          ${prod.featured ? `<span class="product-featured-badge">Destacado</span>` : ''}
+          ${prod.featured && !isSoldOut ? `<span class="product-featured-badge">Destacado</span>` : ''}
         </div>
         <div class="product-info">
           <span class="product-category-tag">${prod.category.toUpperCase()}</span>
           <h3 class="product-title">${prod.name}</h3>
           <p class="product-desc">${prod.description || 'Deliciosa opción preparada con ingredientes de la más alta calidad.'}</p>
         </div>
-        <button onclick="openProductCustomizer('${prod.id}')" class="btn-card-ordenar">
-          ${btnLabel}
-        </button>
+        ${isSoldOut ? `
+          <button class="btn-card-ordenar sold-out" disabled style="cursor: not-allowed; opacity: 0.75;">
+            🚫 Agotado
+          </button>
+        ` : `
+          <button onclick="openProductCustomizer('${prod.id}')" class="btn-card-ordenar">
+            ${btnLabel}
+          </button>
+        `}
       </div>
     `;
   }
@@ -354,8 +379,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <p style="color: var(--text-secondary); font-size: 0.9rem;">${prod.description}</p>
 
           ${isMegaTe ? `
-            <div style="background: rgba(64, 139, 234, 0.15); border: 1px solid var(--primary); padding: 0.6rem 1rem; border-radius: var(--radius-full); text-align: center; font-weight: 800; color: var(--primary); margin-bottom: 0.5rem; font-size: 0.88rem;">
-              ✨ Bebida 100% Personalizada (<span id="mega-te-counter-badge">Máximo 3 Frutas: ${state.flavors.length}/3</span>)
+            <div style="background: var(--gold-light); border: 1.5px solid var(--gold-border); padding: 0.6rem 1rem; border-radius: var(--radius-full); text-align: center; font-weight: 800; color: var(--accent-gold-dark); margin-bottom: 0.5rem; font-size: 0.88rem;">
+              ✨ Bebida 100% Personalizada (<span id="mega-te-counter-badge">${state.flavors.length} Sabor${state.flavors.length === 1 ? '' : 'es'} Seleccionado${state.flavors.length === 1 ? '' : 's'}</span>)
             </div>
           ` : `
             <!-- MODE SELECTOR: ORIGINAL VS PERSONALIZA FOR OTHER PRODUCTS -->
@@ -444,9 +469,18 @@ document.addEventListener('DOMContentLoaded', () => {
       ${prod.flavors && prod.flavors.length > 0 ? `
         <div style="margin-bottom: 0.9rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">FRUTAS / SABORES DISPONIBLES</label>
-            ${isMegaTe ? `<span style="font-size: 0.78rem; font-weight: 800; color: var(--primary);" id="mega-te-counter-header">${state.flavors.length}/3 Seleccionados</span>` : ''}
+            <label style="font-weight: 800; font-size: 0.85rem; color: var(--text-secondary);">FRUTAS / SABORES DISPONIBLES</label>
+            <span style="font-size: 0.78rem; font-weight: 800; color: var(--accent-gold-dark);" id="mega-te-counter-header">${state.flavors.length} Seleccionados</span>
           </div>
+
+          <!-- RECTANGLE WARNING CALLOUT WHEN 3 OR MORE FLAVORS ARE SELECTED -->
+          <div id="flavor-warning-rect-modal" class="flavor-warning-rect" style="display: ${state.flavors.length >= 3 ? 'flex' : 'none'};">
+            <span class="flavor-warning-icon">⚠️</span>
+            <div>
+              <strong>Aviso de Sabores:</strong> Las primeras 2 frutas/sabores están incluidas sin costo adicional. A partir del 3er sabor en adelante, aplica un cargo adicional.
+            </div>
+          </div>
+
           <div class="ingredient-list" style="max-height: 200px; overflow-y: auto; padding-right: 0.3rem;">
             ${prod.flavors.map(flv => `
               <div class="flavor-chip ${state.flavors.includes(flv) ? 'selected' : ''}" data-flavor="${flv}" onclick="toggleCustomizerFlavor('${flv}', this)">
@@ -489,8 +523,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = activeCustomizerState;
     if (!state) return;
 
-    const isMegaTe = activeModalProduct && activeModalProduct.category === 'mega-te';
-
     const szText = document.getElementById('summary-size-text');
     if (szText) szText.textContent = state.size;
 
@@ -504,13 +536,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const qtyText = document.getElementById('summary-qty-text');
     if (qtyText) qtyText.textContent = state.quantity;
 
-    if (isMegaTe) {
-      const badgeText = document.getElementById('mega-te-counter-badge');
-      if (badgeText) badgeText.textContent = `Máximo 3 Frutas: ${state.flavors.length}/3`;
-
-      const headerText = document.getElementById('mega-te-counter-header');
-      if (headerText) headerText.textContent = `${state.flavors.length}/3 Seleccionados`;
+    const warningBox = document.getElementById('flavor-warning-rect-modal');
+    if (warningBox) {
+      warningBox.style.display = state.flavors.length >= 3 ? 'flex' : 'none';
     }
+
+    const badgeText = document.getElementById('mega-te-counter-badge');
+    if (badgeText) badgeText.textContent = `${state.flavors.length} Sabor${state.flavors.length === 1 ? '' : 'es'} Seleccionado${state.flavors.length === 1 ? '' : 's'}`;
+
+    const headerText = document.getElementById('mega-te-counter-header');
+    if (headerText) headerText.textContent = `${state.flavors.length} Seleccionados`;
   }
 
   window.closeCustomizerModal = () => {
@@ -544,7 +579,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.toggleCustomizerFlavor = (flv, el) => {
-    const isMegaTe = activeModalProduct && activeModalProduct.category === 'mega-te';
     const idx = activeCustomizerState.flavors.indexOf(flv);
     
     if (idx !== -1) {
@@ -555,10 +589,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (icon) icon.textContent = '+';
       }
     } else {
-      if (isMegaTe && activeCustomizerState.flavors.length >= 3) {
-        alert('Solo puedes seleccionar un máximo de 3 frutas por Mega Té.');
-        return;
-      }
       activeCustomizerState.flavors.push(flv);
       if (el) {
         el.classList.add('selected');
@@ -715,6 +745,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
           <h2 class="step-title">Paso 3: Elige tus sabores</h2>
           <p class="step-desc">Combina tus sabores frutales favoritos (puedes seleccionar varios)</p>
+          
+          <div id="wizard-flavor-warning" class="flavor-warning-rect" style="display: ${wizardData.flavors.length >= 3 ? 'flex' : 'none'};">
+            <span class="flavor-warning-icon">⚠️</span>
+            <div>
+              <strong>Aviso de Sabores:</strong> Las primeras 2 frutas/sabores están incluidas sin costo adicional. A partir del 3er sabor en adelante, aplica un cargo adicional.
+            </div>
+          </div>
+
           <div class="ingredient-list" style="max-height: 280px; overflow-y: auto; padding-right: 0.5rem;">
             ${window.VERSTAIL_FLAVORS.map(flv => `
               <div class="flavor-chip ${wizardData.flavors.includes(flv) ? 'selected' : ''}" onclick="toggleWizardFlavor('${flv}', this)">
@@ -740,8 +778,17 @@ document.addEventListener('DOMContentLoaded', () => {
           <h2 class="step-title">Paso 5: Vista Previa de tu Mezcla</h2>
           <p class="step-desc">Confirma la combinación única que creaste</p>
           
+          ${wizardData.flavors.length >= 3 ? `
+            <div class="flavor-warning-rect">
+              <span class="flavor-warning-icon">⚠️</span>
+              <div>
+                <strong>Aviso de Sabores:</strong> Las primeras 2 frutas/sabores están incluidas sin costo adicional. A partir del 3er sabor en adelante, aplica un cargo adicional.
+              </div>
+            </div>
+          ` : ''}
+
           <div class="live-summary-box">
-            <div style="font-size: 1.2rem; font-weight: 800; color: var(--primary);">TU MEZCLA PERSONALIZADA (${wizardData.size})</div>
+            <div style="font-size: 1.2rem; font-weight: 800; color: var(--secondary-baby-blue-hover);">TU MEZCLA PERSONALIZADA (${wizardData.size})</div>
             <div style="margin-top: 0.75rem; font-size: 0.9rem;">
               <p><strong>Base:</strong> ${wizardData.base.join(' + ') || 'Sin base'}</p>
               <p><strong>Sabores:</strong> ${wizardData.flavors.join(', ') || 'Sin sabor seleccionado'}</p>
@@ -799,10 +846,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (icon) icon.textContent = '+';
       }
     } else {
-      if (wizardData.flavors.length >= 3) {
-        alert('Solo puedes seleccionar un máximo de 3 frutas por mezcla.');
-        return;
-      }
       wizardData.flavors.push(flv);
       if (el) {
         el.classList.add('selected');
@@ -810,6 +853,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (icon) icon.textContent = '✓';
       }
     }
+    const warn = document.getElementById('wizard-flavor-warning');
+    if (warn) warn.style.display = wizardData.flavors.length >= 3 ? 'flex' : 'none';
   };
 
   window.toggleWizardExtra = (ext, el) => {
@@ -1057,9 +1102,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     appContainer.innerHTML = `
       <div class="admin-layout">
+        <!-- MOBILE ADMIN NAVIGATION BAR -->
+        <nav class="admin-mobile-nav">
+          <a href="#admin/dashboard" class="admin-mobile-nav-item ${subRoute === 'dashboard' ? 'active' : ''}">📊 Dashboard</a>
+          <a href="#admin/products" class="admin-mobile-nav-item ${subRoute === 'products' ? 'active' : ''}">🍹 Productos</a>
+          <a href="#admin/ingredients" class="admin-mobile-nav-item ${subRoute === 'ingredients' ? 'active' : ''}">🧪 Ingredientes</a>
+          <a href="#admin/categories" class="admin-mobile-nav-item ${subRoute === 'categories' ? 'active' : ''}">📁 Categorías</a>
+          <a href="#admin/orders" class="admin-mobile-nav-item ${subRoute === 'orders' ? 'active' : ''}">📦 Órdenes</a>
+          <a href="#admin/settings" class="admin-mobile-nav-item ${subRoute === 'settings' ? 'active' : ''}">📲 Config / WhatsApp</a>
+          <a href="javascript:void(0)" onclick="logoutAdmin()" class="admin-mobile-nav-item logout-item">🚪 Salir</a>
+          <a href="#home" class="admin-mobile-nav-item">🏠 Storefront</a>
+        </nav>
+
         <!-- SIDEBAR -->
         <div class="admin-sidebar">
-          <div style="font-weight: 900; font-size: 1.2rem; color: #C4B5FD; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          <div style="font-weight: 900; font-size: 1.2rem; color: #7C3AED; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
             <span>⚙️</span> Administración
           </div>
           <a href="#admin/dashboard" class="admin-nav-item ${subRoute === 'dashboard' ? 'active' : ''}">📊 Dashboard</a>
@@ -1145,86 +1202,111 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <div style="background: var(--bg-card-dark); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 1.25rem;">
+      <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--card-shadow);">
         <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;">Órdenes Recientes</h3>
         ${orders.length > 0 ? `
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Teléfono</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${orders.slice(0, 5).map(o => `
+          <div class="table-responsive">
+            <table class="admin-table">
+              <thead>
                 <tr>
-                  <td><strong>#${o.id}</strong></td>
-                  <td>${o.customerName}</td>
-                  <td>${o.customerPhone}</td>
-                  <td><span class="badge-status active">${o.status}</span></td>
-                  <td>
-                    <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
-                      🗑️ Eliminar
-                    </button>
-                  </td>
+                  <th>ID</th>
+                  <th>Cliente</th>
+                  <th>Teléfono</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                ${orders.slice(0, 5).map(o => `
+                  <tr>
+                    <td><strong>#${o.id}</strong></td>
+                    <td>${o.customerName}</td>
+                    <td>${o.customerPhone}</td>
+                    <td><span class="badge-status active">${o.status}</span></td>
+                    <td>
+                      <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                        🗑️ Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
         ` : `<p style="color: var(--text-secondary);">No hay órdenes registradas aún.</p>`}
       </div>
     `;
   }
 
-  // --- ADMIN PRODUCTS (FILE UPLOAD & PRICE ISOLATION) ---
+  // --- ADMIN PRODUCTS (REAL-TIME VISIBILITY & SOLD OUT CONTROLS) ---
   function renderAdminProductsHTML() {
     const products = store.getProducts();
 
     return `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.8rem; font-weight: 900;">Gestión de Productos</h1>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 900;">Gestión de Productos</h1>
+          <p style="color: var(--text-secondary); font-size: 0.88rem;">Controla la visibilidad y disponibilidad (Agotado / Sold Out) en tiempo real.</p>
+        </div>
         <button onclick="openProductEditorModal()" class="btn-primary">+ Nuevo Producto</button>
       </div>
 
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Producto</th>
-            <th>Categoría</th>
-            <th>Public Price</th>
-            <th>Internal Cost</th>
-            <th>Public Price Visible</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${products.map(p => `
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td><strong>${p.name}</strong></td>
-              <td>${p.category}</td>
-              <td style="color: var(--accent-green); font-weight: 700;">$${Number(p.publicPrice || 0).toFixed(2)}</td>
-              <td style="color: #F59E0B; font-weight: 700;">$${Number(p.internalCost || 0).toFixed(2)}</td>
-              <td>${p.showPublicPrice ? '✅ SÍ' : '❌ NO (Oculto)'}</td>
-              <td><span class="badge-status ${p.active ? 'active' : 'inactive'}">${p.active ? 'Activo' : 'Inactivo'}</span></td>
-              <td>
-                <button onclick="openProductEditorModal('${p.id}')" style="background: var(--bg-surface-dark); color: var(--text-primary); border: 1px solid var(--glass-border); padding: 4px 10px; border-radius: 6px;">Editar</button>
-              </td>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Precio Público</th>
+              <th>Costo Interno</th>
+              <th>Visibilidad en Sitio (Remover)</th>
+              <th>Estado Agotado (Sold Out)</th>
+              <th>Acciones</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${products.map(p => `
+              <tr>
+                <td><strong>${p.name}</strong></td>
+                <td><span style="font-size: 0.85rem; font-weight: 700; background: var(--bg-surface); padding: 2px 8px; border-radius: 6px;">${p.category}</span></td>
+                <td style="color: var(--accent-green); font-weight: 800;">$${Number(p.publicPrice || 0).toFixed(2)}</td>
+                <td style="color: #D97706; font-weight: 800;">$${Number(p.internalCost || 0).toFixed(2)}</td>
+                <td>
+                  <button onclick="toggleProductActiveFromAdmin('${p.id}')" style="background: ${p.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${p.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${p.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 6px 12px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    ${p.active !== false ? '👁️ Visible' : '🙈 Oculto (Removido)'}
+                  </button>
+                </td>
+                <td>
+                  <button onclick="toggleProductSoldOutFromAdmin('${p.id}')" style="background: ${p.soldOut ? 'rgba(245, 158, 11, 0.2)' : 'var(--bg-surface)'}; color: ${p.soldOut ? '#D97706' : 'var(--text-secondary)'}; border: 1.5px solid ${p.soldOut ? 'rgba(245, 158, 11, 0.5)' : 'var(--baby-blue-border)'}; padding: 6px 12px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    ${p.soldOut ? '🚫 AGOTADO (Sold Out)' : '🛒 En Stock'}
+                  </button>
+                </td>
+                <td>
+                  <button onclick="openProductEditorModal('${p.id}')" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--baby-blue-border); padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer;">Editar</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     `;
   }
+
+  window.toggleProductActiveFromAdmin = (id) => {
+    store.toggleProductActive(id);
+    renderAdminPortal();
+  };
+
+  window.toggleProductSoldOutFromAdmin = (id) => {
+    store.toggleProductSoldOut(id);
+    renderAdminPortal();
+  };
 
   window.openProductEditorModal = (productId) => {
     const p = productId ? store.getProductBySlug(productId) : {
       name: '', category: 'mega-te', description: '', image: '',
       publicPrice: 8.00, internalCost: 2.50, showPublicPrice: false,
-      active: true, featured: false
+      active: true, soldOut: false, featured: false
     };
 
     const modalHTML = `
@@ -1279,10 +1361,17 @@ document.addEventListener('DOMContentLoaded', () => {
               </label>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--baby-blue-border);">
               <label class="toggle-switch">
-                <input type="checkbox" id="p-active" ${p.active ? 'checked' : ''} />
-                <span>Producto Activo</span>
+                <input type="checkbox" id="p-active" ${p.active !== false ? 'checked' : ''} />
+                <span>🌐 Mostrar en el Sitio Web (Si desmarcas, se remueve temporalmente)</span>
+              </label>
+            </div>
+
+            <div class="form-group" style="background: var(--gold-light); padding: 0.75rem 1rem; border-radius: var(--radius-sm); border: 1px solid var(--gold-border);">
+              <label class="toggle-switch">
+                <input type="checkbox" id="p-soldOut" ${p.soldOut ? 'checked' : ''} />
+                <span>🚫 Marcar como AGOTADO / SOLD OUT (Muestra el aviso y bloquea la compra)</span>
               </label>
             </div>
 
@@ -1393,6 +1482,7 @@ document.addEventListener('DOMContentLoaded', () => {
       internalCost: parseFloat(document.getElementById('p-internalCost').value) || 0,
       showPublicPrice: document.getElementById('p-showPublicPrice').checked,
       active: document.getElementById('p-active').checked,
+      soldOut: document.getElementById('p-soldOut').checked,
       featured: document.getElementById('p-featured').checked,
       baseIngredients: existing ? existing.baseIngredients : ['Té Concentrado', 'Aloe Vera'],
       sizes: existing ? existing.sizes : ['32 oz', '16 oz'],
@@ -1411,65 +1501,101 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return `
       <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 1.5rem;">Gestión de Ingredientes</h1>
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Ingrediente</th>
-            <th>Costo Adicional ($)</th>
-            <th>Incluido por Defecto</th>
-            <th>Removible</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${ingredients.map(i => `
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td><strong>${i.name}</strong></td>
-              <td>$${Number(i.extraCost || 0).toFixed(2)}</td>
-              <td>${i.includedByDefault ? '✅ Sí' : '❌ No'}</td>
-              <td>${i.removable ? '✅ Sí' : '❌ No'}</td>
-              <td><span class="badge-status ${i.active ? 'active' : 'inactive'}">${i.active ? 'Activo' : 'Inactivo'}</span></td>
+              <th>Ingrediente</th>
+              <th>Costo Adicional ($)</th>
+              <th>Incluido por Defecto</th>
+              <th>Removible</th>
+              <th>Estado</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${ingredients.map(i => `
+              <tr>
+                <td><strong>${i.name}</strong></td>
+                <td>$${Number(i.extraCost || 0).toFixed(2)}</td>
+                <td>${i.includedByDefault ? '✅ Sí' : '❌ No'}</td>
+                <td>${i.removable ? '✅ Sí' : '❌ No'}</td>
+                <td><span class="badge-status ${i.active ? 'active' : 'inactive'}">${i.active ? 'Activo' : 'Inactivo'}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     `;
   }
 
-  // --- ADMIN CATEGORIES WITH IMAGE UPLOAD ---
+  // --- ADMIN CATEGORIES WITH PILLS TOGGLE & IMAGE UPLOAD ---
   function renderAdminCategoriesHTML() {
     const categories = store.getCategories();
+    const settings = store.getSettings();
 
     return `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.8rem; font-weight: 900;">Gestión de Categorías</h1>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 900;">Gestión de Categorías</h1>
+          <p style="color: var(--text-secondary); font-size: 0.88rem;">Administra las categorías del menú y la visualización de la barra de filtros.</p>
+        </div>
       </div>
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Icono</th>
-            <th>Categoría</th>
-            <th>Imagen de Fondo</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${categories.map(c => `
+
+      <!-- CATEGORY PILLS BAR TOGGLE BANNER -->
+      <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
+        <div>
+          <div style="font-weight: 900; font-size: 1rem; color: var(--text-primary);">🏷️ Mostrar Barra de Píldoras de Filtro (Categorías)</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Controla la pequeña barra de pestañas/píldoras sobre los productos. (Desactivado por defecto para mantener el diseño limpio de tarjetas grandes).
+          </div>
+        </div>
+        <button onclick="toggleCategoryPillsFromAdmin()" style="background: ${settings.showCategoryFilterPills ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${settings.showCategoryFilterPills ? '#059669' : '#DC2626'}; border: 1.5px solid ${settings.showCategoryFilterPills ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 8px 16px; border-radius: var(--radius-full); font-weight: 800; cursor: pointer;">
+          ${settings.showCategoryFilterPills ? '✅ Activadas (Visibles en Sitio)' : '🙈 Ocultas (Recomendado)'}
+        </button>
+      </div>
+
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
             <tr>
-              <td style="font-size: 1.5rem;">${c.icon}</td>
-              <td><strong>${c.name}</strong></td>
-              <td>${c.image ? '🖼️ Imagen Configurada' : '<span style="color: var(--text-muted);">Sin imagen</span>'}</td>
-              <td><span class="badge-status ${c.active ? 'active' : 'inactive'}">${c.active ? 'Activo' : 'Inactivo'}</span></td>
-              <td>
-                <button onclick="openCategoryEditorModal('${c.id}')" style="background: var(--bg-surface-dark); color: var(--text-primary); border: 1px solid var(--glass-border); padding: 4px 10px; border-radius: 6px;">Editar Imagen</button>
-              </td>
+              <th>Icono</th>
+              <th>Categoría</th>
+              <th>Imagen de Fondo</th>
+              <th>Estado Visibilidad</th>
+              <th>Acciones</th>
             </tr>
-          `).join('')}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            ${categories.map(c => `
+              <tr>
+                <td style="font-size: 1.5rem;">${c.icon}</td>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.image ? '🖼️ Imagen Configurada' : '<span style="color: var(--text-muted);">Sin imagen</span>'}</td>
+                <td>
+                  <button onclick="toggleCategoryActiveFromAdmin('${c.id}')" style="background: ${c.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${c.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${c.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 5px 12px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer;">
+                    ${c.active !== false ? '👁️ Activa' : '🙈 Oculta'}
+                  </button>
+                </td>
+                <td>
+                  <button onclick="openCategoryEditorModal('${c.id}')" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--baby-blue-border); padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer;">Editar Imagen</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
     `;
   }
+
+  window.toggleCategoryPillsFromAdmin = () => {
+    store.toggleCategoryFilterPillsSetting();
+    renderAdminPortal();
+  };
+
+  window.toggleCategoryActiveFromAdmin = (id) => {
+    store.toggleCategoryActive(id);
+    renderAdminPortal();
+  };
 
   window.openCategoryEditorModal = (catId) => {
     const cat = store.getCategories().find(c => c.id === catId);
@@ -1560,41 +1686,43 @@ document.addEventListener('DOMContentLoaded', () => {
     return `
       <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 1.5rem;">Órdenes Recibidas</h1>
       ${orders.length > 0 ? `
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Fecha</th>
-              <th>Cliente</th>
-              <th>Teléfono</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${orders.map(o => `
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
               <tr>
-                <td><strong>#${o.id}</strong></td>
-                <td>${new Date(o.createdAt).toLocaleString()}</td>
-                <td>${o.customerName}</td>
-                <td>${o.customerPhone}</td>
-                <td>
-                  <select onchange="updateOrderStatusFromAdmin('${o.id}', this.value)" class="form-input" style="padding: 2px 6px; font-size: 0.85rem; width: auto;">
-                    <option value="Pendiente" ${o.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                    <option value="En Preparación" ${o.status === 'En Preparación' ? 'selected' : ''}>En Preparación</option>
-                    <option value="Listo" ${o.status === 'Listo' ? 'selected' : ''}>Listo</option>
-                    <option value="Entregado" ${o.status === 'Entregado' ? 'selected' : ''}>Entregado</option>
-                  </select>
-                </td>
-                <td>
-                  <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
-                    🗑️ Eliminar
-                  </button>
-                </td>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Estado</th>
+                <th>Acciones</th>
               </tr>
-            `).join('')}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              ${orders.map(o => `
+                <tr>
+                  <td><strong>#${o.id}</strong></td>
+                  <td>${new Date(o.createdAt).toLocaleString()}</td>
+                  <td>${o.customerName}</td>
+                  <td>${o.customerPhone}</td>
+                  <td>
+                    <select onchange="updateOrderStatusFromAdmin('${o.id}', this.value)" class="form-input" style="padding: 2px 6px; font-size: 0.85rem; width: auto;">
+                      <option value="Pendiente" ${o.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                      <option value="En Preparación" ${o.status === 'En Preparación' ? 'selected' : ''}>En Preparación</option>
+                      <option value="Listo" ${o.status === 'Listo' ? 'selected' : ''}>Listo</option>
+                      <option value="Entregado" ${o.status === 'Entregado' ? 'selected' : ''}>Entregado</option>
+                    </select>
+                  </td>
+                  <td>
+                    <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                      🗑️ Eliminar
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
       ` : `<p style="color: var(--text-secondary);">No hay órdenes registradas.</p>`}
     `;
   }

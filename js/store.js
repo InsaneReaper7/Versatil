@@ -192,7 +192,8 @@ const INITIAL_SETTINGS = {
   currency: '$',
   deliveryFee: 0.00,
   pickupAddress: 'Versátil Specialty Hub, PR',
-  businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM'
+  businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM',
+  showCategoryFilterPills: false // Disabled by default per user preference
 };
 
 // Store Engine Class
@@ -316,6 +317,22 @@ class Store {
     return this.products.find(p => p.slug === slug || p.id === slug);
   }
 
+  toggleProductActive(id) {
+    const p = this.products.find(prod => prod.id === id);
+    if (p) {
+      p.active = !p.active;
+      this.save(STORAGE_KEYS.PRODUCTS, this.products);
+    }
+  }
+
+  toggleProductSoldOut(id) {
+    const p = this.products.find(prod => prod.id === id);
+    if (p) {
+      p.soldOut = !p.soldOut;
+      this.save(STORAGE_KEYS.PRODUCTS, this.products);
+    }
+  }
+
   saveProduct(product) {
     if (!product.id) {
       product.id = 'prod-' + Date.now();
@@ -352,6 +369,19 @@ class Store {
     if (idx !== -1) this.categories[idx] = cat;
     else this.categories.push(cat);
     this.save(STORAGE_KEYS.CATEGORIES, this.categories);
+  }
+
+  toggleCategoryActive(id) {
+    const c = this.categories.find(cat => cat.id === id);
+    if (c) {
+      c.active = !c.active;
+      this.save(STORAGE_KEYS.CATEGORIES, this.categories);
+    }
+  }
+
+  toggleCategoryFilterPillsSetting() {
+    this.settings.showCategoryFilterPills = !this.settings.showCategoryFilterPills;
+    this.save(STORAGE_KEYS.SETTINGS, this.settings);
   }
 
   // --- CART ENGINE ---

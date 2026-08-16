@@ -162,7 +162,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
 
 with socketserver.TCPServer(("", PORT), Handler) as httpd:
-    print(f"🍹 Versátil - Web server running on http://0.0.0.0:{PORT}")
+    print(f"Versatil - Web server running on http://0.0.0.0:{PORT}")
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
