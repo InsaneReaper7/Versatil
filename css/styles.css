@@ -158,8 +158,8 @@ button {
 
 .brand-logo-text span {
   display: inline-block;
-  animation: badassAColorCycle 5.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  transition: all 0.3s ease;
+  animation: badassAColorCycle 9.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transition: all 0.5s ease;
 }
 
 .desktop-nav {
@@ -573,39 +573,12 @@ button {
 }
 
 /* --- THEME MODE 1: SWAPPED (BLUE OUTLINE HIGHLIGHT, GOLD FILLED INNER CIRCLE) --- */
-body.theme-icon-swapped .category-card:hover,
-body:not(.theme-icon-classic) .category-card:hover {
+body.theme-icon-swapped .category-card:hover, body.theme-icon-swapped .category-card.active,
+body:not(.theme-icon-classic) .category-card:hover, body:not(.theme-icon-classic) .category-card.active {
   transform: translateY(-4px);
   border-color: var(--secondary-baby-blue);
   background: #FFFFFF;
   box-shadow: 0 8px 25px rgba(56, 189, 248, 0.35);
-}
-
-/* SELECTION GLOW & SUBTLE PULSE ANIMATION FOR SELECTED MENU CARDS */
-@keyframes subtleGlowPulse {
-  0% {
-    box-shadow: 0 0 16px rgba(56, 189, 248, 0.5), 0 0 30px rgba(245, 158, 11, 0.3), 0 8px 25px rgba(15, 23, 42, 0.12);
-    border-color: var(--secondary-baby-blue);
-  }
-  50% {
-    box-shadow: 0 0 32px rgba(56, 189, 248, 0.85), 0 0 55px rgba(245, 158, 11, 0.6), 0 14px 38px rgba(15, 23, 42, 0.22);
-    border-color: var(--accent-gold);
-  }
-  100% {
-    box-shadow: 0 0 16px rgba(56, 189, 248, 0.5), 0 0 30px rgba(245, 158, 11, 0.3), 0 8px 25px rgba(15, 23, 42, 0.12);
-    border-color: var(--secondary-baby-blue);
-  }
-}
-
-.category-card.active,
-.category-card.selected,
-.product-card.selected,
-.product-card:active {
-  border: 2.5px solid var(--secondary-baby-blue) !important;
-  animation: subtleGlowPulse 4.5s ease-in-out infinite !important;
-  transform: translateY(-4px) !important;
-  position: relative;
-  z-index: 5;
 }
 
 body.theme-icon-swapped .category-icon, body:not(.theme-icon-classic) .category-icon {

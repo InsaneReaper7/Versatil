@@ -371,9 +371,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHomeView();
     setTimeout(() => {
       const firstProdCard = document.querySelector('#menu-section .product-card');
-      if (firstProdCard) {
-        firstProdCard.classList.add('selected');
-      }
       const target = firstProdCard || document.getElementById('menu-section');
       if (target) {
         const headerOffset = 105; // Offset for fixed navbar & Filtro activo banner
