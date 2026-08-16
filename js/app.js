@@ -2101,7 +2101,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const orders = store.getOrders();
 
     return `
-      <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 1.5rem;">Órdenes Recibidas</h1>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0;">📦 Órdenes Recibidas (${orders.length})</h1>
+        <button onclick="refreshAdminOrders()" class="btn-primary" style="padding: 0.55rem 1.25rem; font-size: 0.9rem;">
+          🔄 Refrescar Órdenes
+        </button>
+      </div>
+
       ${orders.length > 0 ? `
         <div class="table-responsive">
           <table class="admin-table">
@@ -2109,9 +2115,9 @@ document.addEventListener('DOMContentLoaded', () => {
               <tr>
                 <th>ID</th>
                 <th>Fecha</th>
-                <th>Cliente</th>
-                <th>Teléfono</th>
-                <th>Estado</th>
+                <th>Cliente / Contacto</th>
+                <th>Antojos & Mezclas Solicitadas</th>
+                <th>Estado del Pedido</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -2119,19 +2125,38 @@ document.addEventListener('DOMContentLoaded', () => {
               ${orders.map(o => `
                 <tr>
                   <td><strong>#${o.id}</strong></td>
-                  <td>${new Date(o.createdAt).toLocaleString()}</td>
-                  <td>${o.customerName}</td>
-                  <td>${o.customerPhone}</td>
+                  <td style="font-size: 0.82rem;">${new Date(o.createdAt).toLocaleString()}</td>
                   <td>
-                    <select onchange="updateOrderStatusFromAdmin('${o.id}', this.value)" class="form-input" style="padding: 2px 6px; font-size: 0.85rem; width: auto;">
-                      <option value="Pendiente" ${o.status === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                      <option value="En Preparación" ${o.status === 'En Preparación' ? 'selected' : ''}>En Preparación</option>
-                      <option value="Listo" ${o.status === 'Listo' ? 'selected' : ''}>Listo</option>
-                      <option value="Entregado" ${o.status === 'Entregado' ? 'selected' : ''}>Entregado</option>
+                    <div style="font-weight: 800;">${o.customerName}</div>
+                    <div style="font-size: 0.82rem; color: var(--text-secondary);">📞 ${o.customerPhone}</div>
+                    ${o.customerEmail ? `<div style="font-size: 0.78rem; color: var(--text-muted);">📧 ${o.customerEmail}</div>` : ''}
+                  </td>
+                  <td>
+                    <div style="max-width: 340px; font-size: 0.84rem;">
+                      ${(o.items || []).map(item => `
+                        <div style="margin-bottom: 0.5rem; padding-bottom: 0.4rem; border-bottom: 1px dashed var(--baby-blue-border);">
+                          <div style="font-weight: 800; color: var(--text-primary);">
+                            ${item.name} (${item.size || 'Estándar'}) x${item.quantity}
+                          </div>
+                          <div style="font-size: 0.78rem; color: var(--text-secondary);">
+                            • Base: ${formatItemBaseText(item)}
+                            ${item.flavors && item.flavors.length > 0 ? `<br>• Frutas: ${item.flavors.join(', ')}` : ''}
+                            ${item.extras && item.extras.length > 0 ? `<br>• Extras: ${item.extras.join(', ')}` : ''}
+                          </div>
+                        </div>
+                      `).join('')}
+                    </div>
+                  </td>
+                  <td>
+                    <select onchange="updateOrderStatusFromAdmin('${o.id}', this.value)" class="form-input" style="padding: 4px 8px; font-size: 0.85rem; width: auto; font-weight: 700;">
+                      <option value="Pendiente" ${o.status === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                      <option value="En Preparación" ${o.status === 'En Preparación' ? 'selected' : ''}>🍹 En Preparación</option>
+                      <option value="Listo" ${o.status === 'Listo' ? 'selected' : ''}>✅ Listo</option>
+                      <option value="Entregado" ${o.status === 'Entregado' ? 'selected' : ''}>🎉 Entregado</option>
                     </select>
                   </td>
                   <td>
-                    <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                    <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 5px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
                       🗑️ Eliminar
                     </button>
                   </td>
@@ -2140,9 +2165,20 @@ document.addEventListener('DOMContentLoaded', () => {
             </tbody>
           </table>
         </div>
-      ` : `<p style="color: var(--text-secondary);">No hay órdenes registradas.</p>`}
+      ` : `
+        <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 2.5rem 1.5rem; text-align: center;">
+          <div style="font-size: 3rem; margin-bottom: 0.75rem;">📦</div>
+          <h3 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem;">No hay órdenes registradas</h3>
+          <p style="color: var(--text-secondary);">Las órdenes realizadas en el sitio web aparecerán aquí automáticamente.</p>
+        </div>
+      `}
     `;
   }
+
+  window.refreshAdminOrders = async () => {
+    await store.fetchServerData();
+    renderAdminPortal();
+  };
 
   window.updateOrderStatusFromAdmin = (id, status) => {
     store.updateOrderStatus(id, status);

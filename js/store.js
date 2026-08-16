@@ -243,11 +243,20 @@ class Store {
           }
 
           if (data.ingredients) this.ingredients = data.ingredients;
-          if (data.orders) this.orders = data.orders;
+
+          if (Array.isArray(data.orders)) {
+            if (data.orders.length > 0) {
+              const orderMap = new Map();
+              (this.orders || []).forEach(o => { if (o && o.id) orderMap.set(o.id, o); });
+              data.orders.forEach(o => { if (o && o.id) orderMap.set(o.id, o); });
+              this.orders = Array.from(orderMap.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            }
+          }
 
           localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(this.products));
           localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
           localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
+          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(this.orders));
 
           // Re-sync merged state to server
           this.syncWithServer();
@@ -506,8 +515,11 @@ class Store {
     order.id = 'V-' + Math.floor(1000 + Math.random() * 9000);
     order.createdAt = new Date().toISOString();
     order.status = 'Pendiente';
+    if (!Array.isArray(this.orders)) this.orders = [];
     this.orders.unshift(order);
     this.save(STORAGE_KEYS.ORDERS, this.orders);
+    this.syncWithServer();
+    this.notify();
     return order;
   }
 
