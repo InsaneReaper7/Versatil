@@ -1964,6 +1964,23 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
+        <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1.5.px solid var(--gold-border);">
+          <label style="color: var(--accent-gold-dark); font-weight: 800; font-size: 1rem;">🌐 Sincronización Multi-Dispositivo y Base de Datos Nube (JSONBin.io)</label>
+          <span style="font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.8rem; line-height: 1.4;">
+            Permite que cualquier cambio o foto subida desde tu <strong>celular, laptop o computadora de trabajo</strong> aparezca al instante en todos los dispositivos de tus clientes globalmente. Crea un Bin gratis en <a href="https://jsonbin.io" target="_blank" style="color: var(--secondary-baby-blue-hover); font-weight: 700;">JSONbin.io</a> (100% Gratis).
+          </span>
+
+          <div class="form-group">
+            <label>JSONBin Bin ID</label>
+            <input type="text" id="set-jsonbinBinId" class="form-input" value="${settings.jsonbinBinId || ''}" placeholder="Ej. 65a123456789..." />
+          </div>
+
+          <div class="form-group">
+            <label>JSONBin Master API Key (Opcional si el Bin es público)</label>
+            <input type="password" id="set-jsonbinApiKey" class="form-input" value="${settings.jsonbinApiKey || ''}" placeholder="$2a$10$..." />
+          </div>
+        </div>
+
         <div class="form-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed var(--glass-border);">
           <label style="color: var(--text-secondary); font-weight: 700; font-size: 0.85rem;">Meta WhatsApp Cloud API (Opcional — Para Cuentas Meta Developer)</label>
           
@@ -1993,6 +2010,8 @@ document.addEventListener('DOMContentLoaded', () => {
       callMeBotApiKey: document.getElementById('set-callMeBotApiKey').value,
       cloudinaryCloudName: document.getElementById('set-cloudinaryCloudName').value,
       cloudinaryUploadPreset: document.getElementById('set-cloudinaryUploadPreset').value,
+      jsonbinBinId: document.getElementById('set-jsonbinBinId').value,
+      jsonbinApiKey: document.getElementById('set-jsonbinApiKey').value,
       metaPhoneId: document.getElementById('set-metaPhoneId').value,
       metaApiToken: document.getElementById('set-metaApiToken').value
     });

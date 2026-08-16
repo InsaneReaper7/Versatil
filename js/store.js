@@ -179,7 +179,9 @@ const INITIAL_SETTINGS = {
   showCategoryFilterPills: false, // Disabled by default per user preference
   iconThemeMode: 'swapped', // 'swapped' (Blue outline highlight, Gold circle) vs 'classic' (Gold outline highlight, Blue circle)
   cloudinaryCloudName: '', // Optional Cloudinary Cloud Name for permanent cloud CDN image storage
-  cloudinaryUploadPreset: '' // Optional Cloudinary Unsigned Upload Preset
+  cloudinaryUploadPreset: '', // Optional Cloudinary Unsigned Upload Preset
+  jsonbinBinId: '', // Optional JSONBin Bin ID for multi-device live sync
+  jsonbinApiKey: '' // Optional JSONBin API Key
 };
 
 // Store Engine Class
