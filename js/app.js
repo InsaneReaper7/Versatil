@@ -654,12 +654,20 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         ` : ''}
 
+  function formatCustomizerBaseText(prod, state) {
+    const defaultBase = prod.baseIngredients || ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'];
+    const currentIngredients = state.ingredients || [];
+    const removed = defaultBase.filter(b => !currentIngredients.includes(b));
+    if (removed.length === 0) return 'Como Sale';
+    return removed.map(r => `Sin ${r}`).join(', ');
+  }
+
         <div class="live-summary-box" style="margin-top: 0.5rem;">
           <div class="summary-title">Resumen de tu Orden Final</div>
           <div style="font-size: 1.05rem; font-weight: 800;" id="summary-title-text">${prod.name} (<span id="summary-size-text">${state.size}</span>)</div>
           
           <div style="font-size: 0.83rem; color: var(--text-secondary); margin-top: 0.4rem; line-height: 1.5;" id="summary-flavors-text">
-            <div><strong>Base:</strong> ${state.ingredients.length > 0 ? state.ingredients.join(', ') : 'Sin ingredientes base'}</div>
+            <div><strong>Base:</strong> ${formatCustomizerBaseText(prod, state)}</div>
             <div><strong>Sabores:</strong> ${state.flavors.length > 0 ? state.flavors.join(', ') : 'Sin frutas seleccionadas'}</div>
             ${state.extras.length > 0 ? `<div><strong>Extras:</strong> ${state.extras.join(', ')}</div>` : ''}
           </div>
