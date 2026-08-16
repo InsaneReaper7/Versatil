@@ -499,27 +499,18 @@ button {
 }
 
 .categories-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.9rem;
+  display: flex;
+  flex-wrap: wrap;
   justify-content: center;
+  align-items: stretch;
+  gap: 1.1rem;
   max-width: 1080px;
   margin: 0 auto;
 }
 
-@media (min-width: 640px) {
-  .categories-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .categories-grid {
-    grid-template-columns: repeat(6, 1fr);
-  }
-}
-
 .category-card {
+  flex: 1 1 170px;
+  max-width: 210px;
   background: #FFFFFF;
   border: 2px solid var(--baby-blue-border);
   border-radius: var(--radius-lg);
@@ -535,6 +526,7 @@ button {
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .cat-card-img-wrapper {
