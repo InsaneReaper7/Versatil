@@ -283,27 +283,29 @@ document.addEventListener('DOMContentLoaded', () => {
           Suena cliché, pero Versátil Nutrition empezó bajo una necesidad. Pero qué gran necesidad fue la que hizo que saliéramos a cambiar nuestras vidas. No esperes a ese momento para empezar un camino propio. Aquí abajo les dejaré un video de cómo comenzó todo.
         </p>
 
-        <!-- FEATURED STORY VIDEO SECTION -->
-        <div style="max-width: 680px; margin: 1rem auto 1.75rem;">
-          ${settings.storyVideoUrl ? `
-            <div style="border-radius: var(--radius-lg); overflow: hidden; border: 2px solid var(--secondary-baby-blue); box-shadow: 0 12px 35px rgba(56, 189, 248, 0.22);">
-              ${formatVideoEmbedHTML(settings.storyVideoUrl)}
-            </div>
-          ` : `
-            <div style="border-radius: var(--radius-lg); border: 2px solid var(--secondary-baby-blue); background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); box-shadow: 0 12px 35px rgba(56, 189, 248, 0.22); padding: 2rem 1.5rem; color: #FFFFFF; text-align: center;">
-              <div style="font-size: 3rem; margin-bottom: 0.5rem; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">🎬</div>
-              <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--secondary-baby-blue-hover); margin-bottom: 0.4rem;">
-                Cómo Comenzó Todo — Versátil Nutrition
-              </h3>
-              <p style="font-size: 0.88rem; color: #94A3B8; max-width: 480px; margin: 0 auto 1.25rem; line-height: 1.5;">
-                Próximamente disponible. ¡Conoce nuestra historia, los comienzos y la pasión detrás de cada mezcla!
-              </p>
-              <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); color: var(--secondary-baby-blue-hover); border: 1px solid var(--baby-blue-border); padding: 4px 14px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 800;">
-                📹 Video de Historia Próximamente
-              </span>
-            </div>
-          `}
-        </div>
+        <!-- FEATURED STORY VIDEO SECTION (TOGGLEABLE VIA ADMIN) -->
+        ${settings.showStoryVideo !== false ? `
+          <div style="max-width: 680px; margin: 1rem auto 1.75rem;">
+            ${settings.storyVideoUrl ? `
+              <div style="border-radius: var(--radius-lg); overflow: hidden; border: 2px solid var(--secondary-baby-blue); box-shadow: 0 12px 35px rgba(56, 189, 248, 0.22);">
+                ${formatVideoEmbedHTML(settings.storyVideoUrl)}
+              </div>
+            ` : `
+              <div style="border-radius: var(--radius-lg); border: 2px solid var(--secondary-baby-blue); background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); box-shadow: 0 12px 35px rgba(56, 189, 248, 0.22); padding: 2rem 1.5rem; color: #FFFFFF; text-align: center;">
+                <div style="font-size: 3rem; margin-bottom: 0.5rem; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">🎬</div>
+                <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--secondary-baby-blue-hover); margin-bottom: 0.4rem;">
+                  Cómo Comenzó Todo — Versátil Nutrition
+                </h3>
+                <p style="font-size: 0.88rem; color: #94A3B8; max-width: 480px; margin: 0 auto 1.25rem; line-height: 1.5;">
+                  Próximamente disponible. ¡Conoce nuestra historia, los comienzos y la pasión detrás de cada mezcla!
+                </p>
+                <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); color: var(--secondary-baby-blue-hover); border: 1px solid var(--baby-blue-border); padding: 4px 14px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 800;">
+                  📹 Video de Historia Próximamente
+                </span>
+              </div>
+            `}
+          </div>
+        ` : ''}
 
         <div class="hero-delivery-badge">
           <span>🚚</span> Delivery Incluido | 📲 WhatsApp: 939-312-0599
@@ -2509,7 +2511,15 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="form-group" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1.5px solid var(--baby-blue-border);">
-          <label style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.95rem;">🎬 Video de Historia ("Cómo Comenzó Todo")</label>
+          <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 0.85rem;">
+            <div>
+              <label style="margin: 0; font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">Mostrar Video de Historia en Inicio</label>
+              <div style="font-size: 0.78rem; color: var(--text-secondary);">Activa o desactiva la visibilidad del video de historia en la página principal.</div>
+            </div>
+            <input type="checkbox" id="set-showStoryVideo" ${settings.showStoryVideo !== false ? 'checked' : ''} style="width: 22px; height: 22px; cursor: pointer;" />
+          </div>
+
+          <label style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.95rem;">🎬 URL del Video de Historia ("Cómo Comenzó Todo")</label>
           <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">
             Ingresa la URL del video de YouTube, Vimeo o enlace MP4 para mostrarlo en el inicio debajo de la historia.
           </span>
@@ -2591,6 +2601,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tagline: document.getElementById('set-tagline').value,
       pickupAddress: document.getElementById('set-pickupAddress').value,
       askCustomerEmail: document.getElementById('set-askCustomerEmail') ? document.getElementById('set-askCustomerEmail').checked : false,
+      showStoryVideo: document.getElementById('set-showStoryVideo') ? document.getElementById('set-showStoryVideo').checked : true,
       storyVideoUrl: document.getElementById('set-storyVideoUrl') ? document.getElementById('set-storyVideoUrl').value : '',
       callMeBotApiKey: document.getElementById('set-callMeBotApiKey').value,
       cloudinaryCloudName: document.getElementById('set-cloudinaryCloudName').value,
