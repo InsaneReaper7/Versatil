@@ -202,20 +202,55 @@ class Store {
       const res = await fetch('/api/data');
       if (res.ok) {
         const data = await res.json();
-        if (data && data.products && data.products.length > 0) {
-          this.products = data.products;
-          this.categories = data.categories || this.categories;
-          this.ingredients = data.ingredients || this.ingredients;
-          this.settings = data.settings || this.settings;
-          this.orders = data.orders || this.orders;
+        if (data && ((data.products && data.products.length > 0) || (data.categories && data.categories.length > 0))) {
+          // Smart merge products to preserve uploaded image URLs
+          if (data.products && data.products.length > 0) {
+            data.products.forEach(sp => {
+              const localP = this.products.find(lp => lp.id === sp.id);
+              if (localP) {
+                if ((!sp.image || !sp.image.trim()) && localP.image) sp.image = localP.image;
+              }
+            });
+            this.products = data.products;
+          }
+
+          // Smart merge categories to preserve uploaded image URLs & rotation mode
+          if (data.categories && data.categories.length > 0) {
+            data.categories.forEach(sc => {
+              const localC = this.categories.find(lc => lc.id === sc.id);
+              if (localC) {
+                if ((!sc.image || !sc.image.trim()) && localC.image) sc.image = localC.image;
+                if ((!sc.image2 || !sc.image2.trim()) && localC.image2) sc.image2 = localC.image2;
+                if (!sc.activeImage && localC.activeImage) sc.activeImage = localC.activeImage;
+              }
+            });
+            this.categories = data.categories;
+          }
+
+          // Smart merge settings to preserve Cloudinary credentials
+          if (data.settings) {
+            if (!data.settings.cloudinaryCloudName && this.settings.cloudinaryCloudName) {
+              data.settings.cloudinaryCloudName = this.settings.cloudinaryCloudName;
+            }
+            if (!data.settings.cloudinaryUploadPreset && this.settings.cloudinaryUploadPreset) {
+              data.settings.cloudinaryUploadPreset = this.settings.cloudinaryUploadPreset;
+            }
+            this.settings = { ...this.settings, ...data.settings };
+          }
+
+          if (data.ingredients) this.ingredients = data.ingredients;
+          if (data.orders) this.orders = data.orders;
 
           localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(this.products));
           localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
-          localStorage.setItem(STORAGE_KEYS.INGREDIENTS, JSON.stringify(this.ingredients));
           localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
-          localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(this.orders));
 
+          // Re-sync merged state to server
+          this.syncWithServer();
           this.notify();
+        } else {
+          // Fresh server container -> Push local state to server immediately
+          this.syncWithServer();
         }
       }
     } catch (e) {
