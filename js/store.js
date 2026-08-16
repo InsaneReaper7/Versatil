@@ -193,7 +193,8 @@ const INITIAL_SETTINGS = {
   deliveryFee: 0.00,
   pickupAddress: 'Versátil Specialty Hub, PR',
   businessHours: 'Lun - Sáb: 7:00 AM - 6:00 PM',
-  showCategoryFilterPills: false // Disabled by default per user preference
+  showCategoryFilterPills: false, // Disabled by default per user preference
+  iconThemeMode: 'swapped' // 'swapped' (Blue outline highlight, Gold circle) vs 'classic' (Gold outline highlight, Blue circle)
 };
 
 // Store Engine Class
@@ -381,6 +382,11 @@ class Store {
 
   toggleCategoryFilterPillsSetting() {
     this.settings.showCategoryFilterPills = !this.settings.showCategoryFilterPills;
+    this.save(STORAGE_KEYS.SETTINGS, this.settings);
+  }
+
+  toggleIconThemeMode() {
+    this.settings.iconThemeMode = this.settings.iconThemeMode === 'classic' ? 'swapped' : 'classic';
     this.save(STORAGE_KEYS.SETTINGS, this.settings);
   }
 

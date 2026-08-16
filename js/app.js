@@ -104,8 +104,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function syncIconThemeMode() {
+    const settings = store.getSettings();
+    const mode = settings.iconThemeMode || 'swapped';
+    document.body.classList.remove('theme-icon-swapped', 'theme-icon-classic');
+    document.body.classList.add(`theme-icon-${mode}`);
+  }
+
   // --- MAIN RENDER ROUTER ---
   function renderApp() {
+    syncIconThemeMode();
     updateHeaderCartBadge();
     updateStickyCartBar();
 
@@ -1566,7 +1574,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <!-- CATEGORY PILLS BAR TOGGLE BANNER -->
-      <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
+      <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
         <div>
           <div style="font-weight: 900; font-size: 1rem; color: var(--text-primary);">🏷️ Mostrar Barra de Píldoras de Filtro (Categorías)</div>
           <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
@@ -1575,6 +1583,19 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <button onclick="toggleCategoryPillsFromAdmin()" style="background: ${settings.showCategoryFilterPills ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${settings.showCategoryFilterPills ? '#059669' : '#DC2626'}; border: 1.5px solid ${settings.showCategoryFilterPills ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 8px 16px; border-radius: var(--radius-full); font-weight: 800; cursor: pointer;">
           ${settings.showCategoryFilterPills ? '✅ Activadas (Visibles en Sitio)' : '🙈 Ocultas (Recomendado)'}
+        </button>
+      </div>
+
+      <!-- ICON THEME COLOR MODE TOGGLE BANNER -->
+      <div style="background: #FFFFFF; padding: 1.25rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; box-shadow: var(--card-shadow);">
+        <div>
+          <div style="font-weight: 900; font-size: 1rem; color: var(--text-primary);">🎨 Estilo de Colores de Iconos (Hover / Selección)</div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.2rem;">
+            Cambia los colores de animación al pasar el mouse o seleccionar una categoría/opción en tiempo real.
+          </div>
+        </div>
+        <button onclick="toggleIconThemeModeFromAdmin()" style="background: var(--gold-light); color: var(--accent-gold-dark); border: 1.5px solid var(--gold-border); padding: 8px 16px; border-radius: var(--radius-full); font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
+          🎨 ${settings.iconThemeMode === 'classic' ? '🟡 Modo Clásico (Borde Dorado / Centro Azul)' : '🔵 Modo Invertido (Borde Azul / Centro Dorado)'}
         </button>
       </div>
 
@@ -1613,6 +1634,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.toggleCategoryPillsFromAdmin = () => {
     store.toggleCategoryFilterPillsSetting();
+    renderAdminPortal();
+  };
+
+  window.toggleIconThemeModeFromAdmin = () => {
+    store.toggleIconThemeMode();
+    syncIconThemeMode();
     renderAdminPortal();
   };
 

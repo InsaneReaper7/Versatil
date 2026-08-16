@@ -503,33 +503,60 @@ button {
   transition: all 0.2s ease;
 }
 
-.category-card:hover, .category-card.active {
-  transform: translateY(-4px);
-  border-color: var(--secondary-baby-blue); /* Highlight in BLUE outline */
-  background: #FFFFFF;
-  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.35);
-}
-
 .category-icon {
   font-size: 1.8rem;
   line-height: 1;
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background: var(--gold-light); /* Inside circle starting GOLD tint */
-  border: 1.5px solid var(--gold-border);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.category-card:hover .category-icon, .category-card.active .category-icon {
-  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%); /* Inside circle fills GOLD when clicked or hovered */
+/* --- THEME MODE 1: SWAPPED (BLUE OUTLINE HIGHLIGHT, GOLD FILLED INNER CIRCLE) --- */
+body.theme-icon-swapped .category-card:hover, body.theme-icon-swapped .category-card.active,
+body:not(.theme-icon-classic) .category-card:hover, body:not(.theme-icon-classic) .category-card.active {
+  transform: translateY(-4px);
+  border-color: var(--secondary-baby-blue);
+  background: #FFFFFF;
+  box-shadow: 0 8px 25px rgba(56, 189, 248, 0.35);
+}
+
+body.theme-icon-swapped .category-icon, body:not(.theme-icon-classic) .category-icon {
+  background: var(--gold-light);
+  border: 1.5px solid var(--gold-border);
+}
+
+body.theme-icon-swapped .category-card:hover .category-icon, body.theme-icon-swapped .category-card.active .category-icon,
+body:not(.theme-icon-classic) .category-card:hover .category-icon, body:not(.theme-icon-classic) .category-card.active .category-icon {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
   border-color: #FFFFFF;
   color: #FFFFFF;
   transform: scale(1.08);
   box-shadow: 0 4px 14px rgba(245, 158, 11, 0.45);
+}
+
+/* --- THEME MODE 2: CLASSIC (GOLD OUTLINE HIGHLIGHT, BLUE FILLED INNER CIRCLE) --- */
+body.theme-icon-classic .category-card:hover, body.theme-icon-classic .category-card.active {
+  transform: translateY(-4px);
+  border-color: var(--accent-gold);
+  background: #FFFFFF;
+  box-shadow: 0 8px 25px rgba(245, 158, 11, 0.35);
+}
+
+body.theme-icon-classic .category-icon {
+  background: var(--baby-blue-light);
+  border: 1.5px solid var(--baby-blue-border);
+}
+
+body.theme-icon-classic .category-card:hover .category-icon, body.theme-icon-classic .category-card.active .category-icon {
+  background: linear-gradient(135deg, var(--secondary-baby-blue) 0%, var(--secondary-baby-blue-hover) 100%);
+  border-color: #FFFFFF;
+  color: #FFFFFF;
+  transform: scale(1.08);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.45);
 }
 
 .category-name {
