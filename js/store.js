@@ -226,7 +226,7 @@ class Store {
               if (localC) {
                 if ((!sc.image || !sc.image.trim()) && localC.image) sc.image = localC.image;
                 if ((!sc.image2 || !sc.image2.trim()) && localC.image2) sc.image2 = localC.image2;
-                if (!sc.activeImage && localC.activeImage) sc.activeImage = localC.activeImage;
+                if (localC.activeImage) sc.activeImage = localC.activeImage;
               }
             });
             this.categories = data.categories;
@@ -441,6 +441,8 @@ class Store {
     if (idx !== -1) this.categories[idx] = cat;
     else this.categories.push(cat);
     this.save(STORAGE_KEYS.CATEGORIES, this.categories);
+    this.syncWithServer();
+    this.notify();
   }
 
   toggleCategoryActive(id) {
@@ -448,6 +450,8 @@ class Store {
     if (c) {
       c.active = !c.active;
       this.save(STORAGE_KEYS.CATEGORIES, this.categories);
+      this.syncWithServer();
+      this.notify();
     }
   }
 
@@ -456,6 +460,8 @@ class Store {
     if (c) {
       c.activeImage = mode;
       this.save(STORAGE_KEYS.CATEGORIES, this.categories);
+      this.syncWithServer();
+      this.notify();
     }
   }
 
