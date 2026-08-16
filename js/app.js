@@ -1597,25 +1597,35 @@ document.addEventListener('DOMContentLoaded', () => {
                   <th>Cliente</th>
                   <th>Teléfono</th>
                   <th>Municipio</th>
-                  <th>Estado</th>
+                  <th>Estado Pedido</th>
+                  <th>Estado de Pago</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                ${orders.slice(0, 5).map(o => `
-                  <tr>
-                    <td><strong>#${o.id}</strong></td>
-                    <td>${o.customerName}</td>
-                    <td>${o.customerPhone}</td>
-                    <td>${o.customerTown || 'PR'}</td>
-                    <td><span class="badge-status active">${o.status}</span></td>
-                    <td>
-                      <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
-                        🗑️ Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                `).join('')}
+                ${orders.slice(0, 5).map(o => {
+                  const isPaid = o.paymentStatus === 'Pagado';
+                  return `
+                    <tr style="${isPaid ? 'background: rgba(16, 185, 129, 0.04); border-left: 5px solid #10B981;' : 'background: rgba(239, 68, 68, 0.04); border-left: 5px solid #EF4444;'}">
+                      <td><strong>#${o.id}</strong></td>
+                      <td>${o.customerName}</td>
+                      <td>${o.customerPhone}</td>
+                      <td>${o.customerTown || 'PR'}</td>
+                      <td><span class="badge-status active">${o.status}</span></td>
+                      <td>
+                        <select onchange="updateOrderPaymentStatusFromAdmin('${o.id}', this.value)" class="form-input" style="padding: 3px 8px; font-size: 0.82rem; width: auto; font-weight: 800; background: ${isPaid ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${isPaid ? '#059669' : '#DC2626'}; border: 1.5px solid ${isPaid ? '#10B981' : '#EF4444'}; cursor: pointer;">
+                          <option value="No Pagado" ${!isPaid ? 'selected' : ''}>❌ No Pagado</option>
+                          <option value="Pagado" ${isPaid ? 'selected' : ''}>💳 Pagado</option>
+                        </select>
+                      </td>
+                      <td>
+                        <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                          🗑️ Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  `;
+                }).join('')}
               </tbody>
             </table>
           </div>
@@ -2220,8 +2230,10 @@ document.addEventListener('DOMContentLoaded', () => {
               </tr>
             </thead>
             <tbody>
-              ${ordersList.map(o => `
-                <tr style="${o.paymentStatus === 'Pagado' ? 'background: rgba(16, 185, 129, 0.03);' : ''}">
+              ${ordersList.map(o => {
+                const isPaid = o.paymentStatus === 'Pagado';
+                return `
+                  <tr style="${isPaid ? 'background: rgba(16, 185, 129, 0.04); border-left: 5px solid #10B981;' : 'background: rgba(239, 68, 68, 0.04); border-left: 5px solid #EF4444;'}">
                   <td><strong>#${o.id}</strong></td>
                   <td style="font-size: 0.82rem;">${new Date(o.createdAt).toLocaleString()}</td>
                   <td>
@@ -2265,7 +2277,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </button>
                   </td>
                 </tr>
-              `).join('')}
+              `;
+            }).join('')}
             </tbody>
           </table>
         </div>
