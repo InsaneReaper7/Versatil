@@ -262,11 +262,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedCategoryObj = categories.find(c => c.id === selectedCategoryFilter);
 
     appContainer.innerHTML = `
-      <!-- HERO SECTION WITH PROMINENT CENTRAL CLIENT LOGO -->
+      <!-- HERO BANNER SECTION -->
       <section class="hero-section">
-        <div class="hero-logo-wrapper">
-          <div class="hero-logo-badge">
-            <img src="assets/images/logo.jpg" alt="Versátil Logo Official" class="hero-central-logo" />
+        <!-- BRANDING LOGO IN HERO -->
+        <div style="display: flex; justify-content: center; margin-bottom: 1rem;">
+          <div class="brand-logo-circle" style="width: 90px; height: 90px; font-size: 2.2rem; box-shadow: 0 10px 30px rgba(56, 189, 248, 0.25);">
+            <span style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%;">
+              <span class="brand-logo-text" style="font-size: 0.95rem; font-weight: 900; letter-spacing: -0.5px;">VERS<span class="badass-animated-a" style="font-size: 1.15rem;">Á</span>TIL</span>
+            </span>
           </div>
         </div>
 
@@ -276,9 +279,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <h1 class="hero-title">Tu bebida. Tu mezcla. Tu estilo.</h1>
         
-        <p class="hero-subtitle">
-          Descubre nuestros sabores, explora nuestro menú y disfruta tu orden a tu manera.
+        <p class="hero-subtitle" style="max-width: 720px; margin: 0.85rem auto 1.5rem; line-height: 1.65; font-size: 1.05rem; font-weight: 500;">
+          Suena cliché, pero Versátil Nutrition empezó bajo una necesidad. Pero qué gran necesidad fue la que hizo que saliéramos a cambiar nuestras vidas. No esperes a ese momento para empezar un camino propio. Aquí abajo les dejaré un video de cómo comenzó todo.
         </p>
+
+        <!-- FEATURED STORY VIDEO SECTION -->
+        <div style="max-width: 680px; margin: 1rem auto 1.75rem;">
+          ${settings.storyVideoUrl ? `
+            <div style="border-radius: var(--radius-lg); overflow: hidden; border: 2px solid var(--secondary-baby-blue); box-shadow: 0 12px 35px rgba(56, 189, 248, 0.22);">
+              ${formatVideoEmbedHTML(settings.storyVideoUrl)}
+            </div>
+          ` : `
+            <div style="border-radius: var(--radius-lg); border: 2px solid var(--secondary-baby-blue); background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); box-shadow: 0 12px 35px rgba(56, 189, 248, 0.22); padding: 2rem 1.5rem; color: #FFFFFF; text-align: center;">
+              <div style="font-size: 3rem; margin-bottom: 0.5rem; text-shadow: 0 4px 12px rgba(0,0,0,0.5);">🎬</div>
+              <h3 style="font-size: 1.25rem; font-weight: 900; color: var(--secondary-baby-blue-hover); margin-bottom: 0.4rem;">
+                Cómo Comenzó Todo — Versátil Nutrition
+              </h3>
+              <p style="font-size: 0.88rem; color: #94A3B8; max-width: 480px; margin: 0 auto 1.25rem; line-height: 1.5;">
+                Próximamente disponible. ¡Conoce nuestra historia, los comienzos y la pasión detrás de cada mezcla!
+              </p>
+              <span style="display: inline-block; background: rgba(56, 189, 248, 0.15); color: var(--secondary-baby-blue-hover); border: 1px solid var(--baby-blue-border); padding: 4px 14px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 800;">
+                📹 Video de Historia Próximamente
+              </span>
+            </div>
+          `}
+        </div>
 
         <div class="hero-delivery-badge">
           <span>🚚</span> Delivery Incluido | 📲 WhatsApp: 939-312-0599
@@ -2483,6 +2508,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <input type="checkbox" id="set-askCustomerEmail" ${settings.askCustomerEmail ? 'checked' : ''} style="width: 22px; height: 22px; cursor: pointer;" />
         </div>
 
+        <div class="form-group" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1.5px solid var(--baby-blue-border);">
+          <label style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.95rem;">🎬 Video de Historia ("Cómo Comenzó Todo")</label>
+          <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">
+            Ingresa la URL del video de YouTube, Vimeo o enlace MP4 para mostrarlo en el inicio debajo de la historia.
+          </span>
+          <input type="text" id="set-storyVideoUrl" class="form-input" value="${settings.storyVideoUrl || ''}" placeholder="Ej. https://www.youtube.com/watch?v=..." />
+        </div>
+
         <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
           <label style="color: var(--accent-green); font-weight: 800;">📲 Notificaciones Automáticas por WhatsApp (Sin Abrir WhatsApp)</label>
           <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.8rem; line-height: 1.4;">
@@ -2558,6 +2591,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tagline: document.getElementById('set-tagline').value,
       pickupAddress: document.getElementById('set-pickupAddress').value,
       askCustomerEmail: document.getElementById('set-askCustomerEmail') ? document.getElementById('set-askCustomerEmail').checked : false,
+      storyVideoUrl: document.getElementById('set-storyVideoUrl') ? document.getElementById('set-storyVideoUrl').value : '',
       callMeBotApiKey: document.getElementById('set-callMeBotApiKey').value,
       cloudinaryCloudName: document.getElementById('set-cloudinaryCloudName').value,
       cloudinaryUploadPreset: document.getElementById('set-cloudinaryUploadPreset').value,
