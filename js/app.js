@@ -153,20 +153,52 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ==========================================================================
-  // CUSTOMER VIEWS
-  // ==========================================================================
+  // --- 5-SECOND CATEGORY IMAGE ROTATION TICKER ---
+  let categoryRotationState = 0; // 0 = Image 1, 1 = Image 2
+  setInterval(() => {
+    categoryRotationState = categoryRotationState === 0 ? 1 : 0;
+    const rotatableElements = document.querySelectorAll('.cat-rotatable-image');
+    rotatableElements.forEach(img => {
+      const img1 = img.getAttribute('data-img1');
+      const img2 = img.getAttribute('data-img2');
+      const mode = img.getAttribute('data-mode');
+      if (mode === 'rotate' && img1 && img2) {
+        img.style.transition = 'opacity 0.25s ease';
+        img.style.opacity = '0.3';
+        setTimeout(() => {
+          img.src = categoryRotationState === 0 ? img1 : img2;
+          img.style.opacity = '1';
+        }, 250);
+      }
+    });
+  }, 5000);
+
+  function getCategoryActiveImage(cat, rotState = categoryRotationState) {
+    if (!cat) return '';
+    const img1 = (cat.image || '').trim();
+    const img2 = (cat.image2 || '').trim();
+    const mode = cat.activeImage || 'image1';
+
+    if (mode === 'image2' && img2) return img2;
+    if (mode === 'rotate') {
+      if (rotState === 1 && img2) return img2;
+      if (img1) return img1;
+      if (img2) return img2;
+    }
+    return img1 || img2 || '';
+  }
 
   function getProductImage(prod) {
     if (prod.image && prod.image.trim()) return prod.image.trim();
     const categories = store.getCategories();
     const cat = categories.find(c => c.id === prod.category);
-    if (cat && cat.image && cat.image.trim()) return cat.image.trim();
+    if (cat) return getCategoryActiveImage(cat);
     return '';
   }
 
   function getCategoryImage(cat) {
-    if (cat.image && cat.image.trim()) return cat.image.trim();
+    const activeImg = getCategoryActiveImage(cat);
+    if (activeImg) return activeImg;
     const prods = store.getProducts();
     const match = prods.find(p => p.category === cat.id && p.image && p.image.trim());
     return match ? match.image.trim() : '';
@@ -1625,7 +1657,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <tr>
               <th>Icono</th>
               <th>Categoría</th>
-              <th>Imagen de Fondo</th>
+              <th>Imágenes Guardadas</th>
+              <th>Modo de Visualización de Imagen</th>
               <th>Estado Visibilidad en Sitio</th>
               <th>Acciones</th>
             </tr>
@@ -1635,14 +1668,38 @@ document.addEventListener('DOMContentLoaded', () => {
               <tr>
                 <td style="font-size: 1.5rem;">${c.icon}</td>
                 <td><strong>${c.name}</strong></td>
-                <td>${c.image ? '🖼️ Imagen Configurada' : '<span style="color: var(--text-muted);">Sin imagen</span>'}</td>
+                <td>
+                  <div style="display: flex; gap: 0.4rem; align-items: center;">
+                    <div style="text-align: center;">
+                      ${c.image ? `<img src="${c.image}" style="width: 38px; height: 38px; object-fit: cover; border-radius: 4px; border: 1px solid var(--baby-blue-border);" title="Imagen 1" />` : '<span style="font-size: 0.75rem; color: var(--text-muted);">Sin Img 1</span>'}
+                      <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-secondary);">Img 1</div>
+                    </div>
+                    <div style="text-align: center;">
+                      ${c.image2 ? `<img src="${c.image2}" style="width: 38px; height: 38px; object-fit: cover; border-radius: 4px; border: 1px solid var(--baby-blue-border);" title="Imagen 2" />` : '<span style="font-size: 0.75rem; color: var(--text-muted);">Sin Img 2</span>'}
+                      <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-secondary);">Img 2</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div style="display: flex; gap: 0.3rem; flex-wrap: wrap;">
+                    <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'image1')" style="background: ${(c.activeImage || 'image1') === 'image1' ? 'var(--secondary-baby-blue)' : 'var(--bg-surface)'}; color: ${(c.activeImage || 'image1') === 'image1' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--baby-blue-border); padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 800; cursor: pointer;">
+                      🖼️ Imagen 1
+                    </button>
+                    <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'image2')" style="background: ${c.activeImage === 'image2' ? 'var(--secondary-baby-blue)' : 'var(--bg-surface)'}; color: ${c.activeImage === 'image2' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--baby-blue-border); padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 800; cursor: pointer;">
+                      🖼️ Imagen 2
+                    </button>
+                    <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'rotate')" style="background: ${c.activeImage === 'rotate' ? 'var(--accent-gold)' : 'var(--bg-surface)'}; color: ${c.activeImage === 'rotate' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--gold-border); padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 800; cursor: pointer;">
+                      🔄 Rotar (5s)
+                    </button>
+                  </div>
+                </td>
                 <td>
                   <button onclick="toggleCategoryActiveFromAdmin('${c.id}')" style="background: ${c.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${c.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${c.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 6px 14px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer;">
                     ${c.active !== false ? '👁️ Activa (Visible)' : '🙈 Oculta (Desactivada)'}
                   </button>
                 </td>
                 <td>
-                  <button onclick="openCategoryEditorModal('${c.id}')" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--baby-blue-border); padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer;">Editar Imagen</button>
+                  <button onclick="openCategoryEditorModal('${c.id}')" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--baby-blue-border); padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer;">✏️ Editar Imágenes</button>
                 </td>
               </tr>
             `).join('')}
@@ -1673,15 +1730,20 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAdminPortal();
   };
 
+  window.setCategoryActiveImageModeFromAdmin = (id, mode) => {
+    store.setCategoryActiveImageMode(id, mode);
+    renderAdminPortal();
+  };
+
   window.openCategoryEditorModal = (catId) => {
     const cat = store.getCategories().find(c => c.id === catId);
     if (!cat) return;
 
     const modalHTML = `
       <div class="modal-backdrop open" id="category-editor-modal">
-        <div class="modal-card" style="max-width: 550px;">
+        <div class="modal-card" style="max-width: 580px;">
           <button onclick="closeCategoryEditorModal()" class="modal-close-btn">&times;</button>
-          <h2 style="font-size: 1.4rem; font-weight: 800;">Editar Categoría: ${cat.name}</h2>
+          <h2 style="font-size: 1.4rem; font-weight: 800;">Editar Imágenes: ${cat.name}</h2>
           
           <form onsubmit="saveCategoryFromForm(event, '${cat.id}')">
             <div class="form-group">
@@ -1694,23 +1756,44 @@ document.addEventListener('DOMContentLoaded', () => {
               <input type="text" id="c-icon" class="form-input" required value="${cat.icon}" />
             </div>
 
-            <div class="form-group">
-              <label>Imagen de Fondo (Subir archivo desde celular/dispositivo o URL)</label>
-              <input type="file" id="c-file-input" accept="image/*" onchange="handleCategoryFileSelect(event)" class="form-input" style="padding: 0.4rem; margin-bottom: 0.5rem;" />
-              <input type="text" id="c-image" class="form-input" value="${cat.image || ''}" placeholder="O URL de imagen (https://...)" />
+            <!-- MODO DE VISUALIZACION DE IMAGEN -->
+            <div class="form-group" style="background: var(--bg-secondary); padding: 1rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border);">
+              <label style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.95rem;">🔄 Modo de Visualización de Imagen</label>
+              <select id="c-activeImage" class="form-input" style="margin-top: 0.4rem; font-weight: 700;">
+                <option value="image1" ${(cat.activeImage || 'image1') === 'image1' ? 'selected' : ''}>🖼️ Mostrar solo Imagen 1 (Principal)</option>
+                <option value="image2" ${cat.activeImage === 'image2' ? 'selected' : ''}>🖼️ Mostrar solo Imagen 2 (Secundaria)</option>
+                <option value="rotate" ${cat.activeImage === 'rotate' ? 'selected' : ''}>🔄 Rotar automáticamente cada 5 segundos (Carrusel entre ambas)</option>
+              </select>
+            </div>
+
+            <!-- IMAGEN 1 (PRINCIPAL) -->
+            <div class="form-group" style="border: 1px solid var(--baby-blue-border); padding: 0.85rem; border-radius: var(--radius-md); background: #FFFFFF;">
+              <label style="font-weight: 800; color: var(--text-primary);">🖼️ Imagen 1 (Principal)</label>
+              <input type="file" id="c-file-input1" accept="image/*" onchange="handleCategoryFileSelect(event, 1)" class="form-input" style="padding: 0.4rem; margin-top: 0.4rem; margin-bottom: 0.5rem;" />
+              <input type="text" id="c-image1" class="form-input" value="${cat.image || ''}" placeholder="O URL de imagen 1 (https://...)" />
               <div style="margin-top: 0.5rem;">
-                <img id="c-image-preview" src="${cat.image || ''}" style="max-height: 120px; width: 100%; object-fit: cover; border-radius: var(--radius-sm); display: ${cat.image ? 'block' : 'none'}; border: 1px solid var(--glass-border);" />
+                <img id="c-image1-preview" src="${cat.image || ''}" style="max-height: 100px; width: 100%; object-fit: cover; border-radius: var(--radius-sm); display: ${cat.image ? 'block' : 'none'}; border: 1px solid var(--baby-blue-border);" />
               </div>
             </div>
 
-            <div class="form-group">
+            <!-- IMAGEN 2 (SECUNDARIA) -->
+            <div class="form-group" style="border: 1px solid var(--baby-blue-border); padding: 0.85rem; border-radius: var(--radius-md); background: #FFFFFF; margin-top: 0.8rem;">
+              <label style="font-weight: 800; color: var(--text-primary);">🖼️ Imagen 2 (Secundaria)</label>
+              <input type="file" id="c-file-input2" accept="image/*" onchange="handleCategoryFileSelect(event, 2)" class="form-input" style="padding: 0.4rem; margin-top: 0.4rem; margin-bottom: 0.5rem;" />
+              <input type="text" id="c-image2" class="form-input" value="${cat.image2 || ''}" placeholder="O URL de imagen 2 (https://...)" />
+              <div style="margin-top: 0.5rem;">
+                <img id="c-image2-preview" src="${cat.image2 || ''}" style="max-height: 100px; width: 100%; object-fit: cover; border-radius: var(--radius-sm); display: ${cat.image2 ? 'block' : 'none'}; border: 1px solid var(--baby-blue-border);" />
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 1rem;">
               <label class="toggle-switch">
-                <input type="checkbox" id="c-active" ${cat.active ? 'checked' : ''} />
-                <span>Categoría Activa</span>
+                <input type="checkbox" id="c-active" ${cat.active !== false ? 'checked' : ''} />
+                <span>Categoría Activa (Visible en Sitio)</span>
               </label>
             </div>
 
-            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; justify-content: center;">Guardar Categoría</button>
+            <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1rem; justify-content: center;">Guardar Cambios de Categoría</button>
           </form>
         </div>
       </div>
@@ -1726,13 +1809,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modal) modal.remove();
   };
 
-  window.handleCategoryFileSelect = (e) => {
+  window.handleCategoryFileSelect = (e, imgNum = 1) => {
     const file = e.target.files[0];
     if (file) {
       compressAndResizeImage(file, async (dataUrl) => {
         const finalUrl = await uploadImageToServer(dataUrl);
-        document.getElementById('c-image').value = finalUrl;
-        const preview = document.getElementById('c-image-preview');
+        const inputId = imgNum === 2 ? 'c-image2' : 'c-image1';
+        const previewId = imgNum === 2 ? 'c-image2-preview' : 'c-image1-preview';
+        
+        const inputEl = document.getElementById(inputId);
+        if (inputEl) inputEl.value = finalUrl;
+        
+        const preview = document.getElementById(previewId);
         if (preview) {
           preview.src = finalUrl;
           preview.style.display = 'block';
@@ -1747,7 +1835,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cat) {
       cat.name = document.getElementById('c-name').value;
       cat.icon = document.getElementById('c-icon').value;
-      cat.image = document.getElementById('c-image').value;
+      cat.image = document.getElementById('c-image1').value;
+      cat.image2 = document.getElementById('c-image2').value;
+      cat.activeImage = document.getElementById('c-activeImage').value;
       cat.active = document.getElementById('c-active').checked;
       store.saveCategory(cat);
     }
