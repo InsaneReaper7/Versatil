@@ -451,6 +451,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return cat ? cat.icon : '🧋';
   }
 
+  function formatCustomizerBaseText(prod, state) {
+    if (!prod || !state) return 'Como Sale';
+    const defaultBase = prod.baseIngredients || ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'];
+    const currentIngredients = state.ingredients || [];
+    const removed = defaultBase.filter(b => !currentIngredients.includes(b));
+    if (removed.length === 0) return 'Como Sale';
+    return removed.map(r => `Sin ${r}`).join(', ');
+  }
+
   // --- MULTI-STEP PRODUCT CUSTOMIZER MODAL ---
   window.openProductCustomizer = (productId) => {
     const product = store.getProductBySlug(productId);
@@ -653,14 +662,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
         ` : ''}
-
-  function formatCustomizerBaseText(prod, state) {
-    const defaultBase = prod.baseIngredients || ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'];
-    const currentIngredients = state.ingredients || [];
-    const removed = defaultBase.filter(b => !currentIngredients.includes(b));
-    if (removed.length === 0) return 'Como Sale';
-    return removed.map(r => `Sin ${r}`).join(', ');
-  }
 
         <div class="live-summary-box" style="margin-top: 0.5rem;">
           <div class="summary-title">Resumen de tu Orden Final</div>
