@@ -40,6 +40,9 @@ function formatWhatsAppOrderMessage(order, settings) {
   msg += `📋 *Orden:* #${order.id}\n`;
   msg += `👤 *Cliente:* ${order.customerName}\n`;
   msg += `📞 *Teléfono:* ${order.customerPhone}\n`;
+  if (order.customerTown && order.customerTown.trim()) {
+    msg += `📍 *Municipio:* ${order.customerTown}\n`;
+  }
   if (order.customerEmail && order.customerEmail.trim()) {
     msg += `📧 *Email:* ${order.customerEmail}\n`;
   }

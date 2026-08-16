@@ -180,6 +180,7 @@ const INITIAL_SETTINGS = {
   showCategoryFilterPills: false, // Disabled by default per user preference
   showCategoryCardImages: false, // Toggle: false = Emoji Icons inside Big Category Cards, true = Category Pictures
   iconThemeMode: 'swapped', // 'swapped' (Blue outline highlight, Gold circle) vs 'classic' (Gold outline highlight, Blue circle)
+  askCustomerEmail: false, // Toggle: false = Ask for PR Town only, true = Ask for Email as well
   cloudinaryCloudName: '', // Optional Cloudinary Cloud Name for permanent cloud CDN image storage
   cloudinaryUploadPreset: '', // Optional Cloudinary Unsigned Upload Preset
   jsonbinBinId: '', // Optional JSONBin Bin ID for multi-device live sync

@@ -1190,21 +1190,34 @@ document.addEventListener('DOMContentLoaded', () => {
   window.removeCartItem = (cartId) => { store.removeFromCart(cartId); };
   window.clearUserCart = () => { if (confirm('¿Vaciar tu carrito?')) store.clearCart(); };
 
-  // --- CHECKOUT VIEW WITH STREAMLINED WHATSAPP INTEGRATION ---
+  const PUERTO_RICO_TOWNS = [
+    "Adjuntas", "Aguada", "Aguadilla", "Aguas Buenas", "Aibonito", "Añasco", "Arecibo", "Arroyo",
+    "Barceloneta", "Barranquitas", "Bayamón", "Cabo Rojo", "Caguas", "Camuy", "Canóvanas", "Carolina",
+    "Cataño", "Cayey", "Ceiba", "Ciales", "Cidra", "Coamo", "Comerío", "Corozal", "Culebra",
+    "Dorado", "Fajardo", "Florida", "Guánica", "Guayama", "Guayanilla", "Guaynabo", "Gurabo",
+    "Hatillo", "Hormigueros", "Humacao", "Isabela", "Jayuya", "Juana Díaz", "Juncos", "Lajas",
+    "Lares", "Las Marías", "Las Piedras", "Loíza", "Luquillo", "Manatí", "Maricao", "Maunabo",
+    "Mayagüez", "Moca", "Morovis", "Naguabo", "Naranjito", "Orocovis", "Patillas", "Peñuelas",
+    "Ponce", "Quebradillas", "Rincón", "Río Grande", "Sabana Grande", "Salinas", "San Germán",
+    "San Juan", "San Lorenzo", "San Sebastián", "Santa Isabel", "Toa Alta", "Toa Baja",
+    "Trujillo Alto", "Utuado", "Vega Alta", "Vega Baja", "Vieques", "Villalba", "Yabucoa", "Yauco"
+  ];
+
   function renderCheckoutView() {
     const cart = store.getCart();
+    const settings = store.getSettings();
 
     if (cart.length === 0) {
-      window.location.hash = 'carrito';
+      renderCartView();
       return;
     }
 
     appContainer.innerHTML = `
       <section class="section-container" style="max-width: 550px;">
-        <h1 class="section-title" style="font-size: 2rem; margin-bottom: 0.5rem;">Finalizar Pedido</h1>
-        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Ingresa tus datos de contacto para enviar tu orden por WhatsApp.</p>
+        <h1 class="section-title" style="font-size: 2rem; margin-bottom: 0.5rem; text-align: center;">Finalizar Pedido</h1>
+        <p style="color: var(--text-secondary); margin-bottom: 1.5rem; text-align: center;">Ingresa tus datos para registrar tu orden directamente en la cocina de Versátil Nutrition.</p>
 
-        <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)" style="background: var(--bg-card-dark); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 1.5rem;">
+        <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)" style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--card-shadow);">
           <div class="form-group">
             <label>Nombre Completo *</label>
             <input type="text" id="cust-name" class="form-input" required placeholder="Ej. Maria Lopez" />
@@ -1216,19 +1229,29 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="form-group">
-            <label>Correo Electrónico (Opcional)</label>
-            <input type="email" id="cust-email" class="form-input" placeholder="maria@ejemplo.com" />
+            <label>Municipio de Entrega / Recogido (Puerto Rico) *</label>
+            <select id="cust-town" class="form-input" required style="font-weight: 700; cursor: pointer;">
+              <option value="" disabled selected>-- Selecciona tu Municipio --</option>
+              ${PUERTO_RICO_TOWNS.map(town => `<option value="${town}">${town}</option>`).join('')}
+            </select>
           </div>
 
-          <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-surface-dark); border-radius: var(--radius-md);">
-            <div style="font-weight: 800; font-size: 0.95rem; margin-bottom: 0.5rem; color: var(--primary);">Resumen del Pedido</div>
+          ${settings.askCustomerEmail ? `
+            <div class="form-group">
+              <label>Correo Electrónico (Opcional)</label>
+              <input type="email" id="cust-email" class="form-input" placeholder="maria@ejemplo.com" />
+            </div>
+          ` : ''}
+
+          <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-surface); border: 1px solid var(--baby-blue-border); border-radius: var(--radius-md);">
+            <div style="font-weight: 800; font-size: 0.95rem; margin-bottom: 0.3rem; color: var(--text-primary);">Resumen de Antojos</div>
             <div style="font-size: 0.88rem; color: var(--text-secondary);">
-              ${cart.length} antojo${cart.length > 1 ? 's' : ''} listo${cart.length > 1 ? 's' : ''} para ser enviado por WhatsApp
+              ${cart.length} antojo${cart.length > 1 ? 's' : ''} listo${cart.length > 1 ? 's' : ''} para ingresar a preparación
             </div>
           </div>
 
           <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.5rem; padding: 1rem; font-size: 1.1rem; justify-content: center;">
-            📲 Enviar Pedido por WhatsApp
+            🍹 Confirmar y Enviar Pedido
           </button>
         </form>
       </section>
@@ -1261,7 +1284,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const settings = store.getSettings();
-    const waUrl = window.VerstailWhatsApp ? window.VerstailWhatsApp.generateWhatsAppLink(order, settings) : '#';
 
     appContainer.innerHTML = `
       <section class="section-container" style="max-width: 620px; text-align: center; padding-top: 1.5rem;">
@@ -1308,6 +1330,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 0.75rem; padding-top: 0.5rem;">
               <div><strong>Cliente:</strong> ${order.customerName}</div>
               <div><strong>Teléfono:</strong> ${order.customerPhone}</div>
+              ${order.customerTown ? `<div><strong>Municipio:</strong> ${order.customerTown}</div>` : ''}
               ${order.customerEmail ? `<div><strong>Email:</strong> ${order.customerEmail}</div>` : ''}
             </div>
           </div>
@@ -1330,6 +1353,7 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const name = document.getElementById('cust-name').value;
     const phone = document.getElementById('cust-phone').value;
+    const town = document.getElementById('cust-town') ? document.getElementById('cust-town').value : '';
     const email = document.getElementById('cust-email') ? document.getElementById('cust-email').value : '';
 
     const cart = store.getCart();
@@ -1343,6 +1367,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newOrder = store.addOrder({
       customerName: name,
       customerPhone: phone,
+      customerTown: town,
       customerEmail: email,
       items: cart
     });
@@ -1472,10 +1497,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function calculateOrderTotal(order) {
+    if (!order || !order.items || !Array.isArray(order.items)) return 0;
+    return order.items.reduce((sum, item) => {
+      const price = typeof item.unitPrice === 'number' ? item.unitPrice : (item.price || 0);
+      const qty = item.quantity || 1;
+      return sum + (price * qty);
+    }, 0);
+  }
+
+  function getRevenueMetrics(orders) {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    const dayOfWeek = now.getDay();
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek).getTime();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    const startOfYear = new Date(now.getFullYear(), 0, 1).getTime();
+
+    let daily = 0, weekly = 0, monthly = 0, yearly = 0;
+
+    (orders || []).forEach(o => {
+      const oTime = new Date(o.createdAt).getTime();
+      const total = calculateOrderTotal(o);
+
+      if (!isNaN(oTime)) {
+        if (oTime >= startOfDay) daily += total;
+        if (oTime >= startOfWeek) weekly += total;
+        if (oTime >= startOfMonth) monthly += total;
+        if (oTime >= startOfYear) yearly += total;
+      }
+    });
+
+    return { daily, weekly, monthly, yearly };
+  }
+
   // --- ADMIN DASHBOARD ---
   function renderAdminDashboardHTML() {
     const products = store.getProducts();
     const orders = store.getOrders();
+    const metrics = getRevenueMetrics(orders);
 
     return `
       <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 1.5rem;">Dashboard de Administración</h1>
@@ -1499,7 +1559,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--card-shadow);">
+      <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; box-shadow: var(--card-shadow); margin-bottom: 2rem;">
         <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 1rem;">Órdenes Recientes</h3>
         ${orders.length > 0 ? `
           <div class="table-responsive">
@@ -1509,6 +1569,7 @@ document.addEventListener('DOMContentLoaded', () => {
                   <th>ID</th>
                   <th>Cliente</th>
                   <th>Teléfono</th>
+                  <th>Municipio</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
@@ -1519,6 +1580,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td><strong>#${o.id}</strong></td>
                     <td>${o.customerName}</td>
                     <td>${o.customerPhone}</td>
+                    <td>${o.customerTown || 'PR'}</td>
                     <td><span class="badge-status active">${o.status}</span></td>
                     <td>
                       <button onclick="deleteOrderFromAdmin('${o.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
@@ -1531,6 +1593,31 @@ document.addEventListener('DOMContentLoaded', () => {
             </table>
           </div>
         ` : `<p style="color: var(--text-secondary);">No hay órdenes registradas aún.</p>`}
+      </div>
+
+      <!-- 4 REVENUE / INCOME METRICS SQUARES (DAILY, WEEKLY, MONTHLY, YEARLY) -->
+      <div style="margin-top: 2rem;">
+        <h3 style="font-size: 1.25rem; font-weight: 900; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+          <span>💰</span> Resumen de Ingresos Generados
+        </h3>
+        <div class="admin-stats-grid">
+          <div class="stat-card" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.02) 100%); border: 1.5px solid rgba(16, 185, 129, 0.3);">
+            <div class="stat-num" style="color: #059669; font-size: 1.8rem;">$${metrics.daily.toFixed(2)}</div>
+            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas de Hoy</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, rgba(56, 189, 248, 0.02) 100%); border: 1.5px solid var(--baby-blue-border);">
+            <div class="stat-num" style="color: var(--secondary-baby-blue-hover); font-size: 1.8rem;">$${metrics.weekly.toFixed(2)}</div>
+            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas esta Semana</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, rgba(245, 158, 11, 0.02) 100%); border: 1.5px solid var(--gold-border);">
+            <div class="stat-num" style="color: #D97706; font-size: 1.8rem;">$${metrics.monthly.toFixed(2)}</div>
+            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas este Mes</div>
+          </div>
+          <div class="stat-card" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.08) 0%, rgba(124, 58, 237, 0.02) 100%); border: 1.5px solid rgba(124, 58, 237, 0.3);">
+            <div class="stat-num" style="color: #7C3AED; font-size: 1.8rem;">$${metrics.yearly.toFixed(2)}</div>
+            <div class="stat-label" style="font-weight: 800; color: var(--text-primary);">Ventas este Año</div>
+          </div>
+        </div>
       </div>
     `;
   }
@@ -2285,6 +2372,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <input type="text" id="set-pickupAddress" class="form-input" value="${settings.pickupAddress || ''}" />
         </div>
 
+        <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-top: 1.25rem;">
+          <div>
+            <label style="margin: 0; font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">Pedir Correo Electrónico (Email) al Cliente</label>
+            <div style="font-size: 0.78rem; color: var(--text-secondary);">Si está desactivado, el formulario de checkout solo pedirá Nombre, Teléfono y Municipio de PR.</div>
+          </div>
+          <input type="checkbox" id="set-askCustomerEmail" ${settings.askCustomerEmail ? 'checked' : ''} style="width: 22px; height: 22px; cursor: pointer;" />
+        </div>
+
         <div class="form-group" style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
           <label style="color: var(--accent-green); font-weight: 800;">📲 Notificaciones Automáticas por WhatsApp (Sin Abrir WhatsApp)</label>
           <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.8rem; line-height: 1.4;">
@@ -2359,6 +2454,7 @@ document.addEventListener('DOMContentLoaded', () => {
       storeName: document.getElementById('set-storeName').value,
       tagline: document.getElementById('set-tagline').value,
       pickupAddress: document.getElementById('set-pickupAddress').value,
+      askCustomerEmail: document.getElementById('set-askCustomerEmail') ? document.getElementById('set-askCustomerEmail').checked : false,
       callMeBotApiKey: document.getElementById('set-callMeBotApiKey').value,
       cloudinaryCloudName: document.getElementById('set-cloudinaryCloudName').value,
       cloudinaryUploadPreset: document.getElementById('set-cloudinaryUploadPreset').value,
