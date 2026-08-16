@@ -1278,16 +1278,13 @@ document.addEventListener('DOMContentLoaded', () => {
             Orden #${order.id}
           </div>
 
-          <div style="background: rgba(56, 189, 248, 0.08); border: 1.5px solid var(--baby-blue-border); padding: 1.1rem 1.25rem; border-radius: var(--radius-md); text-align: left; margin-bottom: 1.5rem; line-height: 1.5;">
-            <div style="font-weight: 800; color: var(--secondary-baby-blue-hover); font-size: 0.98rem; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;">
-              <span>📲</span> Notificación Enviada por WhatsApp
+          <div style="background: rgba(16, 185, 129, 0.08); border: 1.5px solid rgba(16, 185, 129, 0.3); padding: 1.1rem 1.25rem; border-radius: var(--radius-md); text-align: center; margin-bottom: 1.5rem; line-height: 1.5;">
+            <div style="font-weight: 900; color: #059669; font-size: 1.05rem; margin-bottom: 0.4rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+              <span>✅</span> ¡Orden Registrada Exitosamente!
             </div>
-            <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0;">
-              ¡Muchas gracias <strong>${order.customerName}</strong>! Tu pedido ha sido enviado a nuestro equipo por WhatsApp. Si la ventana no abrió automáticamente, toca el botón de abajo:
+            <p style="font-size: 0.9rem; color: var(--text-secondary); margin: 0;">
+              ¡Muchas gracias <strong>${order.customerName}</strong>! Tu pedido ha sido procesado e ingresado directamente a nuestro sistema en <strong>Versátil Nutrition</strong>. Nos pondremos en contacto contigo al <strong>${order.customerPhone}</strong>.
             </p>
-            <a href="${waUrl}" target="_blank" class="btn-primary" style="margin-top: 0.85rem; width: 100%; justify-content: center; font-size: 0.95rem; padding: 0.8rem;">
-              📲 Abrir Chat en WhatsApp
-            </a>
           </div>
 
           <div style="background: var(--bg-surface); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1.25rem; text-align: left; margin-bottom: 1.75rem;">
@@ -1357,15 +1354,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     store.clearCart();
 
+    // Notify backend/store systems silently in background
     if (window.VerstailWhatsApp && window.VerstailWhatsApp.sendMetaWhatsAppCloudNotification) {
       window.VerstailWhatsApp.sendMetaWhatsAppCloudNotification(newOrder, settings);
     }
 
-    const waUrl = window.VerstailWhatsApp ? window.VerstailWhatsApp.generateWhatsAppLink(newOrder, settings) : '#';
-    if (waUrl && waUrl !== '#') {
-      window.open(waUrl, '_blank');
-    }
-
+    // Direct in-app confirmation screen without taking user to WhatsApp
     window.location.hash = 'confirmacion';
   };
 
