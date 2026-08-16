@@ -4,7 +4,7 @@
    ========================================================================== */
 
 const STORAGE_KEYS = {
-  PRODUCTS: 'verstail_products_v2',
+  PRODUCTS: 'verstail_products_v3',
   INGREDIENTS: 'verstail_ingredients_v2',
   CATEGORIES: 'verstail_categories_v2',
   SETTINGS: 'verstail_settings_v2',
@@ -87,24 +87,6 @@ const INITIAL_PRODUCTS = [
     extras: ['Fibra Activa', 'Probiótico Boost'],
     publicPrice: 6.00,
     internalCost: 2.00,
-    showPublicPrice: false,
-    active: true,
-    featured: true
-  },
-  {
-    id: 'prod-te-01',
-    name: 'Mega Té Herbal',
-    slug: 'mega-te-herbal',
-    category: 'mega-te',
-    description: 'Deliciosa bebida concentrada de Mega Té con Aloe Vera, Lift Off y Colágeno para mantenerte activo al máximo.',
-    image: '',
-    baseIngredients: ['Mega Té Concentrado', 'Aloe Vera', 'Lift Off', 'Colágeno'],
-    availableIngredients: ['Fibra Activa', 'Probiótico Boost'],
-    sizes: ['16 oz', '24 oz', '32 oz'],
-    flavors: ['Raspberry', 'Peach', 'Lemon', 'Jamaica', 'Aloe Cranberry', 'Mandarin', 'Mango'],
-    extras: ['Fibra Activa', 'Probiótico Boost'],
-    publicPrice: 5.00,
-    internalCost: 1.40,
     showPublicPrice: false,
     active: true,
     featured: true
@@ -260,6 +242,13 @@ class Store {
 
   syncDefaults() {
     let updated = false;
+
+    // Purge deprecated redundant Mega Té Herbal product
+    if (this.products.some(p => p.id === 'prod-te-01' || p.name === 'Mega Té Herbal')) {
+      this.products = this.products.filter(p => p.id !== 'prod-te-01' && p.name !== 'Mega Té Herbal');
+      updated = true;
+    }
+
     INITIAL_CATEGORIES.forEach(initCat => {
       if (!this.categories.some(c => c.id === initCat.id)) {
         this.categories.push(initCat);
