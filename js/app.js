@@ -692,13 +692,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         ${prod.extras && prod.extras.length > 0 ? `
           <div style="margin-bottom: 1rem;">
-            <label style="font-weight: 800; font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">EXTRAS OPCIONALES</label>
-            <div class="ingredient-list">
-              ${prod.extras.map(ext => `
-                <div class="ingredient-chip ${state.extras.includes(ext) ? 'active' : ''}" data-extra="${ext}" onclick="toggleCustomizerExtra('${ext}', this)">
-                  <span class="chip-icon">${state.extras.includes(ext) ? '✓' : '+'}</span> ${ext}
+            <label style="font-weight: 800; font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">EXTRAS OPCIONALES (CARGO ADICIONAL)</label>
+            
+            ${prod.extras.includes('Miel de Agave') || prod.category === 'yogurt' ? `
+              <div style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.4); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); color: #B45309; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.2rem;">🍯</span>
+                <div>
+                  <strong>Aviso de Miel de Agave:</strong> Añadir Miel de Agave a tu Yogurt es un extra opcional y aplica un cargo adicional de <strong>+$0.75</strong>.
                 </div>
-              `).join('')}
+              </div>
+            ` : ''}
+
+            <div class="ingredient-list">
+              ${prod.extras.map(ext => {
+                const extObj = store.getIngredients().find(i => i.name === ext);
+                const costVal = extObj ? extObj.extraCost : (ext === 'Miel de Agave' ? 0.75 : 1.50);
+                const costTag = costVal > 0 ? `(+$${costVal.toFixed(2)})` : '';
+                return `
+                  <div class="ingredient-chip ${state.extras.includes(ext) ? 'active' : ''}" data-extra="${ext}" onclick="toggleCustomizerExtra('${ext}', this)">
+                    <span class="chip-icon">${state.extras.includes(ext) ? '✓' : '+'}</span> ${ext} <span style="font-size: 0.78rem; font-weight: 800; opacity: 0.9;">${costTag}</span>
+                  </div>
+                `;
+              }).join('')}
             </div>
           </div>
         ` : ''}
@@ -992,13 +1007,25 @@ document.addEventListener('DOMContentLoaded', () => {
       case 4:
         return `
           <h2 class="step-title">Paso 4: Extras & Potenciadores</h2>
-          <p class="step-desc">Añade beneficios de digestión y salud intestinal</p>
+          <p class="step-desc">Añade beneficios de digestión, salud intestinal o dulzura natural</p>
+          
+          <div style="background: rgba(245, 158, 11, 0.12); border: 1.5px solid rgba(245, 158, 11, 0.4); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); color: #B45309; font-size: 0.85rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="font-size: 1.2rem;">🍯</span>
+            <div>
+              <strong>Aviso de Extras:</strong> Miel de Agave (+$0.75), Fibra Activa (+$1.50) y Probiótico Boost (+$1.50) son extras opcionales con cargo adicional.
+            </div>
+          </div>
+
           <div class="ingredient-list">
-            ${['Fibra Activa', 'Probiótico Boost', 'Miel de Agave'].map(ext => `
-              <div class="ingredient-chip ${wizardData.extras.includes(ext) ? 'active' : ''}" onclick="toggleWizardExtra('${ext}', this)">
-                <span class="chip-icon">${wizardData.extras.includes(ext) ? '✓' : '+'}</span> ${ext}
-              </div>
-            `).join('')}
+            ${['Fibra Activa', 'Probiótico Boost', 'Miel de Agave'].map(ext => {
+              const extObj = store.getIngredients().find(i => i.name === ext);
+              const costVal = extObj ? extObj.extraCost : (ext === 'Miel de Agave' ? 0.75 : 1.50);
+              return `
+                <div class="ingredient-chip ${wizardData.extras.includes(ext) ? 'active' : ''}" onclick="toggleWizardExtra('${ext}', this)">
+                  <span class="chip-icon">${wizardData.extras.includes(ext) ? '✓' : '+'}</span> ${ext} <span style="font-size: 0.78rem; font-weight: 800; opacity: 0.9;">(+$${costVal.toFixed(2)})</span>
+                </div>
+              `;
+            }).join('')}
           </div>
         `;
       case 5:

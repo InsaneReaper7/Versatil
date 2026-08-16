@@ -114,7 +114,7 @@ const INITIAL_PRODUCTS = [
     name: 'Yogurt Bowl 16oz',
     slug: 'yogurt-bowl',
     category: 'yogurt',
-    description: 'Yogurt cremoso acompañado de Fresas, Guineo, Blueberries y Granola crujiente.',
+    description: 'Yogurt cremoso acompañado de Fresas, Guineo, Blueberries y Granola crujiente. (Opción de Miel de Agave disponible por cargo adicional +$0.75).',
     image: '',
     baseIngredients: ['Yogurt Cremoso', 'Fresas Frescas', 'Guineo Sliced', 'Blueberries', 'Granola Crunch'],
     availableIngredients: ['Miel de Agave'],
