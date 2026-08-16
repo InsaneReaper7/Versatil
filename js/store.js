@@ -202,6 +202,11 @@ class Store {
 
     this.syncDefaults();
     this.fetchServerData();
+
+    // Auto-poll server every 10 seconds so mobile devices auto-sync category/setting changes in real-time
+    setInterval(() => {
+      this.fetchServerData();
+    }, 10000);
   }
 
   async fetchServerData() {
@@ -221,15 +226,13 @@ class Store {
             this.products = data.products;
           }
 
-          // Smart merge categories to preserve uploaded image URLs, rotation mode & active/hidden state
+          // Smart merge categories: Server is the authoritative source for active/hidden state and activeImage mode
           if (data.categories && data.categories.length > 0) {
             data.categories.forEach(sc => {
               const localC = this.categories.find(lc => lc.id === sc.id);
               if (localC) {
                 if ((!sc.image || !sc.image.trim()) && localC.image) sc.image = localC.image;
                 if ((!sc.image2 || !sc.image2.trim()) && localC.image2) sc.image2 = localC.image2;
-                if (localC.activeImage) sc.activeImage = localC.activeImage;
-                if (typeof localC.active === 'boolean') sc.active = localC.active;
               }
             });
             this.categories = data.categories;
@@ -262,8 +265,6 @@ class Store {
           localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
           localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(this.orders));
 
-          // Re-sync merged state to server
-          this.syncWithServer();
           this.notify();
         } else {
           // Fresh server container -> Push local state to server immediately
