@@ -2428,7 +2428,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.deleteOrderFromAdmin = (id) => {
-    if (confirm(`¿Eliminar permanentemente la orden #${id}?`)) {
+    if (confirm(`⚠️ ¿Estás seguro de que deseas eliminar permanentemente la orden #${id} del historial? Esta acción no se puede deshacer.`)) {
       store.deleteOrder(id);
       renderAdminPortal();
     }
