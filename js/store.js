@@ -20,7 +20,7 @@ const ADMIN_ACCOUNTS = [
 // Initial Seed Data
 const INITIAL_CATEGORIES = [
   { id: 'mega-te', name: 'Mega Té', icon: '🧋', image: '', image2: '', activeImage: 'image1', active: true, order: 1 },
-  { id: 'versa-to-go', name: 'Versa To Go', icon: '🥤', image: '', image2: '', activeImage: 'image1', active: true, order: 2 },
+  { id: 'versa-to-go', name: 'Versa To Go', icon: '🧋', image: '', image2: '', activeImage: 'image1', active: true, order: 2 },
   { id: 'batidas', name: 'Batidas', icon: '🥤', image: '', image2: '', activeImage: 'image1', active: true, order: 3 },
   { id: 'yogurt', name: 'Yogurt', icon: '🍓', image: '', image2: '', activeImage: 'image1', active: true, order: 4 },
   { id: 'galletas', name: 'Galletas', icon: '🍪', image: '', image2: '', activeImage: 'image1', active: true, order: 5 },

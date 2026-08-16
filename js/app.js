@@ -446,11 +446,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getCategoryIcon(catId) {
+    if (catId === 'mega-te' || catId === 'versa-to-go') return '🧋';
     const cat = store.getCategories().find(c => c.id === catId);
-    return cat ? cat.icon : '🍹';
+    return cat ? cat.icon : '🧋';
   }
 
-  // --- PRODUCT CUSTOMIZER MODAL ---
+  // --- MULTI-STEP PRODUCT CUSTOMIZER MODAL ---
   window.openProductCustomizer = (productId) => {
     const product = store.getProductBySlug(productId);
     if (!product) return;
@@ -459,6 +460,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const isMegaTe = product.category === 'mega-te' || product.category === 'versa-to-go';
 
     activeCustomizerState = {
+      step: 1, // Step 1: Base Ingredients, Step 2: Flavors, Step 3: Extras & Confirm
       mode: isMegaTe ? 'personaliza' : 'original',
       size: product.sizes && product.sizes.length > 0 ? product.sizes[0] : (product.category === 'versa-to-go' ? '16 oz' : '32 oz'),
       flavors: product.flavors && product.flavors.length > 0 ? [product.flavors[0]] : [],
@@ -467,83 +469,74 @@ document.addEventListener('DOMContentLoaded', () => {
       quantity: 1
     };
 
-    renderCustomizerModalHTML(true); // Full initial render
+    renderCustomizerModalHTML(true);
   };
+
+  window.setCustomizerStep = (stepNum) => {
+    if (activeCustomizerState) {
+      activeCustomizerState.step = stepNum;
+      renderCustomizerModalHTML(true);
+      const card = document.querySelector('#customizer-modal .modal-card');
+      if (card) card.scrollTop = 0;
+    }
+  };
+
+  function calculateCustomizerPrice() {
+    const prod = activeModalProduct;
+    const state = activeCustomizerState;
+    if (!prod || !state) return 0;
+
+    let basePrice = Number(prod.publicPrice) || 0;
+    let extraFlavorsCount = Math.max(0, state.flavors.length - 2);
+    let extraFlavorsCost = extraFlavorsCount * 0.75;
+
+    let extrasCost = 0;
+    state.extras.forEach(extName => {
+      const extObj = store.getIngredients().find(i => i.name === extName);
+      if (extObj) extrasCost += Number(extObj.extraCost || 0);
+      else extrasCost += 1.50;
+    });
+
+    return (basePrice + extraFlavorsCost + extrasCost) * (state.quantity || 1);
+  }
 
   function renderCustomizerModalHTML(isFullRender = false) {
     const prod = activeModalProduct;
     const state = activeCustomizerState;
-    if (!prod) return;
+    if (!prod || !state) return;
 
-    const isMegaTe = prod.category === 'mega-te' || prod.category === 'versa-to-go';
     let existingModal = document.getElementById('customizer-modal');
-
-    // If modal already exists and this is an in-place update, just sync targeted summary nodes & classes
     if (existingModal && !isFullRender) {
       updateCustomizerSummaryDOM();
       return;
     }
 
+    const currentStep = state.step || 1;
+
     const modalHTML = `
       <div class="modal-backdrop open" id="customizer-modal">
-        <div class="modal-card">
+        <div class="modal-card" style="max-width: 580px;">
           <button onclick="closeCustomizerModal()" class="modal-close-btn">&times;</button>
           
-          <div style="display: flex; gap: 1rem; align-items: center;">
-            <div style="font-size: 2.5rem;">${getCategoryIcon(prod.category)}</div>
+          <!-- PRODUCT HEADER -->
+          <div style="display: flex; gap: 0.85rem; align-items: center; margin-bottom: 0.6rem;">
+            <div style="font-size: 2.2rem;">${getCategoryIcon(prod.category)}</div>
             <div>
               <span class="product-category-tag">${prod.category.toUpperCase()}</span>
-              <h2 style="font-size: 1.4rem; font-weight: 800;">${prod.name}</h2>
+              <h2 style="font-size: 1.35rem; font-weight: 800;">${prod.name}</h2>
             </div>
           </div>
 
-          <p style="color: var(--text-secondary); font-size: 0.9rem;">${prod.description}</p>
-
-          ${isMegaTe ? `
-            <div style="background: var(--gold-light); border: 1.5px solid var(--gold-border); padding: 0.6rem 1rem; border-radius: var(--radius-full); text-align: center; font-weight: 800; color: var(--accent-gold-dark); margin-bottom: 0.5rem; font-size: 0.88rem;">
-              ✨ Bebida 100% Personalizada (<span id="mega-te-counter-badge">${state.flavors.length} Sabor${state.flavors.length === 1 ? '' : 'es'} Seleccionado${state.flavors.length === 1 ? '' : 's'}</span>)
-            </div>
-          ` : `
-            <!-- MODE SELECTOR: ORIGINAL VS PERSONALIZA FOR OTHER PRODUCTS -->
-            <div>
-              <div style="font-size: 0.85rem; font-weight: 800; color: var(--text-secondary); margin-bottom: 0.4rem;">¿CÓMO LO QUIERES?</div>
-              <div class="option-mode-grid">
-                <div class="mode-choice-card ${state.mode === 'original' ? 'selected' : ''}" id="mode-btn-original" onclick="setCustomizerMode('original')">
-                  <div class="mode-choice-title">ORIGINAL</div>
-                  <div class="mode-choice-sub">"Disfrútalo como viene"</div>
-                </div>
-                <div class="mode-choice-card ${state.mode === 'personaliza' ? 'selected' : ''}" id="mode-btn-personaliza" onclick="setCustomizerMode('personaliza')">
-                  <div class="mode-choice-title">PERSONALIZA</div>
-                  <div class="mode-choice-sub">"Hazlo a tu manera"</div>
-                </div>
-              </div>
-            </div>
-          `}
-
-          <div id="customizer-options-container">
-            ${renderCustomizerOptionsContentHTML()}
+          <!-- MULTI-STEP PROGRESS BAR -->
+          <div class="customizer-step-bar">
+            <div class="customizer-step-item ${currentStep === 1 ? 'active' : (currentStep > 1 ? 'completed' : '')}">1. Base</div>
+            <div class="customizer-step-item ${currentStep === 2 ? 'active' : (currentStep > 2 ? 'completed' : '')}">2. Sabores (${state.flavors.length})</div>
+            <div class="customizer-step-item ${currentStep === 3 ? 'active' : ''}">3. Confirmar</div>
           </div>
 
-          <!-- LIVE SUMMARY BOX -->
-          <div class="live-summary-box">
-            <div class="summary-title">Resumen de tu Orden</div>
-            <div style="font-size: 0.95rem; font-weight: 700;" id="summary-title-text">${prod.name} (<span id="summary-size-text">${state.size}</span>)</div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary);" id="summary-flavors-text">
-              ${state.flavors.length > 0 ? `Frutas/Sabores: ${state.flavors.join(', ')}` : 'Sin frutas seleccionadas'}
-              ${state.extras.length > 0 ? ` | Extras: ${state.extras.join(', ')}` : ''}
-            </div>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem;">
-              <div class="qty-counter">
-                <button class="qty-btn" onclick="updateCustomizerQty(-1)">-</button>
-                <span style="font-weight: 800;" id="summary-qty-text">${state.quantity}</span>
-                <button class="qty-btn" onclick="updateCustomizerQty(1)">+</button>
-              </div>
-
-              <button onclick="confirmAddToCart()" class="btn-primary" style="padding: 0.6rem 1.25rem; font-size: 0.9rem;">
-                🛒 Añadir al Carrito
-              </button>
-            </div>
+          <!-- STEP CONTENT -->
+          <div id="customizer-step-content" style="display: flex; flex-direction: column; gap: 1rem;">
+            ${renderStepScreenHTML(currentStep, prod, state)}
           </div>
         </div>
       </div>
@@ -553,90 +546,147 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.insertAdjacentHTML('beforeend', modalHTML);
   }
 
-  function renderCustomizerOptionsContentHTML() {
-    const prod = activeModalProduct;
-    const state = activeCustomizerState;
-    const isMegaTe = prod.category === 'mega-te' || prod.category === 'versa-to-go';
-
-    if (state.mode === 'original' && !isMegaTe) {
+  function renderStepScreenHTML(step, prod, state) {
+    // --- STEP 1: BASE INGREDIENTS & SIZES ---
+    if (step === 1) {
       return `
-        <div style="background: var(--bg-surface-dark); padding: 1rem; border-radius: var(--radius-md);">
-          <div style="font-weight: 700; font-size: 0.9rem; margin-bottom: 0.5rem; color: var(--accent-green);">
-            ✓ Receta Original Incluye:
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.3rem;">
+            Paso 1: Ingredientes Incluidos en la Base
+          </h3>
+          
+          <div style="background: rgba(16, 185, 129, 0.12); border: 1.5px solid rgba(16, 185, 129, 0.35); padding: 0.85rem 1rem; border-radius: var(--radius-md); color: #059669; font-size: 0.88rem; font-weight: 700; margin-bottom: 1rem; line-height: 1.4;">
+            ✨ <strong>¡Incluidos Gratis!</strong> Todos estos ingredientes vienen incluidos en la receta base de tu bebida. Toca cualquiera para removerlo si prefieres tu mezcla sin él.
           </div>
-          <ul style="padding-left: 1.25rem; font-size: 0.88rem; color: var(--text-secondary);">
-            ${prod.baseIngredients.map(i => `<li>${i}</li>`).join('')}
-          </ul>
+
+          <div style="margin-bottom: 1.25rem;">
+            <label style="font-weight: 800; font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">INGREDIENTES BASE (INCLUIDOS)</label>
+            <div class="ingredient-list">
+              ${(prod.baseIngredients || []).map(ing => `
+                <div class="ingredient-chip ${state.ingredients.includes(ing) ? 'active' : ''}" data-ingredient="${ing}" onclick="toggleCustomizerIngredient('${ing}', this)">
+                  <span class="chip-icon">${state.ingredients.includes(ing) ? '✓' : '+'}</span> ${ing}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          ${prod.sizes && prod.sizes.length > 1 ? `
+            <div style="margin-bottom: 1.25rem;">
+              <label style="font-weight: 800; font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">TAMAÑO / PRESENTACIÓN</label>
+              <div class="ingredient-list">
+                ${prod.sizes.map(sz => `
+                  <div class="flavor-chip ${state.size === sz ? 'selected' : ''}" data-size="${sz}" onclick="setCustomizerSize('${sz}', this)">
+                    ${sz}
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          <button onclick="setCustomizerStep(2)" class="btn-primary" style="width: 100%; padding: 0.95rem; font-size: 1.05rem; justify-content: center; margin-top: 1rem;">
+            Siguiente: Elegir Sabores ➔
+          </button>
         </div>
       `;
     }
 
-    return `
-      <!-- SIZES -->
-      ${prod.sizes && prod.sizes.length > 1 ? `
-        <div style="margin-bottom: 0.9rem;">
-          <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">TAMAÑO</label>
-          <div class="ingredient-list">
-            ${prod.sizes.map(sz => `
-              <div class="flavor-chip ${state.size === sz ? 'selected' : ''}" data-size="${sz}" onclick="setCustomizerSize('${sz}', this)">
-                ${sz}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      ` : ''}
-
-      <!-- FLAVORS -->
-      ${prod.flavors && prod.flavors.length > 0 ? `
-        <div style="margin-bottom: 0.9rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
-            <label style="font-weight: 800; font-size: 0.85rem; color: var(--text-secondary);">FRUTAS / SABORES DISPONIBLES</label>
-            <span style="font-size: 0.78rem; font-weight: 800; color: var(--accent-gold-dark);" id="mega-te-counter-header">${state.flavors.length} Seleccionados</span>
+    // --- STEP 2: FLAVORS SELECTION (CLEAN NATURAL DISPLAY, NO DOUBLE SCROLLBARS) ---
+    if (step === 2) {
+      return `
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary);">
+              Paso 2: Elige tus Frutas o Sabores
+            </h3>
+            <span style="font-size: 0.82rem; font-weight: 800; color: var(--accent-gold-dark);" id="mega-te-counter-header">${state.flavors.length} Seleccionados</span>
           </div>
 
-          <!-- RECTANGLE WARNING CALLOUT WHEN 3 OR MORE FLAVORS ARE SELECTED -->
-          <div id="flavor-warning-rect-modal" class="flavor-warning-rect" style="display: ${state.flavors.length >= 3 ? 'flex' : 'none'};">
+          <p style="color: var(--text-secondary); font-size: 0.86rem; margin-bottom: 0.8rem;">
+            Selecciona hasta 3 sabores para combinar en tu bebida.
+          </p>
+
+          <div id="flavor-warning-rect-modal" class="flavor-warning-rect" style="display: ${state.flavors.length >= 3 ? 'flex' : 'none'}; margin-bottom: 1rem;">
             <span class="flavor-warning-icon">⚠️</span>
             <div>
               <strong>Aviso de Sabores:</strong> Las primeras 2 frutas/sabores están incluidas sin costo adicional. A partir del 3er sabor en adelante, aplica un cargo adicional.
             </div>
           </div>
 
-          <div class="ingredient-list" style="max-height: 200px; overflow-y: auto; padding-right: 0.3rem;">
-            ${prod.flavors.map(flv => `
+          <!-- FLAVOR CHIPS GRID: CLEAN NATURAL DISPLAY WITHOUT DOUBLE SCROLLBARS -->
+          <div class="ingredient-list" style="margin-bottom: 1.5rem;">
+            ${(prod.flavors || []).map(flv => `
               <div class="flavor-chip ${state.flavors.includes(flv) ? 'selected' : ''}" data-flavor="${flv}" onclick="toggleCustomizerFlavor('${flv}', this)">
                 <span class="chip-icon">${state.flavors.includes(flv) ? '✓' : '+'}</span> ${flv}
               </div>
             `).join('')}
           </div>
-        </div>
-      ` : ''}
 
-      <!-- INGREDIENTS TOGGLE -->
-      <div style="margin-bottom: 0.9rem;">
-        <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">INGREDIENTES INCLUIDOS EN LA BASE</label>
-        <div class="ingredient-list">
-          ${prod.baseIngredients.map(ing => `
-            <div class="ingredient-chip ${state.ingredients.includes(ing) ? 'active' : ''}" data-ingredient="${ing}" onclick="toggleCustomizerIngredient('${ing}', this)">
-              <span class="chip-icon">${state.ingredients.includes(ing) ? '✓' : '+'}</span> ${ing}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-
-      <!-- EXTRAS -->
-      ${prod.extras && prod.extras.length > 0 ? `
-        <div style="margin-bottom: 0.9rem;">
-          <label style="font-weight: 700; font-size: 0.85rem; color: var(--text-secondary);">EXTRAS OPCIONALES</label>
-          <div class="ingredient-list">
-            ${prod.extras.map(ext => `
-              <div class="ingredient-chip ${state.extras.includes(ext) ? 'active' : ''}" data-extra="${ext}" onclick="toggleCustomizerExtra('${ext}', this)">
-                <span class="chip-icon">${state.extras.includes(ext) ? '✓' : '+'}</span> ${ext}
-              </div>
-            `).join('')}
+          <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
+            <button onclick="setCustomizerStep(1)" class="btn-secondary" style="flex: 1; justify-content: center; padding: 0.85rem;">
+              ⬅️ Atrás (Base)
+            </button>
+            <button onclick="setCustomizerStep(3)" class="btn-primary" style="flex: 2; justify-content: center; padding: 0.85rem;">
+              Siguiente: Opciones Extras ➔
+            </button>
           </div>
         </div>
-      ` : ''}
+      `;
+    }
+
+    // --- STEP 3: EXTRAS, SUMMARY & ADD TO CART ---
+    const finalPrice = calculateCustomizerPrice();
+    return `
+      <div>
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.3rem;">
+          Paso 3: Extras Opcionales y Confirmación
+        </h3>
+
+        ${prod.extras && prod.extras.length > 0 ? `
+          <div style="margin-bottom: 1rem;">
+            <label style="font-weight: 800; font-size: 0.82rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">EXTRAS OPCIONALES</label>
+            <div class="ingredient-list">
+              ${prod.extras.map(ext => `
+                <div class="ingredient-chip ${state.extras.includes(ext) ? 'active' : ''}" data-extra="${ext}" onclick="toggleCustomizerExtra('${ext}', this)">
+                  <span class="chip-icon">${state.extras.includes(ext) ? '✓' : '+'}</span> ${ext}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="live-summary-box" style="margin-top: 0.5rem;">
+          <div class="summary-title">Resumen de tu Orden Final</div>
+          <div style="font-size: 1.05rem; font-weight: 800;" id="summary-title-text">${prod.name} (<span id="summary-size-text">${state.size}</span>)</div>
+          
+          <div style="font-size: 0.83rem; color: var(--text-secondary); margin-top: 0.4rem; line-height: 1.5;" id="summary-flavors-text">
+            <div><strong>Base:</strong> ${state.ingredients.length > 0 ? state.ingredients.join(', ') : 'Sin ingredientes base'}</div>
+            <div><strong>Sabores:</strong> ${state.flavors.length > 0 ? state.flavors.join(', ') : 'Sin frutas seleccionadas'}</div>
+            ${state.extras.length > 0 ? `<div><strong>Extras:</strong> ${state.extras.join(', ')}</div>` : ''}
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; padding-top: 0.8rem; border-top: 1px dashed var(--baby-blue-border);">
+            <div class="qty-counter">
+              <button class="qty-btn" onclick="updateCustomizerQty(-1)">-</button>
+              <span style="font-weight: 800; font-size: 1.1rem;" id="summary-qty-text">${state.quantity}</span>
+              <button class="qty-btn" onclick="updateCustomizerQty(1)">+</button>
+            </div>
+
+            <div style="text-align: right;">
+              <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary);">TOTAL DE TU ORDEN</div>
+              <div style="font-size: 1.35rem; font-weight: 900; color: var(--accent-green);" id="summary-price-text">$${finalPrice.toFixed(2)}</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem;">
+          <button onclick="setCustomizerStep(2)" class="btn-secondary" style="flex: 1; justify-content: center; padding: 0.95rem;">
+            ⬅️ Atrás (Sabores)
+          </button>
+          <button onclick="confirmAddToCart()" class="btn-primary" style="flex: 2; justify-content: center; padding: 0.95rem; font-size: 1.05rem;">
+            🛒 Añadir al Carrito
+          </button>
+        </div>
+      </div>
     `;
   }
 
@@ -1053,7 +1103,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="background: var(--bg-card-dark); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 1.25rem;">
             ${cart.map(item => `
               <div class="cart-item-row">
-                <div style="font-size: 2rem;">🍹</div>
+                <div style="font-size: 2rem;">${getCategoryIcon(item.category)}</div>
                 <div class="cart-item-info">
                   <div class="cart-item-title">${item.name} (${item.size || 'Estándar'})</div>
                   <div class="cart-item-meta">
