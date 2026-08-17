@@ -182,6 +182,7 @@ const INITIAL_SETTINGS = {
   iconThemeMode: 'swapped', // 'swapped' (Blue outline highlight, Gold circle) vs 'classic' (Gold outline highlight, Blue circle)
   askCustomerEmail: false, // Toggle: false = Ask for PR Town only, true = Ask for Email as well
   showStoryVideo: true, // Toggle: true = Show Story Video block, false = Hide Story Video block
+  storyText: 'Versátil Nutrition nació de una necesidad que terminó cambiando nuestro camino. A veces esperamos tocar fondo para empezar algo nuevo, pero ¿y si no tienes que esperar? Si buscas generar ingresos extras o construir una oportunidad para tu futuro, escríbenos. 💙.',
   storyVideoUrl: '', // Optional story video URL (YouTube, Vimeo, MP4)
   cloudinaryCloudName: '', // Optional Cloudinary Cloud Name for permanent cloud CDN image storage
   cloudinaryUploadPreset: '', // Optional Cloudinary Unsigned Upload Preset

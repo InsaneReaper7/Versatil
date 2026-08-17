@@ -278,7 +278,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <h1 class="hero-title">Tu bebida. Tu mezcla. Tu estilo.</h1>
         
         <p class="hero-subtitle" style="max-width: 720px; margin: 0.85rem auto 1.5rem; line-height: 1.65; font-size: 1.05rem; font-weight: 500;">
-          Suena cliché, pero Versátil Nutrition empezó bajo una necesidad. Pero qué gran necesidad fue la que hizo que saliéramos a cambiar nuestras vidas. No esperes a ese momento para empezar un camino propio. Aquí abajo les dejaré un video de cómo comenzó todo.
+          ${settings.storyText || 'Versátil Nutrition nació de una necesidad que terminó cambiando nuestro camino. A veces esperamos tocar fondo para empezar algo nuevo, pero ¿y si no tienes que esperar? Si buscas generar ingresos extras o construir una oportunidad para tu futuro, escríbenos. 💙.'}
         </p>
 
         <!-- FEATURED STORY VIDEO SECTION (TOGGLEABLE VIA ADMIN) -->
@@ -2542,6 +2542,14 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="form-group" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1.5px solid var(--baby-blue-border);">
+          <label style="color: var(--secondary-baby-blue-hover); font-weight: 800; font-size: 0.95rem;">📖 Texto de Historia / Introducción del Negocio</label>
+          <span style="font-size: 0.78rem; color: var(--text-secondary); display: block; margin-bottom: 0.5rem;">
+            Este texto se muestra en la sección principal del inicio (debajo del título principal). Puedes editarlo cuando desees.
+          </span>
+          <textarea id="set-storyText" class="form-input" rows="3" style="resize: vertical; font-weight: 500;">${settings.storyText || ''}</textarea>
+        </div>
+
+        <div class="form-group" style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1.5px solid var(--baby-blue-border);">
           <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-surface); padding: 0.85rem 1rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border); margin-bottom: 0.85rem;">
             <div>
               <label style="margin: 0; font-weight: 800; font-size: 0.95rem; color: var(--text-primary);">Mostrar Video de Historia en Inicio</label>
@@ -2632,6 +2640,7 @@ document.addEventListener('DOMContentLoaded', () => {
       tagline: document.getElementById('set-tagline').value,
       pickupAddress: document.getElementById('set-pickupAddress').value,
       askCustomerEmail: document.getElementById('set-askCustomerEmail') ? document.getElementById('set-askCustomerEmail').checked : false,
+      storyText: document.getElementById('set-storyText') ? document.getElementById('set-storyText').value : '',
       showStoryVideo: document.getElementById('set-showStoryVideo') ? document.getElementById('set-showStoryVideo').checked : true,
       storyVideoUrl: document.getElementById('set-storyVideoUrl') ? document.getElementById('set-storyVideoUrl').value : '',
       callMeBotApiKey: document.getElementById('set-callMeBotApiKey').value,
