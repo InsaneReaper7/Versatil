@@ -2939,24 +2939,34 @@ document.addEventListener('DOMContentLoaded', () => {
         ` : `
           <div style="display: flex; flex-direction: column; gap: 0.85rem;">
             ${filteredExpenditures.map(e => `
-              <div style="background: var(--bg-surface); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.65rem;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
+              <div style="background: var(--bg-surface); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1.15rem 1.25rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <!-- CARD HEADER: NAME & CATEGORY -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem; flex-wrap: wrap;">
                   <div>
-                    <span style="font-size: 1.1rem; font-weight: 900; color: var(--text-primary); display: block;">${e.itemName || 'Gasto General'}</span>
-                    <span style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">📅 ${e.date || (e.createdAt ? e.createdAt.split('T')[0] : 'N/A')}</span>
+                    <span style="font-size: 1.15rem; font-weight: 900; color: var(--text-primary); display: block; line-height: 1.2;">${e.itemName || 'Gasto General'}</span>
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem; margin-top: 0.25rem;">
+                      <span>📅</span> ${e.date || (e.createdAt ? e.createdAt.split('T')[0] : 'N/A')}
+                    </span>
                   </div>
-                  <span style="font-size: 0.75rem; background: ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${e.category === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 3px 10px; border-radius: 12px; font-weight: 800;">
+                  <span style="font-size: 0.75rem; background: ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${e.category === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 3px 10px; border-radius: 12px; font-weight: 800; white-space: nowrap;">
                     ${e.category || 'Materiales'}
                   </span>
                 </div>
 
-                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; border-top: 1px dashed var(--glass-border); padding-top: 0.65rem;">
+                <!-- CARD BODY: QUANTITY & NOTES -->
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); background: var(--bg-card-dark); padding: 0.6rem 0.85rem; border-radius: 6px; border: 1px solid var(--glass-border);">
+                  <span>📦 Cantidad: <strong>${e.quantity || 1} ${e.unitType || 'Unidad'}</strong></span>
+                  ${e.notes ? `<div style="font-size: 0.8rem; margin-top: 0.2rem; color: var(--text-muted);">📝 <em>${e.notes}</em></div>` : ''}
+                </div>
+
+                <!-- CARD FOOTER: AMOUNT & DELETE BUTTON -->
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; border-top: 1px dashed var(--glass-border); padding-top: 0.75rem; margin-top: 0.15rem;">
                   <div>
-                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">${e.quantity || 1} ${e.unitType || 'Unidad'} ${e.notes ? `• <em>${e.notes}</em>` : ''}</div>
-                    <div style="font-size: 1.25rem; font-weight: 900; color: #EF4444;">$${(parseFloat(e.amount) || 0).toFixed(2)}</div>
+                    <div style="font-size: 0.72rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase;">Monto del Gasto</div>
+                    <div style="font-size: 1.35rem; font-weight: 900; color: #EF4444;">$${(parseFloat(e.amount) || 0).toFixed(2)}</div>
                   </div>
-                  <button onclick="deleteExpenditureFromAdmin('${e.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 800; cursor: pointer; margin-left: auto;">
-                    🗑️ Eliminar
+                  <button onclick="deleteExpenditureFromAdmin('${e.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1.5px solid rgba(239, 68, 68, 0.4); padding: 8px 16px; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 800; cursor: pointer; margin-left: auto; display: flex; align-items: center; gap: 0.35rem;">
+                    <span>🗑️</span> Eliminar Gasto
                   </button>
                 </div>
               </div>
