@@ -1496,11 +1496,28 @@ body.theme-icon-classic .category-card:hover .category-icon, body.theme-icon-cla
   margin-top: 1rem;
 }
 
+.admin-table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-md);
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
   background: #FFFFFF;
-  min-width: 600px; /* Ensures table headers don't squish on small phones */
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.report-table th, .report-table td {
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--baby-blue-border);
 }
 
 .admin-table th, .admin-table td {

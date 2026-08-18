@@ -3056,64 +3056,73 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <!-- DETAILED BREAKDOWN TABLES -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; width: 100%; box-sizing: border-box;">
         <!-- EXPENSES BY CATEGORY BREAKDOWN -->
-        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.5rem;">
-          <h3 style="font-size: 1.1rem; font-weight: 900; margin-bottom: 1rem; color: var(--text-primary);">📊 Gastos por Categoría</h3>
+        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; width: 100%; box-sizing: border-box; overflow: hidden;">
+          <h3 style="font-size: 1.15rem; font-weight: 900; margin: 0 0 1rem 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+            <span>📊</span> Gastos por Categoría
+          </h3>
           ${Object.keys(expByCat).length === 0 ? `
-            <p style="color: var(--text-secondary); font-size: 0.88rem;">No hay gastos registrados en este periodo.</p>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; padding: 1rem 0;">No hay gastos registrados en este periodo.</p>
           ` : `
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Categoría</th>
-                  <th>Monto Gastado</th>
-                  <th>% del Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${Object.entries(expByCat).map(([cat, amount]) => {
-                  const pct = totalExpenses > 0 ? ((amount / totalExpenses) * 100) : 0;
-                  return `
-                    <tr>
-                      <td style="font-weight: 800;">${cat}</td>
-                      <td style="font-weight: 900; color: #EF4444;">$${amount.toFixed(2)}</td>
-                      <td style="font-weight: 800;">${pct.toFixed(1)}%</td>
-                    </tr>
-                  `;
-                }).join('')}
-              </tbody>
-            </table>
+            <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+                <thead>
+                  <tr style="border-bottom: 2px solid var(--baby-blue-border); background: var(--bg-surface);">
+                    <th style="padding: 10px 12px; font-weight: 800; text-align: left; color: var(--text-primary);">Categoría</th>
+                    <th style="padding: 10px 12px; font-weight: 800; text-align: right; color: var(--text-primary); white-space: nowrap;">Monto Gastado</th>
+                    <th style="padding: 10px 12px; font-weight: 800; text-align: right; color: var(--text-primary); white-space: nowrap;">% del Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${Object.entries(expByCat).map(([cat, amount]) => {
+                    const pct = totalExpenses > 0 ? ((amount / totalExpenses) * 100) : 0;
+                    return `
+                      <tr style="border-bottom: 1px solid var(--glass-border);">
+                        <td style="padding: 12px 12px; font-weight: 800; color: var(--text-primary);">${cat}</td>
+                        <td style="padding: 12px 12px; font-weight: 900; color: #EF4444; text-align: right; white-space: nowrap;">$${amount.toFixed(2)}</td>
+                        <td style="padding: 12px 12px; font-weight: 800; text-align: right; white-space: nowrap; color: var(--text-primary);">${pct.toFixed(1)}%</td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
           `}
         </div>
 
         <!-- FINANCIAL SUMMARY COMPARISON -->
-        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.5rem;">
-          <h3 style="font-size: 1.1rem; font-weight: 900; margin-bottom: 1rem; color: var(--text-primary);">📋 Resumen Financiero del Negocio</h3>
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Concepto</th>
-                <th>Monto ($)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td style="font-weight: 800;">💵 Ingresos Brutos (Ventas)</td>
-                <td style="font-weight: 900; color: #10B981;">+$${totalSales.toFixed(2)}</td>
-              </tr>
-              <tr>
-                <td style="font-weight: 800;">💸 Egresos (Materiales y Operación)</td>
-                <td style="font-weight: 900; color: #EF4444;">-$${totalExpenses.toFixed(2)}</td>
-              </tr>
-              <tr style="background: rgba(59, 130, 246, 0.08);">
-                <td style="font-weight: 900; font-size: 1.05rem;">📈 Ganancia Neta Disponible</td>
-                <td style="font-weight: 900; font-size: 1.1rem; color: ${netProfit >= 0 ? '#10B981' : '#EF4444'};">
-                  $${netProfit.toFixed(2)}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; width: 100%; box-sizing: border-box; overflow: hidden;">
+          <h3 style="font-size: 1.15rem; font-weight: 900; margin: 0 0 1rem 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+            <span>📋</span> Resumen Financiero del Negocio
+          </h3>
+          
+          <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
+              <thead>
+                <tr style="border-bottom: 2px solid var(--baby-blue-border); background: var(--bg-surface);">
+                  <th style="padding: 10px 12px; font-weight: 800; text-align: left; color: var(--text-primary);">Concepto</th>
+                  <th style="padding: 10px 12px; font-weight: 800; text-align: right; color: var(--text-primary); white-space: nowrap;">Monto ($)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid var(--glass-border);">
+                  <td style="padding: 12px 12px; font-weight: 800; color: var(--text-primary);">💵 Ingresos Brutos (Ventas)</td>
+                  <td style="padding: 12px 12px; font-weight: 900; color: #10B981; text-align: right; white-space: nowrap;">+$${totalSales.toFixed(2)}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid var(--glass-border);">
+                  <td style="padding: 12px 12px; font-weight: 800; color: var(--text-primary);">💸 Egresos (Materiales y Operación)</td>
+                  <td style="padding: 12px 12px; font-weight: 900; color: #EF4444; text-align: right; white-space: nowrap;">-$${totalExpenses.toFixed(2)}</td>
+                </tr>
+                <tr style="background: ${netProfit >= 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; font-weight: 900;">
+                  <td style="padding: 14px 12px; font-weight: 900; font-size: 0.95rem; color: var(--text-primary);">📈 Ganancia Neta Disponible</td>
+                  <td style="padding: 14px 12px; font-weight: 900; font-size: 1.15rem; color: ${netProfit >= 0 ? '#10B981' : '#EF4444'}; text-align: right; white-space: nowrap;">
+                    $${netProfit.toFixed(2)}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     `;
