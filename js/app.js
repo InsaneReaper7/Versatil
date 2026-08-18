@@ -1664,7 +1664,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-  }
 
   window.handleAdminLoginSubmit = (e) => {
     e.preventDefault();
