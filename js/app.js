@@ -1596,6 +1596,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <a href="#admin/ingredients" class="admin-mobile-nav-item ${subRoute === 'ingredients' ? 'active' : ''}">🧪 Ingredientes</a>
           <a href="#admin/categories" class="admin-mobile-nav-item ${subRoute === 'categories' ? 'active' : ''}">📁 Categorías</a>
           <a href="#admin/orders" class="admin-mobile-nav-item ${subRoute === 'orders' ? 'active' : ''}">📦 Órdenes</a>
+          <a href="#admin/costs" class="admin-mobile-nav-item ${subRoute === 'costs' || subRoute === 'costos' ? 'active' : ''}">💰 Costos</a>
+          <a href="#admin/reports" class="admin-mobile-nav-item ${subRoute === 'reports' || subRoute === 'reportes' ? 'active' : ''}">📊 Reportes</a>
           <a href="#admin/settings" class="admin-mobile-nav-item ${subRoute === 'settings' ? 'active' : ''}">📲 Config / WhatsApp</a>
           <a href="javascript:void(0)" onclick="logoutAdmin()" class="admin-mobile-nav-item logout-item">🚪 Salir</a>
           <a href="#home" class="admin-mobile-nav-item">🏠 Storefront</a>
@@ -1615,6 +1617,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <a href="#admin/ingredients" class="admin-nav-item ${subRoute === 'ingredients' ? 'active' : ''}">🧪 Ingredientes</a>
           <a href="#admin/categories" class="admin-nav-item ${subRoute === 'categories' ? 'active' : ''}">📁 Categorías</a>
           <a href="#admin/orders" class="admin-nav-item ${subRoute === 'orders' ? 'active' : ''}">📦 Órdenes</a>
+          <a href="#admin/costs" class="admin-nav-item ${subRoute === 'costs' || subRoute === 'costos' ? 'active' : ''}">💰 Costos & Materiales</a>
+          <a href="#admin/reports" class="admin-nav-item ${subRoute === 'reports' || subRoute === 'reportes' ? 'active' : ''}">📊 Reportes Financieros</a>
           <a href="#admin/settings" class="admin-nav-item ${subRoute === 'settings' ? 'active' : ''}">📲 WhatsApp / Config</a>
           
           <button onclick="logoutAdmin()" class="admin-nav-item" style="background: none; border: none; width: 100%; text-align: left; color: #EF4444; margin-top: 1.5rem; cursor: pointer;">
@@ -1663,6 +1667,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return renderAdminCategoriesHTML();
       case 'orders':
         return renderAdminOrdersHTML();
+      case 'costs':
+      case 'costos':
+        return renderAdminCostsHTML();
+      case 'reports':
+      case 'reportes':
+        return renderAdminReportsHTML();
       case 'settings':
         return renderAdminSettingsHTML();
       default:
@@ -2774,6 +2784,412 @@ document.addEventListener('DOMContentLoaded', () => {
 
     alert('¡Configuración guardada exitosamente!');
     renderAdminPortal();
+  };
+
+  // ==========================================================================
+  // COSTOS & MATERIALES MANAGEMENT
+  // ==========================================================================
+  let adminCostsTimeframeFilter = 'all'; // 'day', 'week', 'month', 'all'
+
+  window.setAdminCostsTimeframeFilter = (filter) => {
+    adminCostsTimeframeFilter = filter;
+    renderAdminPortal(true);
+  };
+
+  function isDateInTimeframe(dateStr, filter) {
+    if (!dateStr || filter === 'all') return true;
+    const now = new Date();
+    const target = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
+    
+    if (filter === 'day') {
+      return target.toDateString() === now.toDateString();
+    } else if (filter === 'week') {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - now.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      return target >= startOfWeek;
+    } else if (filter === 'month') {
+      return target.getMonth() === now.getMonth() && target.getFullYear() === now.getFullYear();
+    }
+    return true;
+  }
+
+  function renderAdminCostsHTML() {
+    const expenseItems = store.getExpenseItems();
+    const allExpenditures = store.getExpenditures();
+    const filteredExpenditures = allExpenditures.filter(e => isDateInTimeframe(e.date || e.createdAt, adminCostsTimeframeFilter));
+    const totalSpentInPeriod = filteredExpenditures.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            💰 Costos, Materiales & Gastos
+          </h1>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0.25rem 0 0 0;">
+            Administra materiales (vasos, sorbetes, hielo) y servicios (gasolina/gas, luz) y registra compras con un clic.
+          </p>
+        </div>
+        <button onclick="openAddExpenseItemModal()" class="btn-primary" style="padding: 0.6rem 1.25rem; font-size: 0.9rem;">
+          ➕ Añadir Material o Servicio
+        </button>
+      </div>
+
+      <!-- SECTION 1: CATALOG OF MATERIALS & SERVICES -->
+      <div style="margin-bottom: 2rem;">
+        <h2 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+          📦 Catálogo de Materiales y Gastos Recurrentes
+        </h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
+          ${expenseItems.map(item => `
+            <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                  <span style="font-weight: 900; font-size: 1.05rem; color: var(--text-primary);">${item.name}</span>
+                  <span style="font-size: 0.72rem; background: ${item.category === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${item.category === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${item.category === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 2px 8px; border-radius: 12px; font-weight: 800;">
+                    ${item.category || 'Materiales'}
+                  </span>
+                </div>
+                <div style="font-size: 1.3rem; font-weight: 900; color: #10B981; margin-bottom: 0.85rem;">
+                  $${(parseFloat(item.defaultCost) || 0).toFixed(2)} <span style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 600;">/ ${item.unitType || 'Unidad'}</span>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap;">
+                <button onclick="promptRegisterExpense('${item.id}')" class="btn-primary" style="flex: 1; padding: 6px 10px; font-size: 0.82rem; justify-content: center;">
+                  ➕ Registrar Gasto
+                </button>
+                <button onclick="promptEditExpenseItemPrice('${item.id}')" class="btn-secondary" style="padding: 6px 10px; font-size: 0.82rem; border-color: var(--baby-blue-border);">
+                  ✏️ Precio
+                </button>
+                <button onclick="deleteExpenseItemFromAdmin('${item.id}')" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- SECTION 2: EXPENDITURES LOG -->
+      <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+          <h2 style="font-size: 1.3rem; font-weight: 900; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            📋 Historial de Gastos Registrados
+          </h2>
+          
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            <span style="font-weight: 800; font-size: 0.85rem; color: var(--text-secondary);">Filtrar por Fecha:</span>
+            <button onclick="setAdminCostsTimeframeFilter('all')" class="btn-secondary" style="padding: 5px 12px; font-size: 0.82rem; background: ${adminCostsTimeframeFilter === 'all' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminCostsTimeframeFilter === 'all' ? '#FFFFFF' : 'var(--text-primary)'}; font-weight: 800;">
+              🌐 Todo
+            </button>
+            <button onclick="setAdminCostsTimeframeFilter('day')" class="btn-secondary" style="padding: 5px 12px; font-size: 0.82rem; background: ${adminCostsTimeframeFilter === 'day' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminCostsTimeframeFilter === 'day' ? '#FFFFFF' : 'var(--text-primary)'}; font-weight: 800;">
+              📅 Hoy
+            </button>
+            <button onclick="setAdminCostsTimeframeFilter('week')" class="btn-secondary" style="padding: 5px 12px; font-size: 0.82rem; background: ${adminCostsTimeframeFilter === 'week' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminCostsTimeframeFilter === 'week' ? '#FFFFFF' : 'var(--text-primary)'}; font-weight: 800;">
+              📆 Esta Semana
+            </button>
+            <button onclick="setAdminCostsTimeframeFilter('month')" class="btn-secondary" style="padding: 5px 12px; font-size: 0.82rem; background: ${adminCostsTimeframeFilter === 'month' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminCostsTimeframeFilter === 'month' ? '#FFFFFF' : 'var(--text-primary)'}; font-weight: 800;">
+              🗓️ Este Mes
+            </button>
+          </div>
+        </div>
+
+        <!-- TOTAL SUMMARY BANNER -->
+        <div style="background: rgba(239, 68, 68, 0.08); border: 1.5px solid rgba(239, 68, 68, 0.3); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <span style="font-size: 0.85rem; font-weight: 800; color: #DC2626;">Total Gastado (${adminCostsTimeframeFilter === 'all' ? 'Todo el Historial' : adminCostsTimeframeFilter === 'day' ? 'Hoy' : adminCostsTimeframeFilter === 'week' ? 'Esta Semana' : 'Este Mes'}):</span>
+            <div style="font-size: 1.6rem; font-weight: 900; color: #EF4444;">$${totalSpentInPeriod.toFixed(2)}</div>
+          </div>
+          <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 700;">
+            ${filteredExpenditures.length} gasto${filteredExpenditures.length !== 1 ? 's' : ''} registrado${filteredExpenditures.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+
+        ${filteredExpenditures.length === 0 ? `
+          <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">💸</div>
+            <p style="font-weight: 700; margin: 0;">No hay gastos registrados en el periodo seleccionado.</p>
+          </div>
+        ` : `
+          <div style="overflow-x: auto;">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Material / Servicio</th>
+                  <th>Categoría</th>
+                  <th>Cantidad / Unidad</th>
+                  <th>Monto Total</th>
+                  <th>Notas</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${filteredExpenditures.map(e => `
+                  <tr>
+                    <td style="font-weight: 800;">${e.date || (e.createdAt ? e.createdAt.split('T')[0] : 'N/A')}</td>
+                    <td style="font-weight: 900; color: var(--text-primary);">${e.itemName || 'Gasto General'}</td>
+                    <td>
+                      <span style="font-size: 0.75rem; background: ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${e.category === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 2px 8px; border-radius: 10px; font-weight: 800;">
+                        ${e.category || 'Materiales'}
+                      </span>
+                    </td>
+                    <td>${e.quantity || 1} ${e.unitType || 'Unidad'}</td>
+                    <td style="font-weight: 900; color: #EF4444; font-size: 1rem;">$${(parseFloat(e.amount) || 0).toFixed(2)}</td>
+                    <td style="font-size: 0.85rem; color: var(--text-secondary);">${e.notes || '-'}</td>
+                    <td>
+                      <button onclick="deleteExpenditureFromAdmin('${e.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
+                        🗑️ Eliminar
+                      </button>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `}
+      </div>
+    `;
+  }
+
+  // ==========================================================================
+  // FINANCIAL REPORTS DASHBOARD
+  // ==========================================================================
+  let adminReportsTimeframeFilter = 'month'; // 'day', 'week', 'month', 'all'
+
+  window.setAdminReportsTimeframeFilter = (filter) => {
+    adminReportsTimeframeFilter = filter;
+    renderAdminPortal(true);
+  };
+
+  function renderAdminReportsHTML() {
+    const orders = store.getOrders();
+    const expenditures = store.getExpenditures();
+
+    const filteredOrders = orders.filter(o => isDateInTimeframe(o.createdAt, adminReportsTimeframeFilter));
+    const filteredExpenditures = expenditures.filter(e => isDateInTimeframe(e.date || e.createdAt, adminReportsTimeframeFilter));
+
+    const totalSales = filteredOrders.reduce((sum, o) => sum + calculateOrderTotal(o), 0);
+    const totalExpenses = filteredExpenditures.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+    const netProfit = totalSales - totalExpenses;
+    const profitMargin = totalSales > 0 ? ((netProfit / totalSales) * 100) : 0;
+
+    // Expenses breakdown by Category
+    const expByCat = {};
+    filteredExpenditures.forEach(e => {
+      const cat = e.category || 'Otros';
+      expByCat[cat] = (expByCat[cat] || 0) + (parseFloat(e.amount) || 0);
+    });
+
+    return `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            📊 Reportes Financieros & Rendimiento
+          </h1>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0.25rem 0 0 0;">
+            Monitorea ingresos, gastos en materiales/operación y ganancia neta en tiempo real.
+          </p>
+        </div>
+        
+        <!-- TIMEFRAME FILTER BAR -->
+        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; background: var(--bg-surface); padding: 0.5rem 0.85rem; border-radius: var(--radius-md); border: 1.5px solid var(--baby-blue-border);">
+          <span style="font-weight: 800; font-size: 0.85rem; color: var(--text-secondary);">Periodo:</span>
+          <button onclick="setAdminReportsTimeframeFilter('day')" class="btn-secondary" style="padding: 5px 12px; font-size: 0.82rem; background: ${adminReportsTimeframeFilter === 'day' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminReportsTimeframeFilter === 'day' ? '#FFFFFF' : 'var(--text-primary)'}; font-weight: 800;">
+            📅 Hoy
+          </button>
+          <button onclick="setAdminReportsTimeframeFilter('week')" class="btn-secondary" style="padding: 5px 12px; font-size: 0.82rem; background: ${adminReportsTimeframeFilter === 'week' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminReportsTimeframeFilter === 'week' ? '#FFFFFF' : 'var(--text-primary)'}; font-weight: 800;">
+            📆 Esta Semana
+          </button>
+          <button onclick="setAdminReportsTimeframeFilter('month')" class="btn-secondary" style="padding: 5px 12px; font-size: 0.82rem; background: ${adminReportsTimeframeFilter === 'month' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminReportsTimeframeFilter === 'month' ? '#FFFFFF' : 'var(--text-primary)'}; font-weight: 800;">
+            🗓️ Este Mes
+          </button>
+          <button onclick="setAdminReportsTimeframeFilter('all')" class="btn-secondary" style="padding: 5px 12px; font-size: 0.82rem; background: ${adminReportsTimeframeFilter === 'all' ? 'var(--secondary-baby-blue)' : '#FFFFFF'}; color: ${adminReportsTimeframeFilter === 'all' ? '#FFFFFF' : 'var(--text-primary)'}; font-weight: 800;">
+            🌐 Todo el Historial
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI METRIC CARDS GRID -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+        <div style="background: var(--bg-card-dark); border: 1.5px solid rgba(16, 185, 129, 0.4); border-radius: var(--radius-lg); padding: 1.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 800; color: #059669; margin-bottom: 0.4rem;">💵 Ventas Totales (Ingresos)</div>
+          <div style="font-size: 2rem; font-weight: 900; color: #10B981;">$${totalSales.toFixed(2)}</div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.3rem;">${filteredOrders.length} órdenes recibidas</div>
+        </div>
+
+        <div style="background: var(--bg-card-dark); border: 1.5px solid rgba(239, 68, 68, 0.4); border-radius: var(--radius-lg); padding: 1.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 800; color: #DC2626; margin-bottom: 0.4rem;">💸 Gastos Totales (Egresos)</div>
+          <div style="font-size: 2rem; font-weight: 900; color: #EF4444;">$${totalExpenses.toFixed(2)}</div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.3rem;">${filteredExpenditures.length} gastos registrados</div>
+        </div>
+
+        <div style="background: var(--bg-card-dark); border: 1.5px solid ${netProfit >= 0 ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; border-radius: var(--radius-lg); padding: 1.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 800; color: ${netProfit >= 0 ? '#059669' : '#DC2626'}; margin-bottom: 0.4rem;">📈 Ganancia Neta (Utilidad)</div>
+          <div style="font-size: 2rem; font-weight: 900; color: ${netProfit >= 0 ? '#10B981' : '#EF4444'};">
+            $${netProfit.toFixed(2)}
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.3rem;">Margen: ${profitMargin.toFixed(1)}%</div>
+        </div>
+
+        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.5rem;">
+          <div style="font-size: 0.85rem; font-weight: 800; color: var(--secondary-baby-blue-hover); margin-bottom: 0.4rem;">📦 Órdenes Atendidas</div>
+          <div style="font-size: 2rem; font-weight: 900; color: var(--text-primary);">${filteredOrders.length}</div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.3rem;">En el periodo seleccionado</div>
+        </div>
+      </div>
+
+      <!-- DETAILED BREAKDOWN TABLES -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+        <!-- EXPENSES BY CATEGORY BREAKDOWN -->
+        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.5rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 900; margin-bottom: 1rem; color: var(--text-primary);">📊 Gastos por Categoría</h3>
+          ${Object.keys(expByCat).length === 0 ? `
+            <p style="color: var(--text-secondary); font-size: 0.88rem;">No hay gastos registrados en este periodo.</p>
+          ` : `
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Categoría</th>
+                  <th>Monto Gastado</th>
+                  <th>% del Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${Object.entries(expByCat).map(([cat, amount]) => {
+                  const pct = totalExpenses > 0 ? ((amount / totalExpenses) * 100) : 0;
+                  return `
+                    <tr>
+                      <td style="font-weight: 800;">${cat}</td>
+                      <td style="font-weight: 900; color: #EF4444;">$${amount.toFixed(2)}</td>
+                      <td style="font-weight: 800;">${pct.toFixed(1)}%</td>
+                    </tr>
+                  `;
+                }).join('')}
+              </tbody>
+            </table>
+          `}
+        </div>
+
+        <!-- FINANCIAL SUMMARY COMPARISON -->
+        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.5rem;">
+          <h3 style="font-size: 1.1rem; font-weight: 900; margin-bottom: 1rem; color: var(--text-primary);">📋 Resumen Financiero del Negocio</h3>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Concepto</th>
+                <th>Monto ($)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight: 800;">💵 Ingresos Brutos (Ventas)</td>
+                <td style="font-weight: 900; color: #10B981;">+$${totalSales.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td style="font-weight: 800;">💸 Egresos (Materiales y Operación)</td>
+                <td style="font-weight: 900; color: #EF4444;">-$${totalExpenses.toFixed(2)}</td>
+              </tr>
+              <tr style="background: rgba(59, 130, 246, 0.08);">
+                <td style="font-weight: 900; font-size: 1.05rem;">📈 Ganancia Neta Disponible</td>
+                <td style="font-weight: 900; font-size: 1.1rem; color: ${netProfit >= 0 ? '#10B981' : '#EF4444'};">
+                  $${netProfit.toFixed(2)}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  // Action helper handlers for Costos & Materiales
+  window.openAddExpenseItemModal = () => {
+    const name = prompt('Nombre del nuevo Material o Servicio (Ej. Vasos, Gasolina, Hielo):');
+    if (!name || !name.trim()) return;
+    const cat = prompt('Categoría (Materiales / Servicios / Operación):', 'Materiales');
+    const costStr = prompt('Costo habitual ($):', '10.00');
+    const unit = prompt('Tipo de unidad (Ej. Caja, Paquete, Tanque, Unidad):', 'Paquete');
+    
+    if (name && costStr) {
+      store.saveExpenseItem({
+        name: name.trim(),
+        category: (cat || 'Materiales').trim(),
+        defaultCost: parseFloat(costStr) || 0,
+        unitType: (unit || 'Unidad').trim()
+      });
+      alert('¡Material o Servicio guardado exitosamente!');
+      renderAdminPortal(true);
+    }
+  };
+
+  window.promptEditExpenseItemPrice = (id) => {
+    const items = store.getExpenseItems();
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    const newPriceStr = prompt(`Editar precio predeterminado para "${item.name}":`, item.defaultCost);
+    if (newPriceStr !== null) {
+      const val = parseFloat(newPriceStr);
+      if (!isNaN(val)) {
+        item.defaultCost = val;
+        store.saveExpenseItem(item);
+        renderAdminPortal(true);
+      }
+    }
+  };
+
+  window.deleteExpenseItemFromAdmin = (id) => {
+    const items = store.getExpenseItems();
+    const item = items.find(i => i.id === id);
+    if (!item) return;
+    if (confirm(`⚠️ ¿Estás seguro de eliminar "${item.name}" del catálogo de materiales?`)) {
+      store.deleteExpenseItem(id);
+      renderAdminPortal(true);
+    }
+  };
+
+  window.promptRegisterExpense = async (itemId) => {
+    const items = store.getExpenseItems();
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const qtyStr = prompt(`¿Cuántas unidades de "${item.name}" se compraron?`, '1');
+    if (qtyStr === null) return;
+    const qty = parseFloat(qtyStr) || 1;
+
+    const totalCostStr = prompt(`Costo Total a registrar para "${item.name}" ($):`, (item.defaultCost * qty).toFixed(2));
+    if (totalCostStr === null) return;
+    const amount = parseFloat(totalCostStr) || (item.defaultCost * qty);
+
+    const notes = prompt('Notas / Detalles adicionales (Opcional):', '');
+
+    // Confirmation Modal Guard
+    if (confirm(`⚠️ ¿CONFIRMAS REGISTRAR ESTE GASTO EN EL HISTORIAL?\n\nItem: ${item.name}\nCantidad: ${qty} ${item.unitType}\nMonto Total: $${amount.toFixed(2)}`)) {
+      await store.addExpenditure({
+        itemId: item.id,
+        itemName: item.name,
+        category: item.category,
+        unitType: item.unitType,
+        quantity: qty,
+        unitCost: item.defaultCost,
+        amount: amount,
+        notes: (notes || '').trim()
+      });
+      alert('¡Gasto registrado exitosamente en el historial!');
+      renderAdminPortal(true);
+    }
+  };
+
+  window.deleteExpenditureFromAdmin = async (id) => {
+    const expenditures = store.getExpenditures();
+    const exp = expenditures.find(e => e.id === id);
+    if (!exp) return;
+    if (confirm(`⚠️ ¿Estás seguro de eliminar este registro de gasto de $${(parseFloat(exp.amount) || 0).toFixed(2)} (${exp.itemName})?`)) {
+      await store.deleteExpenditure(id);
+      renderAdminPortal(true);
+    }
   };
 
   // Initial load

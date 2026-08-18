@@ -329,6 +329,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 merged_orders.sort(key=lambda x: str(x.get('createdAt', '')), reverse=True)
                 data_dict['orders'] = merged_orders
 
+                # Perform smart merge of expenditures
+                existing_exp = db_data.get('expenditures', []) if isinstance(db_data, dict) else []
+                posted_exp = data_dict.get('expenditures', [])
+                exp_map = {e['id']: e for e in existing_exp if isinstance(e, dict) and 'id' in e}
+                if isinstance(posted_exp, list):
+                    for pe in posted_exp:
+                        if isinstance(pe, dict) and 'id' in pe:
+                            exp_map[pe['id']] = pe
+                merged_exp = list(exp_map.values())
+                merged_exp.sort(key=lambda x: str(x.get('date', x.get('createdAt', ''))), reverse=True)
+                data_dict['expenditures'] = merged_exp
+
                 save_unified_db_data(data_dict)
 
                 self.send_response(200)

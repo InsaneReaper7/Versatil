@@ -9,12 +9,23 @@ const STORAGE_KEYS = {
   CATEGORIES: 'verstail_categories_v2',
   SETTINGS: 'verstail_settings_v2',
   CART: 'verstail_cart_v1',
-  ORDERS: 'verstail_orders_v1'
+  ORDERS: 'verstail_orders_v1',
+  EXPENSE_ITEMS: 'verstail_expense_items_v1',
+  EXPENDITURES: 'verstail_expenditures_v1'
 };
 
 const ADMIN_ACCOUNTS = [
   { username: 'Tibu', password: 'P@ssword1' },
   { username: 'InsaneReaper7', password: 'Un3xpected1!' }
+];
+
+const INITIAL_EXPENSE_ITEMS = [
+  { id: 'exp-item-01', name: 'Vasos (32 oz / 16 oz)', category: 'Materiales', defaultCost: 20.00, unitType: 'Caja' },
+  { id: 'exp-item-02', name: 'Sorbetes / Cañitas', category: 'Materiales', defaultCost: 5.00, unitType: 'Paquete' },
+  { id: 'exp-item-03', name: 'Hielo', category: 'Materiales', defaultCost: 12.00, unitType: 'Bolsas' },
+  { id: 'exp-item-04', name: 'Gasolina / Gas', category: 'Servicios / Operación', defaultCost: 25.00, unitType: 'Tanque / Recarga' },
+  { id: 'exp-item-05', name: 'Servilletas', category: 'Materiales', defaultCost: 8.00, unitType: 'Paquete' },
+  { id: 'exp-item-06', name: 'Bolsas / Empaques', category: 'Materiales', defaultCost: 10.00, unitType: 'Paquete' }
 ];
 
 // Initial Seed Data
@@ -199,6 +210,8 @@ class Store {
     this.settings = this.load(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
     this.cart = this.load(STORAGE_KEYS.CART, []);
     this.orders = this.load(STORAGE_KEYS.ORDERS, []);
+    this.expenseItems = this.load(STORAGE_KEYS.EXPENSE_ITEMS, INITIAL_EXPENSE_ITEMS);
+    this.expenditures = this.load(STORAGE_KEYS.EXPENDITURES, []);
     this.listeners = [];
 
     this.syncDefaults();
@@ -221,7 +234,9 @@ class Store {
           categories: this.categories,
           ingredients: this.ingredients,
           settings: this.settings,
-          orders: this.orders
+          orders: this.orders,
+          expenseItems: this.expenseItems,
+          expenditures: this.expenditures
         };
         fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
           method: 'PUT',
@@ -241,7 +256,9 @@ class Store {
           categories: this.categories,
           ingredients: this.ingredients,
           settings: this.settings,
-          orders: this.orders
+          orders: this.orders,
+          expenseItems: this.expenseItems,
+          expenditures: this.expenditures
         };
         fetch(`${kvUrl.replace(/\/$/, '')}/set/verstail_db`, {
           method: 'POST',
@@ -260,7 +277,7 @@ class Store {
       const res = await fetch('/api/data');
       if (res.ok) {
         const data = await res.json();
-        if (data && ((data.products && data.products.length > 0) || (data.categories && data.categories.length > 0) || Array.isArray(data.orders))) {
+        if (data && ((data.products && data.products.length > 0) || (data.categories && data.categories.length > 0) || Array.isArray(data.orders) || Array.isArray(data.expenditures))) {
           // Smart merge products to preserve uploaded image URLs
           if (data.products && data.products.length > 0) {
             data.products.forEach(sp => {
@@ -296,6 +313,23 @@ class Store {
           }
 
           if (data.ingredients) this.ingredients = data.ingredients;
+          if (Array.isArray(data.expenseItems)) this.expenseItems = data.expenseItems;
+
+          if (Array.isArray(data.expenditures)) {
+            const serverExpIds = new Set(data.expenditures.map(e => e && e.id).filter(Boolean));
+            const expMap = new Map();
+            data.expenditures.forEach(se => { if (se && se.id) expMap.set(se.id, se); });
+            
+            const now = Date.now();
+            (this.expenditures || []).forEach(le => {
+              if (le && le.id && !serverExpIds.has(le.id)) {
+                const created = new Date(le.createdAt || le.date || 0).getTime();
+                if (now - created < 30000) expMap.set(le.id, le);
+              }
+            });
+
+            this.expenditures = Array.from(expMap.values()).sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+          }
 
           // Universal Authoritative Order Synchronization
           if (Array.isArray(data.orders)) {
@@ -337,6 +371,8 @@ class Store {
           localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
           localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(this.settings));
           localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(this.orders));
+          localStorage.setItem(STORAGE_KEYS.EXPENSE_ITEMS, JSON.stringify(this.expenseItems));
+          localStorage.setItem(STORAGE_KEYS.EXPENDITURES, JSON.stringify(this.expenditures));
 
           this.notify();
         } else {
@@ -359,7 +395,9 @@ class Store {
         categories: this.categories,
         ingredients: this.ingredients,
         settings: this.settings,
-        orders: this.orders
+        orders: this.orders,
+        expenseItems: this.expenseItems,
+        expenditures: this.expenditures
       };
       fetch('/api/data', {
         method: 'POST',
@@ -689,6 +727,48 @@ class Store {
 
     this.syncCloudDbDirectly();
     this.syncWithServer();
+    this.notify();
+  }
+
+  // --- EXPENSE ITEMS & EXPENDITURES ---
+  getExpenseItems() { return this.expenseItems || []; }
+  saveExpenseItem(item) {
+    if (!item.id) item.id = 'exp-item-' + Date.now();
+    if (!Array.isArray(this.expenseItems)) this.expenseItems = [];
+    const idx = this.expenseItems.findIndex(i => i.id === item.id);
+    if (idx !== -1) this.expenseItems[idx] = item;
+    else this.expenseItems.push(item);
+    this.save(STORAGE_KEYS.EXPENSE_ITEMS, this.expenseItems);
+    this.syncWithServer(true);
+    this.notify();
+    return item;
+  }
+
+  deleteExpenseItem(id) {
+    this.expenseItems = (this.expenseItems || []).filter(i => i.id !== id);
+    this.save(STORAGE_KEYS.EXPENSE_ITEMS, this.expenseItems);
+    this.syncWithServer(true);
+    this.notify();
+  }
+
+  getExpenditures() { return this.expenditures || []; }
+  
+  async addExpenditure(entry) {
+    entry.id = 'exp-' + Date.now() + '-' + Math.floor(100 + Math.random() * 900);
+    entry.createdAt = new Date().toISOString();
+    entry.date = entry.date || new Date().toISOString().split('T')[0];
+    if (!Array.isArray(this.expenditures)) this.expenditures = [];
+    this.expenditures.unshift(entry);
+    this.save(STORAGE_KEYS.EXPENDITURES, this.expenditures);
+    this.syncWithServer(true);
+    this.notify();
+    return entry;
+  }
+
+  async deleteExpenditure(id) {
+    this.expenditures = (this.expenditures || []).filter(e => e.id !== id);
+    this.save(STORAGE_KEYS.EXPENDITURES, this.expenditures);
+    this.syncWithServer(true);
     this.notify();
   }
 
