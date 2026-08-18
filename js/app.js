@@ -2937,41 +2937,30 @@ document.addEventListener('DOMContentLoaded', () => {
             <p style="font-weight: 700; margin: 0;">No hay gastos registrados en el periodo seleccionado.</p>
           </div>
         ` : `
-          <div style="overflow-x: auto;">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Material / Servicio</th>
-                  <th>Categoría</th>
-                  <th>Cantidad / Unidad</th>
-                  <th>Monto Total</th>
-                  <th>Notas</th>
-                  <th>Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${filteredExpenditures.map(e => `
-                  <tr>
-                    <td style="font-weight: 800;">${e.date || (e.createdAt ? e.createdAt.split('T')[0] : 'N/A')}</td>
-                    <td style="font-weight: 900; color: var(--text-primary);">${e.itemName || 'Gasto General'}</td>
-                    <td>
-                      <span style="font-size: 0.75rem; background: ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${e.category === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 2px 8px; border-radius: 10px; font-weight: 800;">
-                        ${e.category || 'Materiales'}
-                      </span>
-                    </td>
-                    <td>${e.quantity || 1} ${e.unitType || 'Unidad'}</td>
-                    <td style="font-weight: 900; color: #EF4444; font-size: 1rem;">$${(parseFloat(e.amount) || 0).toFixed(2)}</td>
-                    <td style="font-size: 0.85rem; color: var(--text-secondary);">${e.notes || '-'}</td>
-                    <td>
-                      <button onclick="deleteExpenditureFromAdmin('${e.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 4px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
-                        🗑️ Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            ${filteredExpenditures.map(e => `
+              <div style="background: var(--bg-surface); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.65rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; flex-wrap: wrap;">
+                  <div>
+                    <span style="font-size: 1.1rem; font-weight: 900; color: var(--text-primary); display: block;">${e.itemName || 'Gasto General'}</span>
+                    <span style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 700;">📅 ${e.date || (e.createdAt ? e.createdAt.split('T')[0] : 'N/A')}</span>
+                  </div>
+                  <span style="font-size: 0.75rem; background: ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${e.category === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${e.category === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 3px 10px; border-radius: 12px; font-weight: 800;">
+                    ${e.category || 'Materiales'}
+                  </span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.25rem; border-top: 1px dashed var(--glass-border); padding-top: 0.65rem;">
+                  <div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-secondary);">${e.quantity || 1} ${e.unitType || 'Unidad'} ${e.notes ? `• <em>${e.notes}</em>` : ''}</div>
+                    <div style="font-size: 1.25rem; font-weight: 900; color: #EF4444;">$${(parseFloat(e.amount) || 0).toFixed(2)}</div>
+                  </div>
+                  <button onclick="deleteExpenditureFromAdmin('${e.id}')" style="background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.4); padding: 8px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 800; cursor: pointer; margin-left: auto;">
+                    🗑️ Eliminar
+                  </button>
+                </div>
+              </div>
+            `).join('')}
           </div>
         `}
       </div>
@@ -2979,7 +2968,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ==========================================================================
-  // FINANCIAL REPORTS DASHBOARD
+  // FINANCIAL REPORTS DASHBOARD (MOBILE-FIRST SMART CARDS)
   // ==========================================================================
   let adminReportsTimeframeFilter = 'month'; // 'day', 'week', 'month', 'all'
 
@@ -3065,73 +3054,73 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
 
-      <!-- DETAILED BREAKDOWN TABLES -->
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 1.5rem; width: 100%; box-sizing: border-box;">
-        <!-- EXPENSES BY CATEGORY BREAKDOWN -->
-        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; width: 100%; box-sizing: border-box; overflow: hidden;">
-          <h3 style="font-size: 1.15rem; font-weight: 900; margin: 0 0 1rem 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+      <!-- DETAILED BREAKDOWN SMART CARDS -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; width: 100%; box-sizing: border-box;">
+        <!-- EXPENSES BY CATEGORY SMART CARD -->
+        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem 1.25rem; width: 100%; box-sizing: border-box;">
+          <h3 style="font-size: 1.15rem; font-weight: 900; margin: 0 0 1.25rem 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
             <span>📊</span> Gastos por Categoría
           </h3>
           ${Object.keys(expByCat).length === 0 ? `
-            <p style="color: var(--text-secondary); font-size: 0.88rem; padding: 1rem 0;">No hay gastos registrados en este periodo.</p>
+            <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">No hay gastos registrados en este periodo.</p>
           ` : `
-            <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
-              <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
-                <thead>
-                  <tr style="border-bottom: 2px solid var(--baby-blue-border); background: var(--bg-surface);">
-                    <th style="padding: 10px 12px; font-weight: 800; text-align: left; color: var(--text-primary);">Categoría</th>
-                    <th style="padding: 10px 12px; font-weight: 800; text-align: right; color: var(--text-primary); white-space: nowrap;">Monto Gastado</th>
-                    <th style="padding: 10px 12px; font-weight: 800; text-align: right; color: var(--text-primary); white-space: nowrap;">% del Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${Object.entries(expByCat).map(([cat, amount]) => {
-                    const pct = totalExpenses > 0 ? ((amount / totalExpenses) * 100) : 0;
-                    return `
-                      <tr style="border-bottom: 1px solid var(--glass-border);">
-                        <td style="padding: 12px 12px; font-weight: 800; color: var(--text-primary);">${cat}</td>
-                        <td style="padding: 12px 12px; font-weight: 900; color: #EF4444; text-align: right; white-space: nowrap;">$${amount.toFixed(2)}</td>
-                        <td style="padding: 12px 12px; font-weight: 800; text-align: right; white-space: nowrap; color: var(--text-primary);">${pct.toFixed(1)}%</td>
-                      </tr>
-                    `;
-                  }).join('')}
-                </tbody>
-              </table>
+            <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+              ${Object.entries(expByCat).map(([cat, amount]) => {
+                const pct = totalExpenses > 0 ? ((amount / totalExpenses) * 100) : 0;
+                return `
+                  <div style="background: var(--bg-surface); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1rem 1.1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                    <div>
+                      <div style="font-size: 1rem; font-weight: 900; color: var(--text-primary); margin-bottom: 0.35rem;">${cat}</div>
+                      <span style="font-size: 0.75rem; background: ${cat === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${cat === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${cat === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 3px 10px; border-radius: 12px; font-weight: 800;">
+                        ${cat}
+                      </span>
+                    </div>
+                    <div style="text-align: right; margin-left: auto;">
+                      <div style="font-size: 1.25rem; font-weight: 900; color: #EF4444;">$${amount.toFixed(2)}</div>
+                      <div style="font-size: 0.8rem; font-weight: 800; color: var(--text-secondary); margin-top: 0.15rem;">${pct.toFixed(1)}% del total</div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
             </div>
           `}
         </div>
 
-        <!-- FINANCIAL SUMMARY COMPARISON -->
-        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; width: 100%; box-sizing: border-box; overflow: hidden;">
-          <h3 style="font-size: 1.15rem; font-weight: 900; margin: 0 0 1rem 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
+        <!-- FINANCIAL SUMMARY SMART CARDS -->
+        <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem 1.25rem; width: 100%; box-sizing: border-box;">
+          <h3 style="font-size: 1.15rem; font-weight: 900; margin: 0 0 1.25rem 0; color: var(--text-primary); display: flex; align-items: center; gap: 0.5rem;">
             <span>📋</span> Resumen Financiero del Negocio
           </h3>
           
-          <div style="width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 0.88rem;">
-              <thead>
-                <tr style="border-bottom: 2px solid var(--baby-blue-border); background: var(--bg-surface);">
-                  <th style="padding: 10px 12px; font-weight: 800; text-align: left; color: var(--text-primary);">Concepto</th>
-                  <th style="padding: 10px 12px; font-weight: 800; text-align: right; color: var(--text-primary); white-space: nowrap;">Monto ($)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style="border-bottom: 1px solid var(--glass-border);">
-                  <td style="padding: 12px 12px; font-weight: 800; color: var(--text-primary);">💵 Ingresos Brutos (Ventas)</td>
-                  <td style="padding: 12px 12px; font-weight: 900; color: #10B981; text-align: right; white-space: nowrap;">+$${totalSales.toFixed(2)}</td>
-                </tr>
-                <tr style="border-bottom: 1px solid var(--glass-border);">
-                  <td style="padding: 12px 12px; font-weight: 800; color: var(--text-primary);">💸 Egresos (Materiales y Operación)</td>
-                  <td style="padding: 12px 12px; font-weight: 900; color: #EF4444; text-align: right; white-space: nowrap;">-$${totalExpenses.toFixed(2)}</td>
-                </tr>
-                <tr style="background: ${netProfit >= 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; font-weight: 900;">
-                  <td style="padding: 14px 12px; font-weight: 900; font-size: 0.95rem; color: var(--text-primary);">📈 Ganancia Neta Disponible</td>
-                  <td style="padding: 14px 12px; font-weight: 900; font-size: 1.15rem; color: ${netProfit >= 0 ? '#10B981' : '#EF4444'}; text-align: right; white-space: nowrap;">
-                    $${netProfit.toFixed(2)}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+          <div style="display: flex; flex-direction: column; gap: 0.85rem;">
+            <!-- INGRESOS BRUTOS -->
+            <div style="background: var(--bg-surface); border: 1.5px solid rgba(16, 185, 129, 0.35); border-radius: var(--radius-md); padding: 1rem 1.1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <div style="font-size: 0.98rem; font-weight: 900; color: var(--text-primary); margin-bottom: 0.15rem;">💵 Ingresos Brutos (Ventas)</div>
+                <div style="font-size: 0.76rem; color: var(--text-secondary); font-weight: 700;">Ventas totales acumuladas</div>
+              </div>
+              <div style="font-size: 1.3rem; font-weight: 900; color: #10B981; margin-left: auto;">+$${totalSales.toFixed(2)}</div>
+            </div>
+
+            <!-- EGRESOS -->
+            <div style="background: var(--bg-surface); border: 1.5px solid rgba(239, 68, 68, 0.35); border-radius: var(--radius-md); padding: 1rem 1.1rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <div style="font-size: 0.98rem; font-weight: 900; color: var(--text-primary); margin-bottom: 0.15rem;">💸 Egresos (Materiales y Operación)</div>
+                <div style="font-size: 0.76rem; color: var(--text-secondary); font-weight: 700;">Gastos de insumos y servicios</div>
+              </div>
+              <div style="font-size: 1.3rem; font-weight: 900; color: #EF4444; margin-left: auto;">-$${totalExpenses.toFixed(2)}</div>
+            </div>
+
+            <!-- GANANCIA NETA -->
+            <div style="background: ${netProfit >= 0 ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)'}; border: 2px solid ${netProfit >= 0 ? 'rgba(16, 185, 129, 0.5)' : 'rgba(239, 68, 68, 0.5)'}; border-radius: var(--radius-md); padding: 1.1rem 1.25rem; display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+              <div>
+                <div style="font-size: 1.05rem; font-weight: 900; color: var(--text-primary); margin-bottom: 0.15rem;">📈 Ganancia Neta Disponible</div>
+                <div style="font-size: 0.78rem; font-weight: 800; color: ${netProfit >= 0 ? '#059669' : '#DC2626'};">Margen: ${profitMargin.toFixed(1)}%</div>
+              </div>
+              <div style="font-size: 1.5rem; font-weight: 900; color: ${netProfit >= 0 ? '#10B981' : '#EF4444'}; margin-left: auto;">
+                $${netProfit.toFixed(2)}
+              </div>
+            </div>
           </div>
         </div>
       </div>
