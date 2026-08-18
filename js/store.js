@@ -278,6 +278,17 @@ class Store {
       if (res.ok) {
         const data = await res.json();
         if (data && ((data.products && data.products.length > 0) || (data.categories && data.categories.length > 0) || Array.isArray(data.orders) || Array.isArray(data.expenditures))) {
+          
+          const prevSnapshot = JSON.stringify({
+            products: this.products,
+            categories: this.categories,
+            settings: this.settings,
+            orders: this.orders,
+            ingredients: this.ingredients,
+            expenseItems: this.expenseItems,
+            expenditures: this.expenditures
+          });
+
           // Smart merge products to preserve uploaded image URLs
           if (data.products && data.products.length > 0) {
             data.products.forEach(sp => {
@@ -362,7 +373,20 @@ class Store {
           localStorage.setItem(STORAGE_KEYS.EXPENSE_ITEMS, JSON.stringify(this.expenseItems));
           localStorage.setItem(STORAGE_KEYS.EXPENDITURES, JSON.stringify(this.expenditures));
 
-          this.notify();
+          const newSnapshot = JSON.stringify({
+            products: this.products,
+            categories: this.categories,
+            settings: this.settings,
+            orders: this.orders,
+            ingredients: this.ingredients,
+            expenseItems: this.expenseItems,
+            expenditures: this.expenditures
+          });
+
+          // ONLY trigger DOM re-render if server data actually changed!
+          if (newSnapshot !== prevSnapshot) {
+            this.notify();
+          }
         } else {
           // Fresh server container -> Push local state to server immediately
           this.syncWithServer();

@@ -217,6 +217,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.handleImageError = (imgEl, catId) => {
     imgEl.onerror = null;
+    if (imgEl.src) {
+      failedImageUrls.add(imgEl.src);
+    }
     const cat = store.getCategories().find(c => c.id === catId || c.slug === catId);
     const catImg = cat ? getCategoryActiveImage(cat) : '';
     if (catImg && isValidImageUrl(catImg) && imgEl.src !== catImg) {
