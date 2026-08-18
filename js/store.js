@@ -23,7 +23,7 @@ const INITIAL_EXPENSE_ITEMS = [
   { id: 'exp-item-01', name: 'Vasos (32 oz / 16 oz)', category: 'Materiales', defaultCost: 20.00, unitType: 'Caja' },
   { id: 'exp-item-02', name: 'Sorbetes / Cañitas', category: 'Materiales', defaultCost: 5.00, unitType: 'Paquete' },
   { id: 'exp-item-03', name: 'Hielo', category: 'Materiales', defaultCost: 12.00, unitType: 'Bolsas' },
-  { id: 'exp-item-04', name: 'Gasolina / Gas', category: 'Servicios / Operación', defaultCost: 25.00, unitType: 'Tanque / Recarga' },
+  { id: 'exp-item-04', name: 'Gasolina', category: 'Servicios / Operación', defaultCost: 0, unitType: 'Recarga', isVariable: true },
   { id: 'exp-item-05', name: 'Servilletas', category: 'Materiales', defaultCost: 8.00, unitType: 'Paquete' },
   { id: 'exp-item-06', name: 'Bolsas / Empaques', category: 'Materiales', defaultCost: 10.00, unitType: 'Paquete' }
 ];

@@ -2841,34 +2841,48 @@ document.addEventListener('DOMContentLoaded', () => {
           📦 Catálogo de Materiales y Gastos Recurrentes
         </h2>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem;">
-          ${expenseItems.map(item => `
-            <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
-              <div>
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                  <span style="font-weight: 900; font-size: 1.05rem; color: var(--text-primary);">${item.name}</span>
-                  <span style="font-size: 0.72rem; background: ${item.category === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${item.category === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${item.category === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 2px 8px; border-radius: 12px; font-weight: 800;">
-                    ${item.category || 'Materiales'}
-                  </span>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;">
+          ${expenseItems.map(item => {
+            const isGasOrVariable = item.isVariable || (item.name || '').toLowerCase().includes('gasolina') || item.defaultCost === 0;
+            return `
+              <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-md); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; position: relative;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.65rem; gap: 0.5rem;">
+                    <span style="font-weight: 900; font-size: 1.35rem; color: var(--text-primary); line-height: 1.2;">${item.name}</span>
+                    <span style="font-size: 0.72rem; background: ${item.category === 'Materiales' ? 'rgba(59, 130, 246, 0.15)' : 'rgba(245, 158, 11, 0.15)'}; color: ${item.category === 'Materiales' ? '#2563EB' : '#D97706'}; border: 1px solid ${item.category === 'Materiales' ? 'rgba(59, 130, 246, 0.3)' : 'rgba(245, 158, 11, 0.3)'}; padding: 3px 9px; border-radius: 12px; font-weight: 800; white-space: nowrap;">
+                      ${item.category || 'Materiales'}
+                    </span>
+                  </div>
+                  
+                  <div style="margin-bottom: 1rem;">
+                    ${isGasOrVariable ? `
+                      <div style="font-size: 1.15rem; font-weight: 900; color: #10B981; display: flex; align-items: center; gap: 0.35rem;">
+                        <span>⛽</span> Monto Variable <span style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600;">(Ingresar al registrar)</span>
+                      </div>
+                    ` : `
+                      <div style="font-size: 1.35rem; font-weight: 900; color: #10B981;">
+                        $${(parseFloat(item.defaultCost) || 0).toFixed(2)} <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 600;">/ ${item.unitType || 'Unidad'}</span>
+                      </div>
+                    `}
+                  </div>
                 </div>
-                <div style="font-size: 1.3rem; font-weight: 900; color: #10B981; margin-bottom: 0.85rem;">
-                  $${(parseFloat(item.defaultCost) || 0).toFixed(2)} <span style="font-size: 0.78rem; color: var(--text-secondary); font-weight: 600;">/ ${item.unitType || 'Unidad'}</span>
-                </div>
-              </div>
 
-              <div style="display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap;">
-                <button onclick="promptRegisterExpense('${item.id}')" class="btn-primary" style="flex: 1; padding: 6px 10px; font-size: 0.82rem; justify-content: center;">
-                  ➕ Registrar Gasto
-                </button>
-                <button onclick="promptEditExpenseItemPrice('${item.id}')" class="btn-secondary" style="padding: 6px 10px; font-size: 0.82rem; border-color: var(--baby-blue-border);">
-                  ✏️ Precio
-                </button>
-                <button onclick="deleteExpenseItemFromAdmin('${item.id}')" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 6px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">
-                  🗑️
-                </button>
+                <div style="display: flex; gap: 0.5rem; margin-top: auto; flex-wrap: wrap;">
+                  <button onclick="promptRegisterExpense('${item.id}')" class="btn-primary" style="flex: 1; min-width: 130px; padding: 10px 12px; font-size: 0.88rem; font-weight: 800; justify-content: center; min-height: 42px;">
+                    ➕ Registrar Gasto
+                  </button>
+                  ${!isGasOrVariable ? `
+                    <button onclick="promptEditExpenseItemPrice('${item.id}')" class="btn-secondary" style="padding: 10px 12px; font-size: 0.85rem; font-weight: 800; border-color: var(--baby-blue-border); min-height: 42px;">
+                      ✏️ Precio
+                    </button>
+                  ` : ''}
+                  <button onclick="deleteExpenseItemFromAdmin('${item.id}')" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 10px 12px; border-radius: 8px; font-size: 0.88rem; font-weight: 700; cursor: pointer; min-height: 42px;" title="Eliminar del catálogo">
+                    🗑️
+                  </button>
+                </div>
               </div>
-            </div>
-          `).join('')}
+            `;
+          }).join('')}
         </div>
       </div>
 
@@ -3155,25 +3169,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const item = items.find(i => i.id === itemId);
     if (!item) return;
 
-    const qtyStr = prompt(`¿Cuántas unidades de "${item.name}" se compraron?`, '1');
-    if (qtyStr === null) return;
-    const qty = parseFloat(qtyStr) || 1;
+    const isGasOrVariable = item.isVariable || (item.name || '').toLowerCase().includes('gasolina') || item.defaultCost === 0;
 
-    const totalCostStr = prompt(`Costo Total a registrar para "${item.name}" ($):`, (item.defaultCost * qty).toFixed(2));
-    if (totalCostStr === null) return;
-    const amount = parseFloat(totalCostStr) || (item.defaultCost * qty);
+    let qty = 1;
+    let amount = 0;
+
+    if (isGasOrVariable) {
+      const amountStr = prompt(`¿Cuánto dinero ($) se pagó por "${item.name}"?`, '25.00');
+      if (amountStr === null) return;
+      amount = parseFloat(amountStr);
+      if (isNaN(amount) || amount <= 0) {
+        alert('Por favor ingresa un monto válido.');
+        return;
+      }
+    } else {
+      const qtyStr = prompt(`¿Cuántas unidades de "${item.name}" se compraron?`, '1');
+      if (qtyStr === null) return;
+      qty = parseFloat(qtyStr) || 1;
+
+      const totalCostStr = prompt(`Costo Total a registrar para "${item.name}" ($):`, (item.defaultCost * qty).toFixed(2));
+      if (totalCostStr === null) return;
+      amount = parseFloat(totalCostStr) || (item.defaultCost * qty);
+    }
 
     const notes = prompt('Notas / Detalles adicionales (Opcional):', '');
 
     // Confirmation Modal Guard
-    if (confirm(`⚠️ ¿CONFIRMAS REGISTRAR ESTE GASTO EN EL HISTORIAL?\n\nItem: ${item.name}\nCantidad: ${qty} ${item.unitType}\nMonto Total: $${amount.toFixed(2)}`)) {
+    const confirmMsg = isGasOrVariable 
+      ? `⚠️ ¿CONFIRMAS REGISTRAR ESTE GASTO EN EL HISTORIAL?\n\nItem: ${item.name}\nMonto Pagado: $${amount.toFixed(2)}`
+      : `⚠️ ¿CONFIRMAS REGISTRAR ESTE GASTO EN EL HISTORIAL?\n\nItem: ${item.name}\nCantidad: ${qty} ${item.unitType}\nMonto Total: $${amount.toFixed(2)}`;
+
+    if (confirm(confirmMsg)) {
       await store.addExpenditure({
         itemId: item.id,
         itemName: item.name,
         category: item.category,
-        unitType: item.unitType,
+        unitType: isGasOrVariable ? 'Recarga' : item.unitType,
         quantity: qty,
-        unitCost: item.defaultCost,
+        unitCost: isGasOrVariable ? amount : item.defaultCost,
         amount: amount,
         notes: (notes || '').trim()
       });
