@@ -157,6 +157,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // --- 5-SECOND CATEGORY IMAGE ROTATION TICKER ---
+  function isValidImageUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (!trimmed || trimmed === 'undefined' || trimmed === 'null' || trimmed === '[object Object]') return false;
+    return trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('uploads/') || trimmed.startsWith('assets/');
+  }
+
+  function isCategoryRotatable(cat) {
+    if (!cat) return false;
+    const img1 = (cat.image || '').trim();
+    const img2 = (cat.image2 || '').trim();
+    return cat.activeImage === 'rotate' && isValidImageUrl(img1) && isValidImageUrl(img2);
+  }
+
   // --- 4-SECOND CATEGORY & PRODUCT IMAGE ROTATION TICKER WITH MOBILE PRE-CACHING ---
   let categoryRotationState = 0; // 0 = Image 1, 1 = Image 2
   const preloadedMobileImages = new Set();
@@ -168,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const img1 = img.getAttribute('data-img1');
       const img2 = img.getAttribute('data-img2');
       const mode = img.getAttribute('data-mode');
-      if (mode === 'rotate' && img1 && img2) {
+      if (mode === 'rotate' && isValidImageUrl(img1) && isValidImageUrl(img2)) {
         const nextSrc = categoryRotationState === 0 ? img1 : img2;
         
         // Pre-cache on mobile device memory to prevent delay or blank flicker
@@ -194,20 +208,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const img2 = (cat.image2 || '').trim();
     const mode = cat.activeImage || 'image1';
 
-    if (mode === 'image2' && img2) return img2;
-    if (mode === 'rotate') {
-      if (rotState === 1 && img2) return img2;
-      if (img1) return img1;
-      if (img2) return img2;
+    if (mode === 'image2' && isValidImageUrl(img2)) return img2;
+    if (mode === 'rotate' && isValidImageUrl(img1) && isValidImageUrl(img2)) {
+      return rotState === 1 ? img2 : img1;
     }
-    return img1 || img2 || '';
-  }
-
-  function isValidImageUrl(url) {
-    if (!url || typeof url !== 'string') return false;
-    const trimmed = url.trim();
-    if (!trimmed || trimmed === 'undefined' || trimmed === 'null' || trimmed === '[object Object]') return false;
-    return trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:') || trimmed.startsWith('uploads/') || trimmed.startsWith('assets/');
+    return isValidImageUrl(img1) ? img1 : (isValidImageUrl(img2) ? img2 : '');
   }
 
   window.handleImageError = (imgEl, catId) => {
@@ -2268,6 +2273,15 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   window.setCategoryActiveImageModeFromAdmin = (id, mode) => {
+    const cat = store.getCategories().find(c => c.id === id);
+    if (mode === 'rotate' && cat) {
+      const img1 = (cat.image || '').trim();
+      const img2 = (cat.image2 || '').trim();
+      if (!isValidImageUrl(img1) || !isValidImageUrl(img2)) {
+        alert(`⚠️ Para activar la rotación automática de 5 segundos en "${cat.name}", debes subir 2 imágenes (Imagen 1 e Imagen 2). Haz clic en "✏️ Editar Imágenes" para agregar la 2da imagen.`);
+        return;
+      }
+    }
     store.setCategoryActiveImageMode(id, mode);
     renderAdminPortal();
   };
