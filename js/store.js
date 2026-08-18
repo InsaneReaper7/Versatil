@@ -700,23 +700,50 @@ class Store {
     this.syncWithServer(true);
   }
 
-  // --- ADMIN AUTHENTICATION ---
+  // --- ADMIN AUTHENTICATION SECURITY ---
   authenticateAdmin(username, password) {
+    const lockoutUntil = parseInt(sessionStorage.getItem('verstail_admin_lockout') || '0', 10);
+    if (Date.now() < lockoutUntil) {
+      const remainingSec = Math.ceil((lockoutUntil - Date.now()) / 1000);
+      throw new Error(`⚠️ Acceso temporalmente bloqueado por seguridad. Inténtalo de nuevo en ${remainingSec} segundos.`);
+    }
+
     const matched = ADMIN_ACCOUNTS.find(a => 
       a.username.toLowerCase() === (username || '').trim().toLowerCase() && 
       a.password === password
     );
     if (matched) {
       sessionStorage.setItem('verstail_admin_auth', matched.username);
+      sessionStorage.setItem('verstail_admin_last_activity', Date.now().toString());
+      sessionStorage.removeItem('verstail_admin_failed_attempts');
+      sessionStorage.removeItem('verstail_admin_lockout');
       this.notify();
       return true;
+    }
+
+    let failed = parseInt(sessionStorage.getItem('verstail_admin_failed_attempts') || '0', 10) + 1;
+    sessionStorage.setItem('verstail_admin_failed_attempts', failed.toString());
+    if (failed >= 5) {
+      const lockTime = Date.now() + (2 * 60 * 1000); // 2 minute lockout
+      sessionStorage.setItem('verstail_admin_lockout', lockTime.toString());
+      throw new Error('⚠️ Demasiados intentos fallidos (5/5). El acceso ha sido bloqueado temporalmente por 2 minutos por seguridad.');
     }
     return false;
   }
 
   isLoggedInAdmin() {
     const user = sessionStorage.getItem('verstail_admin_auth');
-    return user === 'Tibu' || user === 'InsaneReaper7';
+    const lastActivity = parseInt(sessionStorage.getItem('verstail_admin_last_activity') || '0', 10);
+    const now = Date.now();
+
+    if (user && (user === 'Tibu' || user === 'InsaneReaper7')) {
+      if (lastActivity > 0 && (now - lastActivity > 15 * 60 * 1000)) {
+        this.logoutAdmin();
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   getAdminUsername() {
@@ -725,6 +752,9 @@ class Store {
 
   logoutAdmin() {
     sessionStorage.removeItem('verstail_admin_auth');
+    sessionStorage.removeItem('verstail_admin_last_activity');
+    sessionStorage.removeItem('verstail_admin_failed_attempts');
+    sessionStorage.removeItem('verstail_admin_lockout');
     localStorage.removeItem('verstail_admin_auth');
     this.notify();
   }

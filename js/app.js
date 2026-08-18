@@ -1494,6 +1494,47 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
+  // ==========================================================================
+  // ADMIN PORTAL SECURITY & INACTIVITY ENGINE (15-MINUTE AUTO-LOGOUT)
+  // ==========================================================================
+  const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 Minutes
+  let inactivityTimer = null;
+
+  function resetInactivityTimer() {
+    if (store.isLoggedInAdmin()) {
+      sessionStorage.setItem('verstail_admin_last_activity', Date.now().toString());
+      if (inactivityTimer) clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        if (store.isLoggedInAdmin()) {
+          store.logoutAdmin();
+          alert('🔒 Tu sesión de administración ha sido cerrada automáticamente por inactividad de 15 minutos por seguridad.');
+          renderAdminPortal(true);
+        }
+      }, INACTIVITY_LIMIT_MS);
+    }
+  }
+
+  // Active interaction listeners to refresh 15-min session timer
+  ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'].forEach(evt => {
+    window.addEventListener(evt, () => {
+      resetInactivityTimer();
+    }, { passive: true });
+  });
+
+  window.toggleAdminPasswordVisibility = () => {
+    const input = document.getElementById('admin-pass');
+    const btn = document.getElementById('admin-pass-toggle-btn');
+    if (input) {
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (btn) btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        if (btn) btn.textContent = '👁️';
+      }
+    }
+  };
+
   function renderAdminPortal(force = false) {
     // 1. If NOT logged in as admin:
     if (!store.isLoggedInAdmin()) {
@@ -1513,19 +1554,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 <label>Usuario *</label>
                 <input type="text" id="admin-user" class="form-input" required placeholder="Ingresa tu usuario" autocomplete="username" />
               </div>
-              <div class="form-group" style="text-align: left;">
+              <div class="form-group" style="text-align: left; position: relative;">
                 <label>Contraseña *</label>
-                <input type="password" id="admin-pass" class="form-input" required placeholder="••••••••" autocomplete="current-password" />
+                <div style="position: relative; display: flex; align-items: center;">
+                  <input type="password" id="admin-pass" class="form-input" required placeholder="••••••••" autocomplete="current-password" style="padding-right: 44px;" />
+                  <button type="button" id="admin-pass-toggle-btn" onclick="toggleAdminPasswordVisibility()" style="position: absolute; right: 8px; background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px;" title="Mostrar/Ocultar Contraseña">
+                    👁️
+                  </button>
+                </div>
               </div>
               <button type="submit" class="btn-primary" style="width: 100%; margin-top: 1.25rem; padding: 0.85rem; justify-content: center;">
-                🔒 Iniciar Sesión
+                🔒 Iniciar Sesión Segura
               </button>
+              <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--text-secondary);">
+                🛡️ Sesión cifrada • Auto-cierre en 15 minutos por inactividad
+              </div>
             </form>
           </div>
         </section>
       `;
       return;
     }
+
+    // Initialize 15-min inactivity timer upon rendering Admin Portal
+    resetInactivityTimer();
 
     // 2. If active element inside appContainer is being typed into, don't clobber DOM unless forced
     const activeEl = document.activeElement;
@@ -1551,9 +1603,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- SIDEBAR -->
         <div class="admin-sidebar">
-          <div style="font-weight: 900; font-size: 1.2rem; color: #7C3AED; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+          <div style="font-weight: 900; font-size: 1.2rem; color: #7C3AED; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
             <span>⚙️</span> Administración
           </div>
+          <div style="font-size: 0.72rem; color: #10B981; margin-bottom: 1.5rem; font-weight: 800; display: flex; align-items: center; gap: 4px;">
+            <span style="width: 7px; height: 7px; background: #10B981; border-radius: 50%; display: inline-block;"></span> 🔒 Sesión Segura (Auto-cierre 15m)
+          </div>
+
           <a href="#admin/dashboard" class="admin-nav-item ${subRoute === 'dashboard' ? 'active' : ''}">📊 Dashboard</a>
           <a href="#admin/products" class="admin-nav-item ${subRoute === 'products' ? 'active' : ''}">🍹 Productos</a>
           <a href="#admin/ingredients" class="admin-nav-item ${subRoute === 'ingredients' ? 'active' : ''}">🧪 Ingredientes</a>
@@ -1581,10 +1637,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = document.getElementById('admin-user').value;
     const pass = document.getElementById('admin-pass').value;
 
-    if (store.authenticateAdmin(user, pass)) {
-      renderAdminPortal(true);
-    } else {
-      alert('Usuario o contraseña incorrectos.');
+    try {
+      if (store.authenticateAdmin(user, pass)) {
+        renderAdminPortal(true);
+      } else {
+        alert('Usuario o contraseña incorrectos.');
+      }
+    } catch (err) {
+      alert(err.message || 'Error en la autenticación.');
     }
   };
 
