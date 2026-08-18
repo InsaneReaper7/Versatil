@@ -2583,6 +2583,11 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="form-group">
+          <label>Versículo / Frase Inspiracional</label>
+          <input type="text" id="set-verse" class="form-input" value="${settings.verse || ''}" placeholder="Ej. Jeremías 29:11" />
+        </div>
+
+        <div class="form-group">
           <label>Dirección de Recogido (Pick-up)</label>
           <input type="text" id="set-pickupAddress" class="form-input" value="${settings.pickupAddress || ''}" />
         </div>
@@ -2692,6 +2697,7 @@ document.addEventListener('DOMContentLoaded', () => {
       whatsappPhone: document.getElementById('set-whatsappPhone').value,
       storeName: document.getElementById('set-storeName').value,
       tagline: document.getElementById('set-tagline').value,
+      verse: document.getElementById('set-verse') ? document.getElementById('set-verse').value : '',
       pickupAddress: document.getElementById('set-pickupAddress').value,
       askCustomerEmail: document.getElementById('set-askCustomerEmail') ? document.getElementById('set-askCustomerEmail').checked : false,
       storyText: document.getElementById('set-storyText') ? document.getElementById('set-storyText').value : '',
