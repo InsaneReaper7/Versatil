@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="categories-grid">
             ${categories.map(cat => {
               const catImg = getCategoryActiveImage(cat);
-              const isRotatable = cat.activeImage === 'rotate' && cat.image && cat.image2;
+              const isRotatable = isCategoryRotatable(cat);
               const showImages = (settings.showCategoryCardImages !== false || isRotatable || (cat.image && cat.image.trim() !== '')) && !!catImg;
               return `
                 <div class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" onclick="selectCategoryAndScroll('${cat.id}')">
@@ -376,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
             ${categories.map(cat => `
               <button onclick="setMenuFilter('${cat.id}')" class="category-card ${selectedCategoryFilter === cat.id ? 'active' : ''}" style="padding: 0.55rem 1.1rem; flex-direction: row; min-width: max-content; font-size: 0.9rem;">
-                <span>${cat.icon}</span> <span>${cat.name}</span>
+                ${cat.icon} ${cat.name}
               </button>
             `).join('')}
           </div>
@@ -395,18 +395,14 @@ document.addEventListener('DOMContentLoaded', () => {
         ` : ''}
 
         <!-- PRODUCTS GRID -->
-        ${products.length > 0 ? `
-          <div class="products-grid">
-            ${products.map(prod => renderProductCardHTML(prod)).join('')}
-          </div>
-        ` : `
-          <div class="empty-cart-state">
-            <div class="empty-cart-icon">🔍</div>
-            <h3>No hay productos en esta categoría</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Prueba seleccionando otra categoría.</p>
-            <button onclick="setMenuFilter('all')" class="btn-secondary">Ver todo el menú</button>
-          </div>
-        `}
+        <div class="products-grid">
+          ${products.length === 0 ? `
+            <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--text-secondary);">
+              <span style="font-size: 3rem; display: block; margin-bottom: 0.5rem;">🍹</span>
+              <p style="font-size: 1.1rem; font-weight: 700;">No hay opciones disponibles en esta categoría en este momento.</p>
+            </div>
+          ` : products.map(prod => renderProductCardHTML(prod)).join('')}
+        </div>
       </section>
     `;
   }
@@ -455,15 +451,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgUrl = getProductImage(prod);
     const hasImage = !!imgUrl;
 
-    const cat = store.getCategories().find(c => c.id === prod.category);
-    const isRotatable = (!prod.image || !prod.image.trim()) && cat && cat.activeImage === 'rotate' && cat.image && cat.image2;
-
     return `
       <div class="product-card ${hasImage ? 'has-prod-image' : ''} ${isSoldOut ? 'is-sold-out' : ''}">
         <div class="product-image-container">
           ${isSoldOut ? `<span class="product-sold-out-badge">🚫 AGOTADO</span>` : ''}
           ${hasImage ? `
-            <img src="${imgUrl}" alt="${prod.name}" class="product-image ${isRotatable ? 'cat-rotatable-image' : ''}" ${isRotatable ? `data-img1="${cat.image}" data-img2="${cat.image2}" data-mode="rotate"` : ''} onerror="handleImageError(this, '${prod.category}')" />
+            <img src="${imgUrl}" alt="${prod.name}" class="product-image" onerror="handleImageError(this, '${prod.category}')" />
           ` : `
             <div class="product-badge-placeholder">
               <span style="font-size: 2.5rem;">${getCategoryIcon(prod.category)}</span>
