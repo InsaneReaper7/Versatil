@@ -1586,7 +1586,15 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Track sub-route changes to scroll to top only on tab switch
     const subRoute = currentRoute.replace('admin/', '').replace('admin', 'dashboard');
+    const isTabSwitch = window._lastAdminSubRoute && window._lastAdminSubRoute !== subRoute;
+    window._lastAdminSubRoute = subRoute;
+
+    // Capture scroll positions before DOM replacement
+    const savedWindowScrollY = isTabSwitch ? 0 : (window.scrollY || window.pageYOffset || document.documentElement.scrollTop || 0);
+    const adminContentEl = document.querySelector('.admin-content');
+    const savedContentScrollY = (isTabSwitch || !adminContentEl) ? 0 : adminContentEl.scrollTop;
 
     appContainer.innerHTML = `
       <div class="admin-layout">
@@ -1635,6 +1643,27 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `;
+
+    // Restore scroll position after DOM replacement so scroll position never jumps or resets
+    if (savedWindowScrollY > 0) {
+      window.scrollTo(0, savedWindowScrollY);
+    }
+    const newContentEl = document.querySelector('.admin-content');
+    if (newContentEl && savedContentScrollY > 0) {
+      newContentEl.scrollTop = savedContentScrollY;
+    }
+
+    // Double-pass scroll lock for mobile layout frames
+    requestAnimationFrame(() => {
+      if (savedWindowScrollY > 0) {
+        window.scrollTo(0, savedWindowScrollY);
+      }
+      const newContentEl2 = document.querySelector('.admin-content');
+      if (newContentEl2 && savedContentScrollY > 0) {
+        newContentEl2.scrollTop = savedContentScrollY;
+      }
+    });
+  }
   }
 
   window.handleAdminLoginSubmit = (e) => {
