@@ -349,7 +349,10 @@ class Store {
     }
   }
 
-  syncWithServer() {
+  syncWithServer(force = false) {
+    if (!force && !this.isLoggedInAdmin()) {
+      return;
+    }
     try {
       const state = {
         products: this.products,
@@ -408,8 +411,10 @@ class Store {
     });
 
     if (updated) {
-      this.save(STORAGE_KEYS.CATEGORIES, this.categories);
-      this.save(STORAGE_KEYS.PRODUCTS, this.products);
+      try {
+        localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(this.categories));
+        localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(this.products));
+      } catch (e) {}
     }
   }
 
@@ -436,7 +441,6 @@ class Store {
     try {
       localStorage.setItem(key, JSON.stringify(data));
       this.notify();
-      this.syncWithServer();
     } catch (e) {
       console.error('Storage error:', e);
     }
@@ -480,6 +484,7 @@ class Store {
     if (p) {
       p.soldOut = !p.soldOut;
       this.save(STORAGE_KEYS.PRODUCTS, this.products);
+      this.syncWithServer(true);
     }
   }
 
@@ -493,11 +498,13 @@ class Store {
       if (idx !== -1) this.products[idx] = product;
     }
     this.save(STORAGE_KEYS.PRODUCTS, this.products);
+    this.syncWithServer(true);
   }
 
   deleteProduct(id) {
     this.products = this.products.filter(p => p.id !== id);
     this.save(STORAGE_KEYS.PRODUCTS, this.products);
+    this.syncWithServer(true);
   }
 
   // --- INGREDIENTS & CATEGORIES ---
@@ -508,6 +515,7 @@ class Store {
     if (idx !== -1) this.ingredients[idx] = ing;
     else this.ingredients.push(ing);
     this.save(STORAGE_KEYS.INGREDIENTS, this.ingredients);
+    this.syncWithServer(true);
   }
 
   getCategories() {
@@ -519,7 +527,7 @@ class Store {
     if (idx !== -1) this.categories[idx] = cat;
     else this.categories.push(cat);
     this.save(STORAGE_KEYS.CATEGORIES, this.categories);
-    this.syncWithServer();
+    this.syncWithServer(true);
     this.notify();
   }
 
@@ -528,7 +536,7 @@ class Store {
     if (c) {
       c.active = !c.active;
       this.save(STORAGE_KEYS.CATEGORIES, this.categories);
-      this.syncWithServer();
+      this.syncWithServer(true);
       this.notify();
     }
   }
@@ -538,7 +546,7 @@ class Store {
     if (c) {
       c.activeImage = mode;
       this.save(STORAGE_KEYS.CATEGORIES, this.categories);
-      this.syncWithServer();
+      this.syncWithServer(true);
       this.notify();
     }
   }
@@ -546,16 +554,19 @@ class Store {
   toggleBigCategoryCardsSetting() {
     this.settings.showBigCategoryCards = this.settings.showBigCategoryCards === false ? true : false;
     this.save(STORAGE_KEYS.SETTINGS, this.settings);
+    this.syncWithServer(true);
   }
 
   toggleCategoryFilterPillsSetting() {
     this.settings.showCategoryFilterPills = !this.settings.showCategoryFilterPills;
     this.save(STORAGE_KEYS.SETTINGS, this.settings);
+    this.syncWithServer(true);
   }
 
   toggleIconThemeMode() {
     this.settings.iconThemeMode = this.settings.iconThemeMode === 'classic' ? 'swapped' : 'classic';
     this.save(STORAGE_KEYS.SETTINGS, this.settings);
+    this.syncWithServer(true);
   }
 
   // --- CART ENGINE ---
@@ -686,6 +697,7 @@ class Store {
   updateSettings(newSettings) {
     this.settings = { ...this.settings, ...newSettings };
     this.save(STORAGE_KEYS.SETTINGS, this.settings);
+    this.syncWithServer(true);
   }
 
   // --- ADMIN AUTHENTICATION ---
