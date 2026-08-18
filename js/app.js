@@ -1829,49 +1829,61 @@ document.addEventListener('DOMContentLoaded', () => {
     return `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
         <div>
-          <h1 style="font-size: 1.8rem; font-weight: 900;">Gestión de Productos</h1>
-          <p style="color: var(--text-secondary); font-size: 0.88rem;">Controla la visibilidad y disponibilidad (Agotado / Sold Out) en tiempo real.</p>
+          <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            🍹 Gestión de Productos
+          </h1>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0.25rem 0 0 0;">
+            Controla precios, visibilidad y estado de disponibilidad (Agotado / Sold Out) en tiempo real.
+          </p>
         </div>
-        <button onclick="openProductEditorModal()" class="btn-primary">+ Nuevo Producto</button>
+        <button onclick="openProductEditorModal()" class="btn-primary" style="padding: 0.6rem 1.25rem; font-size: 0.9rem;">
+          ➕ Nuevo Producto
+        </button>
       </div>
 
-      <div class="table-responsive">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Producto</th>
-              <th>Categoría</th>
-              <th>Precio Público</th>
-              <th>Costo Interno</th>
-              <th>Visibilidad en Sitio (Remover)</th>
-              <th>Estado Agotado (Sold Out)</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${products.map(p => `
-              <tr>
-                <td><strong>${p.name}</strong></td>
-                <td><span style="font-size: 0.85rem; font-weight: 700; background: var(--bg-surface); padding: 2px 8px; border-radius: 6px;">${p.category}</span></td>
-                <td style="color: var(--accent-green); font-weight: 800;">$${Number(p.publicPrice || 0).toFixed(2)}</td>
-                <td style="color: #D97706; font-weight: 800;">$${Number(p.internalCost || 0).toFixed(2)}</td>
-                <td>
-                  <button onclick="toggleProductActiveFromAdmin('${p.id}')" style="background: ${p.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${p.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${p.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 6px 12px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
-                    ${p.active !== false ? '👁️ Visible' : '🙈 Oculto (Removido)'}
-                  </button>
-                </td>
-                <td>
-                  <button onclick="toggleProductSoldOutFromAdmin('${p.id}')" style="background: ${p.soldOut ? 'rgba(245, 158, 11, 0.2)' : 'var(--bg-surface)'}; color: ${p.soldOut ? '#D97706' : 'var(--text-secondary)'}; border: 1.5px solid ${p.soldOut ? 'rgba(245, 158, 11, 0.5)' : 'var(--baby-blue-border)'}; padding: 6px 12px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
-                    ${p.soldOut ? '🚫 AGOTADO (Sold Out)' : '🛒 En Stock'}
-                  </button>
-                </td>
-                <td>
-                  <button onclick="openProductEditorModal('${p.id}')" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--baby-blue-border); padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer;">Editar</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.15rem;">
+        ${products.map(p => `
+          <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.65rem;">
+                <div>
+                  <h3 style="font-size: 1.15rem; font-weight: 900; color: var(--text-primary); margin: 0; line-height: 1.2;">${p.name}</h3>
+                  <span style="font-size: 0.75rem; background: var(--baby-blue-light); color: var(--secondary-baby-blue-hover); border: 1px solid var(--baby-blue-border); padding: 3px 10px; border-radius: 12px; font-weight: 800; display: inline-block; margin-top: 0.35rem;">
+                    ${(p.category || '').toUpperCase()}
+                  </span>
+                </div>
+                ${p.featured ? `<span style="font-size: 0.72rem; background: rgba(245, 158, 11, 0.15); color: #D97706; border: 1px solid rgba(245, 158, 11, 0.3); padding: 3px 9px; border-radius: 12px; font-weight: 800; white-space: nowrap;">⭐ Destacado</span>` : ''}
+              </div>
+
+              <!-- PRICING DISPLAY BOX -->
+              <div style="background: var(--bg-surface); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+                <div>
+                  <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; display: block;">Precio Público</span>
+                  <span style="font-size: 1.25rem; font-weight: 900; color: #10B981;">$${Number(p.publicPrice || 0).toFixed(2)}</span>
+                </div>
+                <div style="text-align: right;">
+                  <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; display: block;">Costo Interno</span>
+                  <span style="font-size: 1.05rem; font-weight: 800; color: #D97706;">$${Number(p.internalCost || 0).toFixed(2)}</span>
+                </div>
+              </div>
+
+              <!-- STATUS TOGGLES ROW -->
+              <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button onclick="toggleProductActiveFromAdmin('${p.id}')" style="flex: 1; min-width: 120px; background: ${p.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${p.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${p.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                  ${p.active !== false ? '👁️ Visible' : '🙈 Oculto'}
+                </button>
+                <button onclick="toggleProductSoldOutFromAdmin('${p.id}')" style="flex: 1; min-width: 120px; background: ${p.soldOut ? 'rgba(245, 158, 11, 0.2)' : 'var(--bg-surface)'}; color: ${p.soldOut ? '#D97706' : 'var(--text-secondary)'}; border: 1.5px solid ${p.soldOut ? 'rgba(245, 158, 11, 0.5)' : 'var(--baby-blue-border)'}; padding: 8px 12px; border-radius: var(--radius-md); font-size: 0.82rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                  ${p.soldOut ? '🚫 AGOTADO' : '🛒 En Stock'}
+                </button>
+              </div>
+            </div>
+
+            <!-- ACTION FOOTER -->
+            <div style="border-top: 1px dashed var(--glass-border); padding-top: 0.75rem; margin-top: 0.25rem;">
+              <button onclick="openProductEditorModal('${p.id}')" class="btn-secondary" style="width: 100%; padding: 9px 12px; font-size: 0.88rem; font-weight: 800; justify-content: center;">✏️ Editar Producto</button>
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
   }
@@ -2084,35 +2096,53 @@ document.addEventListener('DOMContentLoaded', () => {
     renderAdminPortal();
   };
 
-  // --- ADMIN INGREDIENTS ---
+  // --- ADMIN INGREDIENTS (MOBILE-FIRST SMART CARDS) ---
   function renderAdminIngredientsHTML() {
     const ingredients = store.getIngredients();
 
     return `
-      <h1 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 1.5rem;">Gestión de Ingredientes</h1>
-      <div class="table-responsive">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Ingrediente</th>
-              <th>Costo Adicional ($)</th>
-              <th>Incluido por Defecto</th>
-              <th>Removible</th>
-              <th>Estado</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${ingredients.map(i => `
-              <tr>
-                <td><strong>${i.name}</strong></td>
-                <td>$${Number(i.extraCost || 0).toFixed(2)}</td>
-                <td>${i.includedByDefault ? '✅ Sí' : '❌ No'}</td>
-                <td>${i.removable ? '✅ Sí' : '❌ No'}</td>
-                <td><span class="badge-status ${i.active ? 'active' : 'inactive'}">${i.active ? 'Activo' : 'Inactivo'}</span></td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+            🧪 Gestión de Ingredientes y Extras
+          </h1>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0.25rem 0 0 0;">
+            Administra los ingredientes base y adicionales disponibles para personalizar las bebidas.
+          </p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.15rem;">
+        ${ingredients.map(i => `
+          <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <h3 style="font-size: 1.15rem; font-weight: 900; color: var(--text-primary); margin: 0;">${i.name}</h3>
+                <span style="font-size: 0.78rem; background: ${i.active ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${i.active ? '#059669' : '#DC2626'}; border: 1px solid ${i.active ? 'rgba(16, 185, 129, 0.3)' : 'rgba(239, 68, 68, 0.3)'}; padding: 2px 8px; border-radius: 10px; font-weight: 800;">
+                  ${i.active ? '👁️ Activo' : '🙈 Inactivo'}
+                </span>
+              </div>
+
+              <!-- EXTRA COST DISPLAY -->
+              <div style="background: var(--bg-surface); padding: 0.65rem 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); margin-bottom: 0.65rem;">
+                <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; display: block;">Costo Adicional</span>
+                <span style="font-size: 1.2rem; font-weight: 900; color: ${i.extraCost > 0 ? '#EF4444' : '#10B981'};">
+                  ${i.extraCost > 0 ? `+$${Number(i.extraCost).toFixed(2)}` : '🆓 Gratis (Incluido)'}
+                </span>
+              </div>
+
+              <!-- FLAGS -->
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap; font-size: 0.78rem;">
+                <span style="background: var(--bg-surface); border: 1px solid var(--baby-blue-border); padding: 3px 8px; border-radius: 6px; font-weight: 700; color: var(--text-secondary);">
+                  Defecto: <strong>${i.includedByDefault ? '✅ Sí' : '❌ No'}</strong>
+                </span>
+                <span style="background: var(--bg-surface); border: 1px solid var(--baby-blue-border); padding: 3px 8px; border-radius: 6px; font-weight: 700; color: var(--text-secondary);">
+                  Removible: <strong>${i.removable ? '✅ Sí' : '❌ No'}</strong>
+                </span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
   }
@@ -2182,60 +2212,55 @@ document.addEventListener('DOMContentLoaded', () => {
         </button>
       </div>
 
-      <div class="table-responsive">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>Icono</th>
-              <th>Categoría</th>
-              <th>Imágenes Guardadas</th>
-              <th>Modo de Visualización de Imagen</th>
-              <th>Estado Visibilidad en Sitio</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${categories.map(c => `
-              <tr>
-                <td style="font-size: 1.5rem;">${c.icon}</td>
-                <td><strong>${c.name}</strong></td>
-                <td>
-                  <div style="display: flex; gap: 0.4rem; align-items: center;">
-                    <div style="text-align: center;">
-                      ${c.image ? `<img src="${c.image}" style="width: 38px; height: 38px; object-fit: cover; border-radius: 4px; border: 1px solid var(--baby-blue-border);" title="Imagen 1" />` : '<span style="font-size: 0.75rem; color: var(--text-muted);">Sin Img 1</span>'}
-                      <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-secondary);">Img 1</div>
-                    </div>
-                    <div style="text-align: center;">
-                      ${c.image2 ? `<img src="${c.image2}" style="width: 38px; height: 38px; object-fit: cover; border-radius: 4px; border: 1px solid var(--baby-blue-border);" title="Imagen 2" />` : '<span style="font-size: 0.75rem; color: var(--text-muted);">Sin Img 2</span>'}
-                      <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-secondary);">Img 2</div>
-                    </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.15rem;">
+        ${categories.map(c => `
+          <div style="background: var(--bg-card-dark); border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 1.25rem; display: flex; flex-direction: column; justify-content: space-between; gap: 0.85rem;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.6rem;">
+                  <span style="font-size: 1.8rem; background: var(--bg-surface); padding: 4px 10px; border-radius: 8px; border: 1px solid var(--baby-blue-border);">${c.icon}</span>
+                  <h3 style="font-size: 1.2rem; font-weight: 900; color: var(--text-primary); margin: 0;">${c.name}</h3>
+                </div>
+                <button onclick="toggleCategoryActiveFromAdmin('${c.id}')" style="background: ${c.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${c.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${c.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 5px 12px; border-radius: var(--radius-full); font-size: 0.78rem; font-weight: 800; cursor: pointer;">
+                  ${c.active !== false ? '👁️ Visible' : '🙈 Oculta'}
+                </button>
+              </div>
+
+              <!-- THUMBNAILS & DISPLAY MODE BOX -->
+              <div style="background: var(--bg-surface); padding: 0.75rem 0.9rem; border-radius: var(--radius-md); border: 1px solid var(--glass-border); margin-bottom: 0.75rem;">
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 0.4rem;">Imágenes Guardadas</div>
+                <div style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.65rem;">
+                  <div style="text-align: center;">
+                    ${c.image ? `<img src="${c.image}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--baby-blue-border);" title="Imagen 1" />` : '<span style="font-size: 0.72rem; color: var(--text-muted); display: block; padding: 10px;">Sin Img 1</span>'}
+                    <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-secondary); margin-top: 0.15rem;">Slot 1</div>
                   </div>
-                </td>
-                <td>
-                  <div style="display: flex; gap: 0.3rem; flex-wrap: wrap;">
-                    <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'image1')" style="background: ${(c.activeImage || 'image1') === 'image1' ? 'var(--secondary-baby-blue)' : 'var(--bg-surface)'}; color: ${(c.activeImage || 'image1') === 'image1' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--baby-blue-border); padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 800; cursor: pointer;">
-                      🖼️ Imagen 1
-                    </button>
-                    <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'image2')" style="background: ${c.activeImage === 'image2' ? 'var(--secondary-baby-blue)' : 'var(--bg-surface)'}; color: ${c.activeImage === 'image2' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--baby-blue-border); padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 800; cursor: pointer;">
-                      🖼️ Imagen 2
-                    </button>
-                    <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'rotate')" style="background: ${c.activeImage === 'rotate' ? 'var(--accent-gold)' : 'var(--bg-surface)'}; color: ${c.activeImage === 'rotate' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--gold-border); padding: 4px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 800; cursor: pointer;">
-                      🔄 Rotar (5s)
-                    </button>
+                  <div style="text-align: center;">
+                    ${c.image2 ? `<img src="${c.image2}" style="width: 44px; height: 44px; object-fit: cover; border-radius: 6px; border: 1px solid var(--baby-blue-border);" title="Imagen 2" />` : '<span style="font-size: 0.72rem; color: var(--text-muted); display: block; padding: 10px;">Sin Img 2</span>'}
+                    <div style="font-size: 0.68rem; font-weight: 700; color: var(--text-secondary); margin-top: 0.15rem;">Slot 2</div>
                   </div>
-                </td>
-                <td>
-                  <button onclick="toggleCategoryActiveFromAdmin('${c.id}')" style="background: ${c.active !== false ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)'}; color: ${c.active !== false ? '#059669' : '#DC2626'}; border: 1.5px solid ${c.active !== false ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}; padding: 6px 14px; border-radius: var(--radius-full); font-size: 0.85rem; font-weight: 800; cursor: pointer;">
-                    ${c.active !== false ? '👁️ Activa (Visible)' : '🙈 Oculta (Desactivada)'}
+                </div>
+
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 800; text-transform: uppercase; margin-bottom: 0.35rem;">Modo de Visualización</div>
+                <div style="display: flex; gap: 0.3rem; flex-wrap: wrap;">
+                  <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'image1')" style="flex: 1; min-width: 70px; background: ${(c.activeImage || 'image1') === 'image1' ? 'var(--secondary-baby-blue)' : 'var(--bg-card-dark)'}; color: ${(c.activeImage || 'image1') === 'image1' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--baby-blue-border); padding: 5px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; cursor: pointer; text-align: center;">
+                    🖼️ Slot 1
                   </button>
-                </td>
-                <td>
-                  <button onclick="openCategoryEditorModal('${c.id}')" style="background: var(--bg-surface); color: var(--text-primary); border: 1px solid var(--baby-blue-border); padding: 5px 12px; border-radius: 6px; font-weight: 800; cursor: pointer;">✏️ Editar Imágenes</button>
-                </td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+                  <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'image2')" style="flex: 1; min-width: 70px; background: ${c.activeImage === 'image2' ? 'var(--secondary-baby-blue)' : 'var(--bg-card-dark)'}; color: ${c.activeImage === 'image2' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--baby-blue-border); padding: 5px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; cursor: pointer; text-align: center;">
+                    🖼️ Slot 2
+                  </button>
+                  <button onclick="setCategoryActiveImageModeFromAdmin('${c.id}', 'rotate')" style="flex: 1; min-width: 85px; background: ${c.activeImage === 'rotate' ? 'var(--accent-gold)' : 'var(--bg-card-dark)'}; color: ${c.activeImage === 'rotate' ? '#FFFFFF' : 'var(--text-primary)'}; border: 1px solid var(--gold-border); padding: 5px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800; cursor: pointer; text-align: center;">
+                    🔄 Rotar 5s
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- ACTION FOOTER -->
+            <div style="border-top: 1px dashed var(--glass-border); padding-top: 0.75rem; margin-top: 0.25rem;">
+              <button onclick="openCategoryEditorModal('${c.id}')" class="btn-secondary" style="width: 100%; padding: 9px 12px; font-size: 0.88rem; font-weight: 800; justify-content: center;">✏️ Editar Imágenes / Datos</button>
+            </div>
+          </div>
+        `).join('')}
       </div>
     `;
   }
