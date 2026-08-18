@@ -1462,8 +1462,45 @@ document.addEventListener('DOMContentLoaded', () => {
   // ADMIN PORTAL VIEWS & AUTHENTICATION
   // ==========================================================================
 
-  function renderAdminPortal() {
+  // ==========================================================================
+  // ADMIN PORTAL VIEWS & AUTHENTICATION
+  // ==========================================================================
+
+  // Audio chime for new incoming orders
+  window.playNewOrderChime = () => {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15); // A5
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+    } catch (e) {}
+  };
+
+  window.onNewOrderArrived = (newOrder) => {
+    window.playNewOrderChime();
+    const activeRoute = getRouteFromHash();
+    if (activeRoute.startsWith('admin')) {
+      renderAdminPortal(true);
+    }
+  };
+
+  function renderAdminPortal(force = false) {
+    // 1. If NOT logged in as admin:
     if (!store.isLoggedInAdmin()) {
+      // If login form is ALREADY rendered on screen, DO NOT overwrite DOM inputs
+      if (!force && document.getElementById('admin-user')) {
+        return;
+      }
       appContainer.innerHTML = `
         <section class="section-container" style="max-width: 440px; padding-top: 3rem;">
           <div style="background: var(--bg-card-dark); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); padding: 2rem; text-align: center;">
@@ -1487,6 +1524,12 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </section>
       `;
+      return;
+    }
+
+    // 2. If active element inside appContainer is being typed into, don't clobber DOM unless forced
+    const activeEl = document.activeElement;
+    if (!force && activeEl && appContainer.contains(activeEl) && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT')) {
       return;
     }
 
@@ -1539,7 +1582,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pass = document.getElementById('admin-pass').value;
 
     if (store.authenticateAdmin(user, pass)) {
-      renderAdminPortal();
+      renderAdminPortal(true);
     } else {
       alert('Usuario o contraseña incorrectos.');
     }
@@ -1547,7 +1590,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.logoutAdmin = () => {
     store.logoutAdmin();
-    renderAdminPortal();
+    renderAdminPortal(true);
   };
 
   function renderAdminSubRoute(subRoute) {
@@ -2443,7 +2486,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
-        <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0;">📦 Órdenes Recibidas (${allOrders.length})</h1>
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 900; margin: 0; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+            📦 Órdenes Recibidas (${allOrders.length})
+            <span style="font-size: 0.75rem; background: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.4); padding: 4px 10px; border-radius: 20px; font-weight: 800; display: inline-flex; align-items: center; gap: 4px;">
+              <span style="width: 8px; height: 8px; background: #10B981; border-radius: 50%; display: inline-block;"></span> 🟢 En Vivo — Sincronización Universal
+            </span>
+          </h1>
+        </div>
         <button onclick="refreshAdminOrders()" class="btn-primary" style="padding: 0.55rem 1.25rem; font-size: 0.9rem;">
           🔄 Refrescar Órdenes
         </button>
@@ -2470,7 +2520,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="background: #FFFFFF; border: 1.5px solid var(--baby-blue-border); border-radius: var(--radius-lg); padding: 2.5rem 1.5rem; text-align: center;">
           <div style="font-size: 3rem; margin-bottom: 0.75rem;">📦</div>
           <h3 style="font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem;">No hay órdenes registradas</h3>
-          <p style="color: var(--text-secondary);">Las órdenes realizadas en el sitio web aparecerán aquí automáticamente.</p>
+          <p style="color: var(--text-secondary);">Las órdenes realizadas en el sitio web aparecerán aquí automáticamente en tiempo real.</p>
         </div>
       ` : `
         ${adminOrderPaymentFilter === 'all' ? `
@@ -2490,17 +2540,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.refreshAdminOrders = async () => {
     await store.fetchServerData();
-    renderAdminPortal();
+    renderAdminPortal(true);
   };
 
-  window.updateOrderStatusFromAdmin = (id, status) => {
-    store.updateOrderStatus(id, status);
+  window.updateOrderStatusFromAdmin = async (id, status) => {
+    await store.updateOrderStatus(id, status);
   };
 
-  window.deleteOrderFromAdmin = (id) => {
+  window.updateOrderPaymentStatusFromAdmin = async (id, paymentStatus) => {
+    await store.updateOrderPaymentStatus(id, paymentStatus);
+  };
+
+  window.deleteOrderFromAdmin = async (id) => {
     if (confirm(`⚠️ ¿Estás seguro de que deseas eliminar permanentemente la orden #${id} del historial? Esta acción no se puede deshacer.`)) {
-      store.deleteOrder(id);
-      renderAdminPortal();
+      await store.deleteOrder(id);
+      renderAdminPortal(true);
     }
   };
 

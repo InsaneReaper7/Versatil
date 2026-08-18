@@ -18,9 +18,23 @@ os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 DB_FILE = os.path.join(DATA_DIR, "db.json")
 
+def get_local_db_data():
+    if os.path.exists(DB_FILE):
+        try:
+            with open(DB_FILE, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                if content:
+                    return json.loads(content)
+        except Exception as e:
+            print(f"[Local DB Read Error]: {e}")
+    return {}
+
 def fetch_cloud_db_data(bin_id="", api_key="", kv_url="", kv_token=""):
-    bin_id = bin_id or os.environ.get("JSONBIN_BIN_ID", "")
-    api_key = api_key or os.environ.get("JSONBIN_API_KEY", "")
+    local = get_local_db_data()
+    local_settings = local.get("settings", {}) if isinstance(local, dict) else {}
+
+    bin_id = bin_id or os.environ.get("JSONBIN_BIN_ID", "") or local_settings.get("jsonbinBinId", "")
+    api_key = api_key or os.environ.get("JSONBIN_API_KEY", "") or local_settings.get("jsonbinApiKey", "")
     if bin_id:
         try:
             url = f"https://api.jsonbin.io/v3/b/{bin_id.strip()}/latest"
@@ -31,13 +45,13 @@ def fetch_cloud_db_data(bin_id="", api_key="", kv_url="", kv_token=""):
             with urllib.request.urlopen(req, timeout=8) as resp:
                 res_json = json.loads(resp.read().decode('utf-8'))
                 record = res_json.get('record', res_json)
-                if record and isinstance(record, dict) and ('products' in record or 'categories' in record):
+                if record and isinstance(record, dict) and ('products' in record or 'categories' in record or 'orders' in record):
                     return record
         except Exception as e:
             print(f"[Cloud DB Fetch Error]: {e}")
 
-    kv_url = kv_url or os.environ.get("UPSTASH_REDIS_REST_URL", "")
-    kv_token = kv_token or os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+    kv_url = kv_url or os.environ.get("UPSTASH_REDIS_REST_URL", "") or local_settings.get("upstashRestUrl", "")
+    kv_token = kv_token or os.environ.get("UPSTASH_REDIS_REST_TOKEN", "") or local_settings.get("upstashRestToken", "")
     if kv_url and kv_token:
         try:
             url = f"{kv_url.rstrip('/')}/get/verstail_db"
@@ -47,15 +61,16 @@ def fetch_cloud_db_data(bin_id="", api_key="", kv_url="", kv_token=""):
                 result = res_json.get('result')
                 if result:
                     parsed = json.loads(result)
-                    if parsed and isinstance(parsed, dict) and ('products' in parsed or 'categories' in parsed):
+                    if parsed and isinstance(parsed, dict) and ('products' in parsed or 'categories' in parsed or 'orders' in parsed):
                         return parsed
         except Exception as e:
             print(f"[Upstash KV Fetch Error]: {e}")
     return None
 
 def save_cloud_db_data(data_dict, bin_id="", api_key="", kv_url="", kv_token=""):
-    bin_id = bin_id or os.environ.get("JSONBIN_BIN_ID", "")
-    api_key = api_key or os.environ.get("JSONBIN_API_KEY", "")
+    local_settings = data_dict.get("settings", {}) if isinstance(data_dict, dict) else {}
+    bin_id = bin_id or os.environ.get("JSONBIN_BIN_ID", "") or local_settings.get("jsonbinBinId", "")
+    api_key = api_key or os.environ.get("JSONBIN_API_KEY", "") or local_settings.get("jsonbinApiKey", "")
     if bin_id:
         try:
             url = f"https://api.jsonbin.io/v3/b/{bin_id.strip()}"
@@ -71,8 +86,8 @@ def save_cloud_db_data(data_dict, bin_id="", api_key="", kv_url="", kv_token="")
         except Exception as e:
             print(f"[Cloud DB Save Error]: {e}")
 
-    kv_url = kv_url or os.environ.get("UPSTASH_REDIS_REST_URL", "")
-    kv_token = kv_token or os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+    kv_url = kv_url or os.environ.get("UPSTASH_REDIS_REST_URL", "") or local_settings.get("upstashRestUrl", "")
+    kv_token = kv_token or os.environ.get("UPSTASH_REDIS_REST_TOKEN", "") or local_settings.get("upstashRestToken", "")
     if kv_url and kv_token:
         try:
             url = f"{kv_url.rstrip('/')}/set/verstail_db"
@@ -85,37 +100,50 @@ def save_cloud_db_data(data_dict, bin_id="", api_key="", kv_url="", kv_token="")
         except Exception as e:
             print(f"[Upstash KV Save Error]: {e}")
 
+def get_unified_db_data():
+    cloud = fetch_cloud_db_data()
+    local = get_local_db_data()
+    if cloud and isinstance(cloud, dict):
+        # Update local db file with latest cloud state
+        try:
+            with open(DB_FILE, 'w', encoding='utf-8') as f:
+                f.write(json.dumps(cloud))
+        except Exception:
+            pass
+        return cloud
+    return local if isinstance(local, dict) else {}
+
+def save_unified_db_data(data_dict):
+    try:
+        with open(DB_FILE, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(data_dict))
+    except Exception as e:
+        print(f"[DB Save File Error]: {e}")
+    save_cloud_db_data(data_dict)
+
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=DIRECTORY, **kwargs)
 
     def do_GET(self):
+        # Dedicated orders API endpoint
+        if self.path == '/api/orders':
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            data = get_unified_db_data()
+            orders = data.get('orders', [])
+            self.wfile.write(json.dumps({"success": True, "orders": orders}).encode('utf-8'))
+            return
+
         # Serve global store data from db.json & Cloud DB
         if self.path == '/api/data':
             self.send_response(200)
             self.send_header('Content-Type', 'application/json')
             self.end_headers()
 
-            # 1. Attempt Cloud DB Fetch for multi-device live sync
-            cloud_data = fetch_cloud_db_data()
-            if cloud_data:
-                self.wfile.write(json.dumps(cloud_data).encode('utf-8'))
-                try:
-                    with open(DB_FILE, 'w', encoding='utf-8') as f:
-                        f.write(json.dumps(cloud_data))
-                except Exception:
-                    pass
-                return
-
-            # 2. Local Disk Fallback
-            if os.path.exists(DB_FILE):
-                try:
-                    with open(DB_FILE, 'r', encoding='utf-8') as f:
-                        self.wfile.write(f.read().encode('utf-8'))
-                        return
-                except Exception as e:
-                    print(f"Error reading DB: {e}")
-            self.wfile.write(json.dumps({}).encode('utf-8'))
+            data = get_unified_db_data()
+            self.wfile.write(json.dumps(data).encode('utf-8'))
             return
 
         path = self.translate_path(self.path)
@@ -124,6 +152,103 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return super().do_GET()
 
     def do_POST(self):
+        # Create or sync new order
+        if self.path == '/api/orders' or self.path == '/api/orders/add':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                payload = json.loads(post_data.decode('utf-8'))
+                new_order = payload.get('order') or payload
+                db_data = get_unified_db_data()
+                orders = db_data.get('orders', [])
+                if not isinstance(orders, list):
+                    orders = []
+
+                if isinstance(new_order, dict) and 'id' in new_order:
+                    # Remove existing if present then unshift
+                    orders = [o for o in orders if isinstance(o, dict) and o.get('id') != new_order['id']]
+                    orders.insert(0, new_order)
+                    db_data['orders'] = orders
+                    save_unified_db_data(db_data)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "orders": orders}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+            return
+
+        # Update order status or payment status
+        if self.path == '/api/orders/update':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                payload = json.loads(post_data.decode('utf-8'))
+                order_id = payload.get('id')
+                status = payload.get('status')
+                payment_status = payload.get('paymentStatus')
+
+                db_data = get_unified_db_data()
+                orders = db_data.get('orders', [])
+                if not isinstance(orders, list):
+                    orders = []
+
+                updated = False
+                for o in orders:
+                    if isinstance(o, dict) and o.get('id') == order_id:
+                        if status is not None:
+                            o['status'] = status
+                        if payment_status is not None:
+                            o['paymentStatus'] = payment_status
+                        o['updatedAt'] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                        updated = True
+                        break
+
+                if updated:
+                    db_data['orders'] = orders
+                    save_unified_db_data(db_data)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "orders": orders}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+            return
+
+        # Delete order by ID
+        if self.path == '/api/orders/delete':
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            try:
+                payload = json.loads(post_data.decode('utf-8'))
+                order_id = payload.get('id')
+
+                db_data = get_unified_db_data()
+                orders = db_data.get('orders', [])
+                if isinstance(orders, list):
+                    orders = [o for o in orders if isinstance(o, dict) and o.get('id') != order_id]
+                    db_data['orders'] = orders
+                    save_unified_db_data(db_data)
+
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": True, "orders": orders}).encode('utf-8'))
+            except Exception as e:
+                self.send_response(500)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": str(e)}).encode('utf-8'))
+            return
+
         # Upload Image File to Project Uploads Folder / Cloudinary CDN
         if self.path == '/api/upload-image':
             content_length = int(self.headers.get('Content-Length', 0))
@@ -188,16 +313,23 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             try:
                 data_dict = json.loads(post_data.decode('utf-8'))
-                with open(DB_FILE, 'w', encoding='utf-8') as f:
-                    f.write(json.dumps(data_dict))
+                
+                # Perform smart merge of orders so saving products/settings doesn't wipe existing customer orders
+                db_data = get_unified_db_data()
+                existing_orders = db_data.get('orders', []) if isinstance(db_data, dict) else []
+                posted_orders = data_dict.get('orders', [])
 
-                settings = data_dict.get('settings', {})
-                bin_id = settings.get('jsonbinBinId', '')
-                api_key = settings.get('jsonbinApiKey', '')
-                kv_url = settings.get('upstashRestUrl', '')
-                kv_token = settings.get('upstashRestToken', '')
+                order_map = {o['id']: o for o in existing_orders if isinstance(o, dict) and 'id' in o}
+                if isinstance(posted_orders, list):
+                    for po in posted_orders:
+                        if isinstance(po, dict) and 'id' in po:
+                            order_map[po['id']] = po
 
-                save_cloud_db_data(data_dict, bin_id=bin_id, api_key=api_key, kv_url=kv_url, kv_token=kv_token)
+                merged_orders = list(order_map.values())
+                merged_orders.sort(key=lambda x: str(x.get('createdAt', '')), reverse=True)
+                data_dict['orders'] = merged_orders
+
+                save_unified_db_data(data_dict)
 
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')

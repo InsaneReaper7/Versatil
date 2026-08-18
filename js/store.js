@@ -204,10 +204,55 @@ class Store {
     this.syncDefaults();
     this.fetchServerData();
 
-    // Auto-poll server every 10 seconds so mobile devices auto-sync category/setting changes in real-time
+    // Auto-poll server every 5 seconds so mobile & desktop devices sync orders and settings in real-time
     setInterval(() => {
       this.fetchServerData();
-    }, 10000);
+    }, 5000);
+  }
+
+  async syncCloudDbDirectly() {
+    // Client-side multi-tier fallback direct to Cloud DB (JSONBin / Upstash Redis KV)
+    try {
+      const binId = (this.settings.jsonbinBinId || '').trim();
+      const apiKey = (this.settings.jsonbinApiKey || '').trim();
+      if (binId) {
+        const state = {
+          products: this.products,
+          categories: this.categories,
+          ingredients: this.ingredients,
+          settings: this.settings,
+          orders: this.orders
+        };
+        fetch(`https://api.jsonbin.io/v3/b/${binId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': apiKey
+          },
+          body: JSON.stringify(state)
+        }).catch(() => {});
+      }
+
+      const kvUrl = (this.settings.upstashRestUrl || '').trim();
+      const kvToken = (this.settings.upstashRestToken || '').trim();
+      if (kvUrl && kvToken) {
+        const state = {
+          products: this.products,
+          categories: this.categories,
+          ingredients: this.ingredients,
+          settings: this.settings,
+          orders: this.orders
+        };
+        fetch(`${kvUrl.replace(/\/$/, '')}/set/verstail_db`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${kvToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(state)
+        }).catch(() => {});
+      }
+    } catch (e) {}
   }
 
   async fetchServerData() {
@@ -215,7 +260,7 @@ class Store {
       const res = await fetch('/api/data');
       if (res.ok) {
         const data = await res.json();
-        if (data && ((data.products && data.products.length > 0) || (data.categories && data.categories.length > 0))) {
+        if (data && ((data.products && data.products.length > 0) || (data.categories && data.categories.length > 0) || Array.isArray(data.orders))) {
           // Smart merge products to preserve uploaded image URLs
           if (data.products && data.products.length > 0) {
             data.products.forEach(sp => {
@@ -252,12 +297,39 @@ class Store {
 
           if (data.ingredients) this.ingredients = data.ingredients;
 
+          // Universal Authoritative Order Synchronization
           if (Array.isArray(data.orders)) {
-            if (data.orders.length > 0) {
-              const orderMap = new Map();
-              (this.orders || []).forEach(o => { if (o && o.id) orderMap.set(o.id, o); });
-              data.orders.forEach(o => { if (o && o.id) orderMap.set(o.id, o); });
-              this.orders = Array.from(orderMap.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            const previousOrdersJson = JSON.stringify(this.orders);
+            const serverOrderIds = new Set(data.orders.map(o => o && o.id).filter(Boolean));
+            const orderMap = new Map();
+
+            // 1. Authoritative server orders
+            data.orders.forEach(so => {
+              if (so && so.id) orderMap.set(so.id, so);
+            });
+
+            // 2. Preserve un-synced very recent local orders (< 30 seconds old)
+            const now = Date.now();
+            (this.orders || []).forEach(lo => {
+              if (lo && lo.id && !serverOrderIds.has(lo.id)) {
+                const created = new Date(lo.createdAt || 0).getTime();
+                if (now - created < 30000) {
+                  orderMap.set(lo.id, lo);
+                }
+              }
+            });
+
+            const sortedOrders = Array.from(orderMap.values()).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+            const newOrdersJson = JSON.stringify(sortedOrders);
+
+            // Check if new orders arrived to trigger alert
+            const prevCount = (this.orders || []).length;
+            this.orders = sortedOrders;
+
+            if (newOrdersJson !== previousOrdersJson) {
+              if (sortedOrders.length > prevCount && window.onNewOrderArrived) {
+                window.onNewOrderArrived(sortedOrders[0]);
+              }
             }
           }
 
@@ -291,6 +363,7 @@ class Store {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state)
       }).catch(() => {});
+      this.syncCloudDbDirectly();
     } catch (e) {}
   }
 
@@ -523,38 +596,89 @@ class Store {
 
   // --- ORDERS ---
   getOrders() { return this.orders; }
-  addOrder(order) {
-    order.id = 'V-' + Math.floor(1000 + Math.random() * 9000);
-    order.createdAt = new Date().toISOString();
-    order.status = 'Pendiente';
+  
+  async addOrder(order) {
+    order.id = order.id || ('V-' + Math.floor(1000 + Math.random() * 9000));
+    order.createdAt = order.createdAt || new Date().toISOString();
+    order.updatedAt = new Date().toISOString();
+    order.status = order.status || 'Pendiente';
     order.paymentStatus = order.paymentStatus || 'No Pagado';
     if (!Array.isArray(this.orders)) this.orders = [];
     this.orders.unshift(order);
     this.save(STORAGE_KEYS.ORDERS, this.orders);
+
+    // Immediate POST to dedicated /api/orders
+    try {
+      await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order })
+      });
+    } catch (e) {}
+
+    this.syncCloudDbDirectly();
     this.syncWithServer();
     this.notify();
     return order;
   }
 
-  updateOrderStatus(orderId, status) {
+  async updateOrderStatus(orderId, status) {
     const order = this.orders.find(o => o.id === orderId);
     if (order) {
       order.status = status;
+      order.updatedAt = new Date().toISOString();
       this.save(STORAGE_KEYS.ORDERS, this.orders);
+
+      try {
+        await fetch('/api/orders/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: orderId, status: status })
+        });
+      } catch (e) {}
+
+      this.syncCloudDbDirectly();
+      this.syncWithServer();
+      this.notify();
     }
   }
 
-  updateOrderPaymentStatus(orderId, paymentStatus) {
+  async updateOrderPaymentStatus(orderId, paymentStatus) {
     const order = this.orders.find(o => o.id === orderId);
     if (order) {
       order.paymentStatus = paymentStatus;
+      order.updatedAt = new Date().toISOString();
       this.save(STORAGE_KEYS.ORDERS, this.orders);
+
+      try {
+        await fetch('/api/orders/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: orderId, paymentStatus: paymentStatus })
+        });
+      } catch (e) {}
+
+      this.syncCloudDbDirectly();
+      this.syncWithServer();
+      this.notify();
     }
   }
 
-  deleteOrder(orderId) {
+  async deleteOrder(orderId) {
     this.orders = this.orders.filter(o => o.id !== orderId);
     this.save(STORAGE_KEYS.ORDERS, this.orders);
+
+    try {
+      await fetch('/api/orders/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId })
+      });
+    } catch (e) {}
+
+    this.syncCloudDbDirectly();
+    this.syncWithServer();
+    this.notify();
   }
 
   // --- SETTINGS ---
