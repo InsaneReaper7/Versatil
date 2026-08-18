@@ -316,19 +316,7 @@ class Store {
           if (Array.isArray(data.expenseItems)) this.expenseItems = data.expenseItems;
 
           if (Array.isArray(data.expenditures)) {
-            const serverExpIds = new Set(data.expenditures.map(e => e && e.id).filter(Boolean));
-            const expMap = new Map();
-            data.expenditures.forEach(se => { if (se && se.id) expMap.set(se.id, se); });
-            
-            const now = Date.now();
-            (this.expenditures || []).forEach(le => {
-              if (le && le.id && !serverExpIds.has(le.id)) {
-                const created = new Date(le.createdAt || le.date || 0).getTime();
-                if (now - created < 30000) expMap.set(le.id, le);
-              }
-            });
-
-            this.expenditures = Array.from(expMap.values()).sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
+            this.expenditures = data.expenditures.sort((a, b) => new Date(b.date || b.createdAt || 0) - new Date(a.date || a.createdAt || 0));
           }
 
           // Universal Authoritative Order Synchronization
@@ -744,9 +732,19 @@ class Store {
     return item;
   }
 
-  deleteExpenseItem(id) {
+  async deleteExpenseItem(id) {
     this.expenseItems = (this.expenseItems || []).filter(i => i.id !== id);
     this.save(STORAGE_KEYS.EXPENSE_ITEMS, this.expenseItems);
+
+    try {
+      await fetch('/api/expense-items/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id })
+      });
+    } catch (e) {}
+
+    this.syncCloudDbDirectly();
     this.syncWithServer(true);
     this.notify();
   }
@@ -768,6 +766,16 @@ class Store {
   async deleteExpenditure(id) {
     this.expenditures = (this.expenditures || []).filter(e => e.id !== id);
     this.save(STORAGE_KEYS.EXPENDITURES, this.expenditures);
+
+    try {
+      await fetch('/api/expenditures/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id })
+      });
+    } catch (e) {}
+
+    this.syncCloudDbDirectly();
     this.syncWithServer(true);
     this.notify();
   }
