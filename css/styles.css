@@ -50,8 +50,10 @@
   --radius-lg: 24px;
   --radius-full: 9999px;
 
-  /* Typography */
-  --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* Basancra Elegant Typography System */
+  --font-serif: 'Playfair Display', 'Cinzel', Georgia, serif;
+  --font-brand: 'Cinzel', 'Playfair Display', Georgia, serif;
+  --font-family: 'Playfair Display', 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', serif;
 }
 
 * {
@@ -69,6 +71,11 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   padding-bottom: 85px; /* Space for sticky mobile cart bar */
+}
+
+h1, h2, h3, h4, h5, h6, .section-title, .hero-title, .brand-logo-text {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
 }
 
 a {

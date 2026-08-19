@@ -289,37 +289,16 @@ class Store {
             expenditures: this.expenditures
           });
 
-          // Smart merge products to preserve uploaded image URLs
+          // Server database is the single authoritative source of truth for products, categories & images
           if (data.products && data.products.length > 0) {
-            data.products.forEach(sp => {
-              const localP = this.products.find(lp => lp.id === sp.id);
-              if (localP) {
-                if ((!sp.image || !sp.image.trim()) && localP.image) sp.image = localP.image;
-              }
-            });
             this.products = data.products;
           }
 
-          // Smart merge categories: Server is the authoritative source for active/hidden state and activeImage mode
           if (data.categories && data.categories.length > 0) {
-            data.categories.forEach(sc => {
-              const localC = this.categories.find(lc => lc.id === sc.id);
-              if (localC) {
-                if ((!sc.image || !sc.image.trim()) && localC.image) sc.image = localC.image;
-                if ((!sc.image2 || !sc.image2.trim()) && localC.image2) sc.image2 = localC.image2;
-              }
-            });
             this.categories = data.categories;
           }
 
-          // Smart merge settings to preserve Cloudinary credentials
           if (data.settings) {
-            if (!data.settings.cloudinaryCloudName && this.settings.cloudinaryCloudName) {
-              data.settings.cloudinaryCloudName = this.settings.cloudinaryCloudName;
-            }
-            if (!data.settings.cloudinaryUploadPreset && this.settings.cloudinaryUploadPreset) {
-              data.settings.cloudinaryUploadPreset = this.settings.cloudinaryUploadPreset;
-            }
             this.settings = { ...this.settings, ...data.settings };
           }
 

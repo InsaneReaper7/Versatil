@@ -282,24 +282,27 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                     except Exception as c_err:
                         print(f"[Cloudinary Upload Error]: {c_err}")
 
-                # 2. Local File System Fallback
-                if ',' in img_data:
-                    header, b64_str = img_data.split(',', 1)
-                else:
-                    b64_str = img_data
+                # 2. Permanent Data URI Fallback (100% Persistent across container wipes)
+                data_uri_url = img_data if img_data.startswith('data:') else f"data:image/jpeg;base64,{img_data}"
+                
+                # Also save to local uploads directory for static serving
+                try:
+                    if ',' in img_data:
+                        header, b64_str = img_data.split(',', 1)
+                    else:
+                        b64_str = img_data
+                    img_bytes = base64.b64decode(b64_str)
+                    filename = f"img_{int(time.time()*1000)}.jpg"
+                    filepath = os.path.join(UPLOADS_DIR, filename)
+                    with open(filepath, 'wb') as f:
+                        f.write(img_bytes)
+                except Exception as file_err:
+                    print(f"[Upload Local Save Warning]: {file_err}")
 
-                img_bytes = base64.b64decode(b64_str)
-                filename = f"img_{int(time.time()*1000)}.jpg"
-                filepath = os.path.join(UPLOADS_DIR, filename)
-
-                with open(filepath, 'wb') as f:
-                    f.write(img_bytes)
-
-                public_url = f"uploads/{filename}"
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
-                self.wfile.write(json.dumps({"success": True, "url": public_url, "provider": "local"}).encode('utf-8'))
+                self.wfile.write(json.dumps({"success": True, "url": data_uri_url, "provider": "data-uri"}).encode('utf-8'))
             except Exception as e:
                 self.send_response(500)
                 self.send_header('Content-Type', 'application/json')

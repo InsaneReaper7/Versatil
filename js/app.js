@@ -156,6 +156,82 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // --- STORY VIDEO EMBED & EXPAND/COLLAPSE ENGINE WITH STOP CONTROLS ---
+  function formatVideoEmbedHTML(url) {
+    if (!url || typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    let embedUrl = trimmed;
+
+    if (trimmed.includes('youtube.com/watch') || trimmed.includes('youtu.be/')) {
+      let videoId = '';
+      if (trimmed.includes('youtu.be/')) {
+        videoId = trimmed.split('youtu.be/')[1].split('?')[0].split('&')[0];
+      } else if (trimmed.includes('v=')) {
+        videoId = trimmed.split('v=')[1].split('&')[0];
+      }
+      if (videoId) embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
+    } else if (trimmed.includes('vimeo.com/')) {
+      const vimeoId = trimmed.split('vimeo.com/')[1].split('?')[0].split('/')[0];
+      if (vimeoId) embedUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=1`;
+    }
+
+    if (embedUrl.includes('youtube.com/embed') || embedUrl.includes('vimeo.com/player')) {
+      return `<iframe id="story-video-iframe" src="${embedUrl}" style="width: 100%; aspect-ratio: 16/9; border: none; border-radius: var(--radius-lg);" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen data-original-src="${embedUrl}"></iframe>`;
+    } else {
+      return `<video id="story-video-player" src="${trimmed}" controls autoplay style="width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: var(--radius-lg);"></video>`;
+    }
+  }
+
+  window.toggleStoryVideoExpand = () => {
+    const container = document.getElementById('story-video-expand-container');
+    const btnText = document.getElementById('story-video-toggle-text');
+    const btn = document.getElementById('story-video-toggle-btn');
+    if (!container) return;
+
+    const isHidden = container.style.display === 'none' || !container.style.display;
+    if (isHidden) {
+      container.style.display = 'block';
+      if (btnText) btnText.textContent = '✖ Ocultar Video';
+      if (btn) {
+        btn.style.background = 'rgba(239, 68, 68, 0.12)';
+        btn.style.color = '#EF4444';
+        btn.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+      }
+
+      // Restore video src if cleared
+      const iframe = document.getElementById('story-video-iframe');
+      if (iframe) {
+        const orig = iframe.getAttribute('data-original-src');
+        if (orig && (!iframe.src || iframe.src === 'about:blank')) {
+          iframe.src = orig;
+        }
+      }
+      const videoTag = document.getElementById('story-video-player');
+      if (videoTag) videoTag.play().catch(() => {});
+
+      container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      container.style.display = 'none';
+      if (btnText) btnText.textContent = '🎬 Ver Historia en Video';
+      if (btn) {
+        btn.style.background = 'var(--baby-blue-light)';
+        btn.style.color = 'var(--secondary-baby-blue-hover)';
+        btn.style.borderColor = 'var(--baby-blue-border)';
+      }
+
+      // STOP video immediately when hidden by clearing iframe src or pausing video tag
+      const iframe = document.getElementById('story-video-iframe');
+      if (iframe) {
+        iframe.src = 'about:blank';
+      }
+      const videoTag = document.getElementById('story-video-player');
+      if (videoTag) {
+        videoTag.pause();
+        videoTag.currentTime = 0;
+      }
+    }
+  };
+
   // --- 5-SECOND CATEGORY IMAGE ROTATION TICKER ---
   function isValidImageUrl(url) {
     if (!url || typeof url !== 'string') return false;
@@ -243,6 +319,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isValidImageUrl(catImg)) return catImg;
     }
     
+    // Cross-category fallback for Versa To Go -> Mega Té image
+    if (prod.category === 'versa-to-go') {
+      const megaTeCat = categories.find(c => c.id === 'mega-te');
+      if (megaTeCat) {
+        const megaImg = getCategoryActiveImage(megaTeCat);
+        if (isValidImageUrl(megaImg)) return megaImg;
+      }
+    }
+
     const siblings = store.getProducts().filter(p => (p.category === prod.category || p.category === (cat ? cat.id : '')) && isValidImageUrl(p.image));
     if (siblings.length > 0) return siblings[0].image.trim();
     return '';
@@ -287,11 +372,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         <p class="hero-subtitle" style="max-width: 720px; margin: 0.85rem auto 1.5rem; line-height: 1.65; font-size: 1.05rem; font-weight: 500;">
           ${settings.storyText || 'Versátil Nutrition nació de una necesidad que terminó cambiando nuestro camino. A veces esperamos tocar fondo para empezar algo nuevo, pero ¿y si no tienes que esperar? Si buscas generar ingresos extras o construir una oportunidad para tu futuro, escríbenos. 💙.'}
+          ${settings.showStoryVideo !== false ? `
+            <button onclick="toggleStoryVideoExpand()" id="story-video-toggle-btn" style="margin-left: 0.5rem; background: var(--baby-blue-light); color: var(--secondary-baby-blue-hover); border: 1.5px solid var(--baby-blue-border); padding: 5px 14px; border-radius: var(--radius-full); font-size: 0.88rem; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: all 0.25 ease; box-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);">
+              🎬 <span id="story-video-toggle-text">Ver Historia en Video</span>
+            </button>
+          ` : ''}
         </p>
 
-        <!-- FEATURED STORY VIDEO SECTION (TOGGLEABLE VIA ADMIN) -->
+        <!-- EXPANDABLE STORY VIDEO SECTION (HIDDEN BY DEFAULT, STOPS ON CLOSE) -->
         ${settings.showStoryVideo !== false ? `
-          <div style="max-width: 680px; margin: 1rem auto 1.75rem;">
+          <div id="story-video-expand-container" style="display: none; max-width: 680px; margin: 1rem auto 1.75rem; transition: all 0.3s ease;">
+            <div style="display: flex; justify-content: flex-end; margin-bottom: 0.5rem;">
+              <button onclick="toggleStoryVideoExpand()" style="background: rgba(239, 68, 68, 0.12); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 12px; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 800; cursor: pointer;">
+                ✖ Ocultar Video
+              </button>
+            </div>
             ${settings.storyVideoUrl ? `
               <div style="border-radius: var(--radius-lg); overflow: hidden; border: 2px solid var(--secondary-baby-blue); box-shadow: 0 12px 35px rgba(56, 189, 248, 0.22);">
                 ${formatVideoEmbedHTML(settings.storyVideoUrl)}
@@ -313,8 +408,14 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         ` : ''}
 
-        <div class="hero-delivery-badge">
-          <span>🚚</span> Delivery Incluido | 📲 WhatsApp: 939-312-0599
+        <div class="hero-delivery-badge" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.6rem;">
+          <span>🚚 Delivery Incluido</span>
+          <span style="opacity: 0.4;">|</span>
+          <span>📲 WhatsApp: 939-312-0599</span>
+          <span style="opacity: 0.4;">|</span>
+          <a href="https://www.instagram.com/versatil.nutrition/" target="_blank" rel="noopener" style="color: #E1306C; font-weight: 800; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; background: rgba(225, 48, 108, 0.1); padding: 2px 10px; border-radius: 999px; border: 1px solid rgba(225, 48, 108, 0.3);">
+            📷 @versatil.nutrition
+          </a>
         </div>
 
         <div class="hero-actions">
@@ -1301,10 +1402,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
           <div class="form-group">
             <label>Municipio de Entrega / Recogido (Puerto Rico) *</label>
-            <select id="cust-town" class="form-input" required style="font-weight: 700; cursor: pointer;">
-              <option value="" disabled selected>-- Selecciona tu Municipio --</option>
+            <input type="text" id="cust-town" class="form-input" list="pr-towns-list" required placeholder="Escribe tu pueblo (ej. Ciales, Cidra, San Juan)" autocomplete="off" oninput="if(window.validateTownInput) window.validateTownInput(this)" style="font-weight: 700;" />
+            <datalist id="pr-towns-list">
               ${PUERTO_RICO_TOWNS.map(town => `<option value="${town}">${town}</option>`).join('')}
-            </select>
+            </datalist>
+            <div id="town-error-msg" style="display: none; color: #EF4444; font-size: 0.82rem; font-weight: 700; margin-top: 0.35rem;">
+              ⚠️ Por favor selecciona un pueblo o municipio válido de Puerto Rico (ej. Ciales, Cidra, San Juan).
+            </div>
           </div>
 
           ${settings.askCustomerEmail ? `
@@ -1420,12 +1524,40 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  window.validateTownInput = (inputEl) => {
+    if (!inputEl) return;
+    const val = inputEl.value.trim();
+    const errEl = document.getElementById('town-error-msg');
+    const matched = PUERTO_RICO_TOWNS.some(t => t.toLowerCase() === val.toLowerCase());
+    if (val && !matched) {
+      if (errEl) errEl.style.display = 'block';
+      inputEl.style.borderColor = '#EF4444';
+    } else {
+      if (errEl) errEl.style.display = 'none';
+      inputEl.style.borderColor = 'var(--baby-blue-border)';
+    }
+  };
+
   window.handleCheckoutSubmit = async (e) => {
     e.preventDefault();
-    const name = document.getElementById('cust-name').value;
-    const phone = document.getElementById('cust-phone').value;
-    const town = document.getElementById('cust-town') ? document.getElementById('cust-town').value : '';
-    const email = document.getElementById('cust-email') ? document.getElementById('cust-email').value : '';
+    const name = document.getElementById('cust-name').value.trim();
+    const phone = document.getElementById('cust-phone').value.trim();
+    const townInput = document.getElementById('cust-town');
+    const rawTown = townInput ? townInput.value.trim() : '';
+    const email = document.getElementById('cust-email') ? document.getElementById('cust-email').value.trim() : '';
+
+    // Enforce that town input MUST match one of the 78 PR towns
+    const matchedTown = PUERTO_RICO_TOWNS.find(t => t.toLowerCase() === rawTown.toLowerCase());
+    if (!matchedTown) {
+      const errEl = document.getElementById('town-error-msg');
+      if (errEl) errEl.style.display = 'block';
+      if (townInput) {
+        townInput.focus();
+        townInput.style.borderColor = '#EF4444';
+      }
+      alert('⚠️ Por favor escribe y selecciona un pueblo o municipio válido de Puerto Rico (ej. Ciales, Cidra, San Juan).');
+      return;
+    }
 
     const cart = store.getCart();
     const settings = store.getSettings();
@@ -1438,7 +1570,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const newOrder = store.addOrder({
       customerName: name,
       customerPhone: phone,
-      customerTown: town,
+      customerTown: matchedTown,
       customerEmail: email,
       items: cart
     });
